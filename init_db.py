@@ -1,7 +1,7 @@
 import os
 import psycopg2
 
-unix_socket = os.environ(['DB_HOST'])
+unix_socket = os.environ['DB_HOST']
 
 conn = psycopg2.connect(database = os.environ['DB_NAME'],
 						user = os.environ['DB_USERNAME'],
