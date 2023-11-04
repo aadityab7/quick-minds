@@ -11,6 +11,8 @@ import requests
 
 import psycopg2
 
+from utilities import utils
+
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get("SECRET_KEY", os.urandom(12))
 app.config["SESSION_PERMANENT"] = False
@@ -18,3 +20,8 @@ app.config["SESSION_TYPE"] = "filesystem"
 
 Session(app)
 oauth = OAuth(app)
+
+@app.route('/', methods = ('GET', 'POST'))
+@app.route('/home', methods = ('GET', 'POST'))
+def index():
+	return utils.index_page()
