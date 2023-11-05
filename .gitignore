@@ -156,3 +156,4 @@ dmypy.json
 cython_debug/
 
 *.json
+flask_session/
