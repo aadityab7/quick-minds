@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>{% block title %} {% endblock %}</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://cdn.tailwindcss.com?plugins=forms,typography,aspect-ratio,line-clamp"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+  <header id = "header" class="bg-gray-50">
+    <div class="mx-auto max-w-screen-xl px-4 py-8 sm:px-6 lg:px-8">
+      <div id = "headerContent" class="flex items-center justify-between sm:gap-4">
+        <div id = "app_title">
+          <a href="{{ url_for('index') }}">
+            <h1 class="text-xl text-gray-900 sm:text-xl">
+              QUICK MINDS
+            </h1> 
+          </a>
+        </div>
+        
+
+        <div
+          class="flex flex-1 items-center justify-end gap-4 sm:gap-8"
+        >
+            <form method="GET" action="/search">
+                <div id="searchBar" class="relative hidden sm:block">
+                    <label class="sr-only" for="search"> Search </label>
+
+                    <input
+                      class="h-10 w-full rounded-full border-none bg-white pe-10 ps-4 text-sm shadow-sm sm:w-56"
+                      id="search"
+                      type="search"
+                      placeholder="Search website..."
+                      name = "search_term"
+                    />
+
+                    <button
+                      type="submit"
+                      class="absolute end-1 top-1/2 -translate-y-1/2 rounded-full bg-gray-50 p-2 text-gray-600 transition hover:text-gray-700"
+                    >
+                      <span class="sr-only">Search</span>
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        class="h-4 w-4"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                        stroke-width="2"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                        />
+                      </svg>
+                    </button>
+                  </div>
+            </form>
+          
+          <button
+            id="searchButton"
+            type="button"
+            class="block shrink-0 rounded-lg bg-white p-2 text-gray-600 shadow-sm hover:text-gray-700 sm:hidden"
+            onclick="displaySearchBar()"
+          >
+            <span class="sr-only">Search</span>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="h-5 w-5"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+              />
+            </svg>
+          </button>
+
+          <span
+            aria-hidden="true"
+            class="hidden sm:block h-6 w-px rounded-full bg-gray-200"
+          ></span>  
+
+          <div id="user_info" class="relative {% if user_id%} block {% else %} hidden {% endif %}">
+            <button
+              id="menuButton"
+              type="button"
+              class="group flex shrink-0 items-center rounded-lg transition"
+            >
+              <span class="sr-only">Menu</span>
+              <div class="block shrink-0">
+                  <img
+                    alt="profile_picture"
+                    src={{user_picture_url}}
+                    class="h-10 w-10 rounded-full object-cover"
+                  />
+              </div>
+              
+
+              <p class="ms-2 hidden text-left text-xs sm:block">
+                <strong class="block font-medium">{{user_name}}</strong>
+
+                <span class="text-gray-500">{{user_email}}</span>
+              </p>
+
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="ms-4 hidden h-5 w-5 text-gray-500 transition group-hover:text-gray-700 sm:block"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <path
+                  fill-rule="evenodd"
+                  d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                  clip-rule="evenodd"
+                />
+              </svg>
+            </button>
+
+            <div
+              id="dropdownMenu"
+              class="hidden absolute end-0 z-10 mt-2 w-56 rounded-md border border-gray-100 bg-white shadow-lg"
+              role="menu"
+            >
+              <div class="p-2">
+                <form method="POST" action="/logout">
+                  <button
+                    type="submit"
+                    class="flex w-full items-center gap-2 rounded-lg px-4 py-2 text-sm text-red-700 hover:bg-red-50"
+                    role="menuitem"
+                  >
+                    Logout
+                  </button>
+                </form>
+              </div>
+            </div>
+          </div>
+
+          <a
+            id = "login_button"
+            href = "{{url_for('login')}}"
+            class="{% if user_id%} hidden {% else %} block {% endif %} inline-block shrink-0 rounded-md border border-blue-600 bg-blue-600 px-12 py-3 text-sm font-medium text-white transition hover:bg-transparent hover:text-blue-600 focus:outline-none focus:ring active:text-blue-500"
+          >
+            Log In
+          </a>
+
+          <a
+            id = "sign_up_button"
+            href = "{{url_for('sign_up')}}"
+            class="{% if user_id%} hidden {% else %} block {% endif %} inline-block shrink-0 rounded-md border border-blue-600 bg-blue-600 px-12 py-3 text-sm font-medium text-white transition hover:bg-transparent hover:text-blue-600 focus:outline-none focus:ring active:text-blue-500"
+          >
+            Sign Up
+          </a>
+          
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <div>
+
+      {% for message in get_flashed_messages() %}
+        <div class="mx-auto max-w-screen-xl">
+          <div role="alert" class="rounded-xl border border-gray-100 bg-white p-4 mx-4 my-8 sm:mx-6 lg:mx-8">
+            <div class="flex items-start gap-4">
+              <span class="text-red-600">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke-width="1.5"
+                  stroke="currentColor"
+                  class="h-6 w-6"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
+              </span>
+
+              <div class="flex-1">
+                <strong class="block font-medium text-gray-900">{{ message }}</strong>
+              </div>
+
+              <button class="text-gray-500 transition hover:text-gray-600" onclick="dismissAlert(this)">
+                <span class="sr-only">Dismiss popup</span>
+
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke-width="1.5"
+                  stroke="currentColor"
+                  class="h-6 w-6"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+
+      {% block content %} {% endblock %}
+
+    </div>
+
+    <script>
+      // Get references to the button and dropdown menu
+      const menuButton = document.getElementById('menuButton');
+      const dropdownMenu = document.getElementById('dropdownMenu');
+
+      // Add a click event listener to the button
+      menuButton.addEventListener('click', function (event) {
+        // Toggle the 'hidden' class to show/hide the dropdown menu
+        dropdownMenu.classList.toggle('hidden');
+        
+        // Prevent the click event from propagating to the document
+        event.stopPropagation();
+      });
+
+      // Add a click event listener to the document to close the dropdown when clicking anywhere else
+      document.addEventListener('click', function (event) {
+        if (event.target !== menuButton && !dropdownMenu.contains(event.target)) {
+          dropdownMenu.classList.add('hidden');
+        }
+      });
+    </script>
+
+
+    <script>
+      function dismissAlert(button) {
+        const alert = button.closest('div[role="alert"]');
+        if (alert) {
+          alert.style.display = 'none';
+        }
+      }
+    </script>
+
+    <script>
+      // Get references to the button and dropdown menu
+      const searchButton = document.getElementById('searchButton');
+      const searchBar = document.getElementById('searchBar');
+      const app_title = document.getElementById("app_title");
+
+      // Add a click event listener to the button
+      searchButton.addEventListener('click', function (event) {
+        // Toggle the 'hidden' class to show/hide the dropdown menu
+        searchBar.classList.toggle('hidden');
+        app_title.classList.toggle('hidden');
+        searchButton.classList.toggle('ring');
+        searchButton.classList.toggle('bg-white');
+        searchButton.classList.toggle('bg-gray-100');
+        
+        // Prevent the click event from propagating to the document
+        event.stopPropagation();
+      });
+
+      // Add a click event listener to the document to close the dropdown when clicking anywhere else
+      document.addEventListener('click', function (event) {
+        if (event.target !== searchButton && !searchBar.contains(event.target)) {
+          searchBar.classList.add('hidden');
+          app_title.classList.remove('hidden');
+          searchButton.classList.remove('ring');
+          searchButton.classList.add('bg-white');
+          searchButton.classList.remove('bg-gray-100');
+        }
+      });
+    </script>
+</body>
+</html>

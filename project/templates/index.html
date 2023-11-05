@@ -1,0 +1,221 @@
+{% extends 'base.html' %}
+
+{% block title %}QUICK MINDS{% endblock %}
+
+{% block content %}
+
+	<div id="lower" class="grow py-3 px-3 bg-gray-50 rounded-t-lg">
+      
+		<div id = "section-buttons" class="flex justify-center items-center mb-3">
+			<button id = "for_you_page_button" class="mr-3">For You</button>
+
+			<span
+				aria-hidden="true"
+				class="block h-4 w-px rounded-full bg-gray-900"
+			></span>
+
+			<button id="trending_page_button" class="ml-3">Trending</button>
+		</div>
+
+	    <div id="for_you_page">
+	        <template id="question-template">
+	          	<a href="">
+	            	<div class="question-list-box">
+	              		<p id = "author_user_id"> </p>
+	              		<p id = "question_text"> </p>
+	              		<p id = "created_time"></p>
+	              		<p id="votes"></p>
+	            	</div>
+	          	</a>
+	        </template>
+	    </div>
+
+      	<div id="trending_page">
+	        <template id="question-template">
+	          	<a href="">
+	            	<div class="question-list-box">
+	              		<p id = "author_user_id"> </p>
+	              		<p id = "question_text"> </p>
+	              		<p id = "created_time"></p>
+	              		<p id="votes"></p>
+	            	</div>
+	          	</a>
+	        </template>
+	    </div>
+
+    	</div>
+
+    <script>
+	    // Add event listeners to the buttons
+	    var for_you_page_button = document.getElementById('for_you_page_button');
+	    var trending_page_button = document.getElementById('trending_page_button');
+	    var for_you_page = document.getElementById('for_you_page');
+	    var trending_page = document.getElementById('trending_page');
+
+	    for_you_page_button.addEventListener('click', function () {
+	        for_you_page.style.display = 'block';
+	        trending_page.style.display = 'none';
+
+	        // Add the .clicked class to the clicked button and remove it from the other button
+	        for_you_page_button.classList.add('font-bold');
+	        trending_page_button.classList.remove('font-bold');
+	    });
+
+	    trending_page_button.addEventListener('click', function () {
+	        for_you_page.style.display = 'none';
+	        trending_page.style.display = 'block';
+
+	        // Add the .clicked class to the clicked button and remove it from the other button
+	        trending_page_button.classList.add('font-bold');
+	        for_you_page_button.classList.remove('font-bold');
+	    });
+
+	    // Initially, display the "For You" section by default and make the "For You" button bold
+	    trending_page.style.display = 'none';
+	    for_you_page.style.display = 'block';
+	    for_you_page_button.classList.add('font-bold');
+
+	    // Lazy loading and infinite scrolling
+	    var offsetForYou = {{ questions_for_you|length }};  // Adjust the initial offset based on what's already loaded for "For You"
+	    var offsetTrending = {{ questions_trending|length }};  // Adjust the initial offset based on what's already loaded for "Trending"
+	    var numToLoad = 10;  // Adjust the number of questions to load at a time
+	    var isLoadingForYou = false;  // Flag to track whether an AJAX request is in progress
+	    var isLoadingTrending = false;  // Flag to track whether an AJAX request is in progress
+	    var loadCompleteForYou = false; // All "For You" questions already loaded
+	    var loadCompleteTrending = false; // All "Trending" questions already loaded
+
+	    // Function to check if the user has scrolled to the bottom of the page
+	    function isScrolledToBottom() {
+	        var scrollTop = $(window).scrollTop();
+	        var windowHeight = $(window).height();
+	        var documentHeight = $(document).height();
+
+	        // Check if the user is close to the bottom (e.g., within 100 pixels)
+	        return (documentHeight - (scrollTop + windowHeight) < 100);
+	    }
+
+	    // Function to load more questions
+	    function loadMoreQuestions(section) {
+	        if (section === 'for_you' && loadCompleteForYou) {
+	            return;
+	        } else if (section === 'trending' && loadCompleteTrending) {
+	            return;
+	        }
+
+	        // Check if an AJAX request is already in progress
+	        if (section === 'for_you' && isLoadingForYou) {
+	            return;
+	        } else if (section === 'trending' && isLoadingTrending) {
+	            return;
+	        }
+
+	        // Set the isLoading flag to true
+	        if (section === 'for_you'){
+	        	isLoadingForYou = true;
+	        }
+	        else{
+	        	isLoadingTrending = true;
+	        }
+
+	        // Determine the current section and its respective offset
+	        var currentOffset = (section === 'for_you') ? offsetForYou : offsetTrending;
+
+	        // Send an AJAX request to fetch more questions
+	        $.ajax({
+	            type: 'POST',
+	            url: '/load_more_questions',
+	            data: { num_to_load: numToLoad, offset: currentOffset, section: section },
+	            success: function (data) {
+	                if (section === 'for_you') {
+	                    if (data.questions.length === 0) {
+	                        loadCompleteForYou = true;
+	                    }
+
+	                    data.questions.forEach(function (question) {
+	                        // Clone the template and populate it with data
+	                        var template = document.getElementById("question-template");
+	                        var clone = document.importNode(template.content, true);
+
+	                        // Create the URL with the question_id
+	                        var question_url = "/" + question.question_id + "/question_detail/";
+
+	                        clone.querySelector("a").setAttribute("href", question_url);
+	                        clone.querySelector("#author_user_id").textContent = question.author_user_id;
+	                        clone.querySelector("#question_text").textContent = question.question_text;
+	                        clone.querySelector("#created_time").textContent = question.created_time;
+	                        clone.querySelector("#votes").textContent = question.votes;
+
+	                        if (question.votes > 0) {
+	                            clone.querySelector("#votes").classList.add('text-green-600');
+	                        } else {
+	                            clone.querySelector("#votes").classList.add('text-red-600');
+	                        }
+
+	                        // Append the populated template to the appropriate container
+	                        document.getElementById(section + '_page').appendChild(clone);
+	                    });
+
+	                    // Update the offset for "For You"
+	                    offsetForYou += numToLoad;
+	                    isLoadingForYou = false;
+
+	                } else if (section === 'trending') {
+	                    if (data.questions.length === 0) {
+	                        loadCompleteTrending = true;
+	                    }
+
+	                    data.questions.forEach(function (question) {
+	                        // Clone the template and populate it with data
+	                        var template = document.getElementById("question-template");
+	                        var clone = document.importNode(template.content, true);
+
+	                        // Create the URL with the question_id
+	                        var question_url = "/" + question.question_id + "/question_detail/";
+
+	                        clone.querySelector("a").setAttribute("href", question_url);
+	                        clone.querySelector("#author_user_id").textContent = question.author_user_id;
+	                        clone.querySelector("#question_text").textContent = question.question_text;
+	                        clone.querySelector("#created_time").textContent = question.created_time;
+	                        clone.querySelector("#votes").textContent = question.votes;
+
+	                        if (question.votes > 0) {
+	                            clone.querySelector("#votes").classList.add('text-green-600');
+	                        } else {
+	                            clone.querySelector("#votes").classList.add('text-red-600');
+	                        }
+
+	                        // Append the populated template to the appropriate container
+	                        document.getElementById(section + '_page').appendChild(clone);
+	                    });
+
+	                    // Update the offset for "Trending"
+	                    offsetTrending += numToLoad;
+	                    // Set the isLoading flag to false after the request is complete
+	                	isLoadingTrending = false;
+	                }
+
+	                
+	            }
+	        });
+	    }
+
+	    // Load initial data for both sections when the page loads
+	    loadMoreQuestions('for_you');
+	    loadMoreQuestions('trending');
+
+	    // Load more questions when scrolling to the bottom
+	    $(window).scroll(function () {
+	        if (isScrolledToBottom()) {
+	            console.log('Scrolled to the bottom');
+	            if (for_you_page.style.display === 'block') {
+	                loadMoreQuestions('for_you');
+	            } else {
+	                loadMoreQuestions('trending');
+	            }
+	        }
+	    });
+	</script>
+
+
+
+{% endblock %}

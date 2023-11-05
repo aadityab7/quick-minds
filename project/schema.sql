@@ -1,37 +1,35 @@
-/*
-DROP TABLE IF EXISTS App_user;
-DROP TABLE IF EXISTS Post;
-DROP TABLE IF EXISTS Question;
-DROP TABLE IF EXISTS Response;
-DROP TABLE IF EXISTS AI_chat;
-DROP TABLE IF EXISTS Chat_message;
-DROP TABLE IF EXISTS Comment;
-DROP TABLE IF EXISTS Image;
-DROP TABLE IF EXISTS Tag;
-DROP TABLE IF EXISTS Related_content;
-DROP TABLE IF EXISTS Related_web_link;
-DROP TABLE IF EXISTS Similar_question;
-DROP TABLE IF EXISTS Related_video;
-DROP TABLE IF EXISTS User_Tag;
-DROP TABLE IF EXISTS Follow;
-DROP TABLE IF EXISTS Post_Like;
-DROP TABLE IF EXISTS Question_Tag;
-DROP TABLE IF EXISTS Post_Image;
-*/
+DROP TABLE IF EXISTS App_user CASCADE;
+DROP TABLE IF EXISTS Post CASCADE;
+DROP TABLE IF EXISTS Question CASCADE;
+DROP TABLE IF EXISTS Response CASCADE;
+DROP TABLE IF EXISTS AI_chat CASCADE;
+DROP TABLE IF EXISTS Chat_message CASCADE;
+DROP TABLE IF EXISTS Comment CASCADE;
+DROP TABLE IF EXISTS Image CASCADE;
+DROP TABLE IF EXISTS Tag CASCADE;
+DROP TABLE IF EXISTS Related_content CASCADE;
+DROP TABLE IF EXISTS Related_web_link CASCADE;
+DROP TABLE IF EXISTS Similar_question CASCADE;
+DROP TABLE IF EXISTS Related_video CASCADE;
+DROP TABLE IF EXISTS User_Tag CASCADE;
+DROP TABLE IF EXISTS Follow CASCADE;
+DROP TABLE IF EXISTS Post_Like CASCADE;
+DROP TABLE IF EXISTS Question_Tag CASCADE;
+DROP TABLE IF EXISTS Post_Image CASCADE;
 
 CREATE TABLE IF NOT EXISTS App_user  ( 
     user_id serial PRIMARY KEY,
-    username text NOT NULL,
+    username text,
     name text NOT NULL,
     about text,
-    picture_url text,
     badge text DEFAULT 'beginner',
     email text,
-    google_id bigint, 
-    facebook_id bigint,
-    github_id bigint,
-    password text,
-    account_creation_datetime date DEFAULT CURRENT_TIMESTAMP
+    google_id text, 
+    facebook_id text,
+    github_id text,
+    picture_url text,
+    account_creation_datetime date DEFAULT CURRENT_TIMESTAMP,
+    password text
 );
 
 CREATE TABLE IF NOT EXISTS Post  (
