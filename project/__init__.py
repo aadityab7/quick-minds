@@ -253,6 +253,7 @@ def google_auth():
 
 	return redirect(url_for("index"))
 
+#MAIN SECTION
 @app.route('/load_more_questions', methods = ('GET', 'POST'))
 def load_more_questions():
 	# Get the number of transactions to load and offset from the request
@@ -261,9 +262,9 @@ def load_more_questions():
 	section = request.form.get('section', 'for_you')
 
 	if(section == 'for_you'):
-		questions = utils.load_more_for_you_questions(session['user_id'], num_to_load, offset)
+		questions = utils.load_more_for_you_questions(user_id = session['user_id'], num_to_load = num_to_load, offset = offset)
 	else:
-		questions = utils.load_more_trending_questions(session['user_id'], num_to_load, offset)
+		questions = utils.load_more_trending_questions(user_id = session['user_id'], num_to_load = num_to_load, offset = offset)
 
 	{'question_id' : 20, 'author_user_id' : 34, 'question_text' : 'Why are you??', 'created_time' : "05-11-23", 'votes' : -20}
 
@@ -273,7 +274,7 @@ def load_more_questions():
 def add_question():
 	question_text = request.form.get('question_text')
 
-	question_id = utils.add_question(session['user_id'], question_text)
+	question_id = utils.add_question(user_id = session['user_id'], question_text = question_text)
 
 	if question_id == -1:
 		flash("An error occured")
@@ -286,10 +287,28 @@ def add_response():
 	response_text = request.form.get('response_text')
 	question_id = request.form.get('question_id')
 
-	response = utils.add_response(session['user_id'], question_id, response_text)
+	response = utils.add_response(user_id = session['user_id'], question_id = question_id, response_text = response_text)
 
 	if response == -1:
 		flash("An error occured")
 		return redirect(request.referrer)
 
 	return jsonify({'response' : response})
+
+@app.route('/follow_unfollow', methods = ('POST'))
+def follow_unfollow():
+	follower_user_id = request.form.get('follower_user_id')
+	followed_user_id = request.form.get('followed_user_id')
+
+	status = utils.follow_unfollow(follower_user_id = follower_user_id, followed_user_id = followed_user_id)
+
+	return jsonify({'status' : status})
+
+@app.route('/vote_unvote', methods = ('POST'))
+def vote_unvote():
+	post_id = request.form.get('post_id')
+	vote_type = request.form.get('vote_type')
+
+	val = utils.vote_unvote(post_id = post_id, user_id = session['user_id'], vote_type = vote_type)
+
+	return jsonify({'val' : val})

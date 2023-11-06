@@ -13,7 +13,7 @@ DROP TABLE IF EXISTS Similar_question CASCADE;
 DROP TABLE IF EXISTS Related_video CASCADE;
 DROP TABLE IF EXISTS User_Tag CASCADE;
 DROP TABLE IF EXISTS Follow CASCADE;
-DROP TABLE IF EXISTS Post_Like CASCADE;
+DROP TABLE IF EXISTS Post_Vote CASCADE;
 DROP TABLE IF EXISTS Question_Tag CASCADE;
 DROP TABLE IF EXISTS Post_Image CASCADE;
 
@@ -188,16 +188,17 @@ CREATE TABLE IF NOT EXISTS Follow  (
     PRIMARY KEY (follower_user_id, followed_user_id)
 );
 
-CREATE TABLE IF NOT EXISTS Post_Like  (
+CREATE TABLE IF NOT EXISTS Post_Vote  (
     post_id integer,
     user_id integer,
+    val integer DEFAULT 1,
 
-    CONSTRAINT fk_post_like_post
+    CONSTRAINT fk_post_vote_post
         FOREIGN KEY(post_id) 
         REFERENCES Post(post_id)
         ON DELETE CASCADE,
 
-    CONSTRAINT fk_post_like_app_user
+    CONSTRAINT fk_post_vote_app_user
         FOREIGN KEY(user_id) 
         REFERENCES App_user(user_id)
         ON DELETE CASCADE,

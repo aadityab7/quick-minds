@@ -350,3 +350,76 @@ def add_response(
 	response = dict(zip(response_keys, response))
 
 	return response
+
+def vote_unvote(
+	post_id: int,
+	user_id: int,
+	vote_type: str
+):
+	"""
+	vote_type = "up" or "down"
+	add vote if doesn't exists already else remove vote
+	return +1 for upvote -1 for down vote and 0 for vote removal
+	"""
+
+	val = 1 if vote_type == 'up' else -1
+
+	conn = get_db_connection()
+	cur = conn.cursor()
+
+	query = "SELECT 1 FROM Post_Vote WHERE post_id = %s AND user_id = %s"
+	cur.execute(query, (post_id, user_id))
+	result = cur.fetchone()
+
+	if result is None:
+		#vote doesn't exists
+		query = "INSERT INTO Post_Vote (post_id, user_id, val) VALUES (%s, %s, %s)"
+
+		cur.execute(query, (post_id, user_id, val))
+		conn.commit()
+	else:
+		val = 0
+		query = "DELETE FROM Post_Vote WHERE post_id = %s AND user_id = %s"
+
+		cur.execute(query, (post_id, user_id))
+		conn.commit()
+
+	cur.close()
+	conn.close()
+
+	return val
+
+def follow_unfollow(
+	follower_user_id: int,
+	followed_user_id: int
+):
+	"""
+	add follow if not already else remove
+	return: followed, unfollowed
+	"""
+	status = 'followed'
+
+	conn = get_db_connection()
+	cur = conn.cursor()
+
+	query = "SELECT 1 FROM Follow WHERE follower_user_id = %s AND followed_user_id = %s"
+	cur.execute(query, (follower_user_id, followed_user_id))
+	result = cur.fetchone()
+
+	if result is None:
+		#don't currently follow
+		query = "INSERT INTO Follow (follower_user_id, followed_user_id) VALUES (%s, %s)"
+
+		cur.execute(query, (follower_user_id, followed_user_id))
+		conn.commit()
+	else:
+		status = 'unfollowed'
+		query = "DELETE FROM Follow WHERE follower_user_id = %s AND followed_user_id = %s"
+
+		cur.execute(query, (follower_user_id, followed_user_id))
+		conn.commit()
+
+	cur.close()
+	conn.close()
+
+	return status
