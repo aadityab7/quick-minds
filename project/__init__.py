@@ -260,64 +260,36 @@ def load_more_questions():
 	offset = int(request.form.get('offset', 0))
 	section = request.form.get('section', 'for_you')
 
-	for_you_questions = [
-		{'question_id' : 1, 'author_user_id' : 1, 'question_text' : 'Hello how are you??', 'created_time' : "11-12-23", 'votes' : 23},
-		{'question_id' : 2, 'author_user_id' : 34, 'question_text' : 'Why are you??', 'created_time' : "05-11-23", 'votes' : -2},
-		{'question_id' : 3, 'author_user_id' : 1, 'question_text' : 'Hello how are you??', 'created_time' : "11-12-23", 'votes' : 23},
-		{'question_id' : 4, 'author_user_id' : 34, 'question_text' : 'Why are you??', 'created_time' : "05-11-23", 'votes' : -2},
-
-		{'question_id' : 5, 'author_user_id' : 1, 'question_text' : 'Hello how are you??', 'created_time' : "11-12-23", 'votes' : 23},
-		{'question_id' : 6, 'author_user_id' : 34, 'question_text' : 'Why are you??', 'created_time' : "05-11-23", 'votes' : -2},
-		{'question_id' : 7, 'author_user_id' : 1, 'question_text' : 'Hello how are you??', 'created_time' : "11-12-23", 'votes' : 23},
-		{'question_id' : 8, 'author_user_id' : 34, 'question_text' : 'Why are you??', 'created_time' : "05-11-23", 'votes' : -2},
-
-		{'question_id' : 9, 'author_user_id' : 1, 'question_text' : 'Hello how are you??', 'created_time' : "11-12-23", 'votes' : 23},
-		{'question_id' : 10, 'author_user_id' : 34, 'question_text' : 'Why are you??', 'created_time' : "05-11-23", 'votes' : -2},
-		{'question_id' : 11, 'author_user_id' : 1, 'question_text' : 'Hello how are you??', 'created_time' : "11-12-23", 'votes' : 23},
-		{'question_id' : 12, 'author_user_id' : 34, 'question_text' : 'Why are you??', 'created_time' : "05-11-23", 'votes' : -2},
-
-		{'question_id' : 13, 'author_user_id' : 1, 'question_text' : 'Hello how are you??', 'created_time' : "11-12-23", 'votes' : 23},
-		{'question_id' : 14, 'author_user_id' : 34, 'question_text' : 'Why are you??', 'created_time' : "05-11-23", 'votes' : -2},
-		{'question_id' : 15, 'author_user_id' : 1, 'question_text' : 'Hello how are you??', 'created_time' : "11-12-23", 'votes' : 23},
-		{'question_id' : 16, 'author_user_id' : 34, 'question_text' : 'Why are you??', 'created_time' : "05-11-23", 'votes' : -2},
-
-		{'question_id' : 17, 'author_user_id' : 1, 'question_text' : 'Hello how are you??', 'created_time' : "11-12-23", 'votes' : 23},
-		{'question_id' : 18, 'author_user_id' : 34, 'question_text' : 'Why are you??', 'created_time' : "05-11-23", 'votes' : -2},
-		{'question_id' : 19, 'author_user_id' : 1, 'question_text' : 'Hello how are you??', 'created_time' : "11-12-23", 'votes' : 23},
-		{'question_id' : 20, 'author_user_id' : 34, 'question_text' : 'Why are you??', 'created_time' : "05-11-23", 'votes' : -2}
-	]
-
-	
-	trending_questions = [
-		{'question_id' : 1, 'author_user_id' : 1, 'question_text' : 'Hello how are you??', 'created_time' : "11-12-23", 'votes' : 50},
-		{'question_id' : 2, 'author_user_id' : 34, 'question_text' : 'Why are you??', 'created_time' : "05-11-23", 'votes' : -20},
-		{'question_id' : 3, 'author_user_id' : 1, 'question_text' : 'Hello how are you??', 'created_time' : "11-12-23", 'votes' : 50},
-		{'question_id' : 4, 'author_user_id' : 34, 'question_text' : 'Why are you??', 'created_time' : "05-11-23", 'votes' : -20},
-
-		{'question_id' : 5, 'author_user_id' : 1, 'question_text' : 'Hello how are you??', 'created_time' : "11-12-23", 'votes' : 50},
-		{'question_id' : 6, 'author_user_id' : 34, 'question_text' : 'Why are you??', 'created_time' : "05-11-23", 'votes' : -20},
-		{'question_id' : 7, 'author_user_id' : 1, 'question_text' : 'Hello how are you??', 'created_time' : "11-12-23", 'votes' : 50},
-		{'question_id' : 8, 'author_user_id' : 34, 'question_text' : 'Why are you??', 'created_time' : "05-11-23", 'votes' : -20},
-
-		{'question_id' : 9, 'author_user_id' : 1, 'question_text' : 'Hello how are you??', 'created_time' : "11-12-23", 'votes' : 50},
-		{'question_id' : 10, 'author_user_id' : 34, 'question_text' : 'Why are you??', 'created_time' : "05-11-23", 'votes' : -20},
-		{'question_id' : 11, 'author_user_id' : 1, 'question_text' : 'Hello how are you??', 'created_time' : "11-12-23", 'votes' : 50},
-		{'question_id' : 12, 'author_user_id' : 34, 'question_text' : 'Why are you??', 'created_time' : "05-11-23", 'votes' : -20},
-
-		{'question_id' : 13, 'author_user_id' : 1, 'question_text' : 'Hello how are you??', 'created_time' : "11-12-23", 'votes' : 50},
-		{'question_id' : 14, 'author_user_id' : 34, 'question_text' : 'Why are you??', 'created_time' : "05-11-23", 'votes' : -20},
-		{'question_id' : 15, 'author_user_id' : 1, 'question_text' : 'Hello how are you??', 'created_time' : "11-12-23", 'votes' : 50},
-		{'question_id' : 16, 'author_user_id' : 34, 'question_text' : 'Why are you??', 'created_time' : "05-11-23", 'votes' : -20},
-
-		{'question_id' : 17, 'author_user_id' : 1, 'question_text' : 'Hello how are you??', 'created_time' : "11-12-23", 'votes' : 50},
-		{'question_id' : 18, 'author_user_id' : 34, 'question_text' : 'Why are you??', 'created_time' : "05-11-23", 'votes' : -20},
-		{'question_id' : 19, 'author_user_id' : 1, 'question_text' : 'Hello how are you??', 'created_time' : "11-12-23", 'votes' : 50},
-		{'question_id' : 20, 'author_user_id' : 34, 'question_text' : 'Why are you??', 'created_time' : "05-11-23", 'votes' : -20}
-	]
-
-	if section == 'for_you':
-		questions = for_you_questions[offset : (offset + num_to_load)]
+	if(section == 'for_you'):
+		questions = utils.load_more_for_you_questions(session['user_id'], num_to_load, offset)
 	else:
-		questions = trending_questions[offset: (offset + num_to_load)]
+		questions = utils.load_more_trending_questions(session['user_id'], num_to_load, offset)
+
+	{'question_id' : 20, 'author_user_id' : 34, 'question_text' : 'Why are you??', 'created_time' : "05-11-23", 'votes' : -20}
 
 	return jsonify({'questions': questions})
+
+@app.route('/add_question', methods = ('POST'))
+def add_question():
+	question_text = request.form.get('question_text')
+
+	question_id = utils.add_question(session['user_id'], question_text)
+
+	if question_id == -1:
+		flash("An error occured")
+		return redirect(request.referrer)
+
+	return redirect({{ url_for('question_detail', question_id = question_id) }})
+
+@app.route('/add_response', methods = ('POST'))
+def add_response():
+	response_text = request.form.get('response_text')
+	question_id = request.form.get('question_id')
+
+	response = utils.add_response(session['user_id'], question_id, response_text)
+
+	if response == -1:
+		flash("An error occured")
+		return redirect(request.referrer)
+
+	return jsonify({'response' : response})

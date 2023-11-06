@@ -202,3 +202,151 @@ def check_database_user_authentication(
 
 	return message, user_id, user_name, user_picture_url
 
+def load_more_for_you_questions(
+	user_id: int,
+	num_to_load: int,
+	offset: int
+):
+
+	"""
+	load more questions for the "For You" page
+	params:
+		user_id,
+		num_to_load: limit,
+		offset
+	returns:
+		list of questions
+		where each question is a dictonary of values
+		("question_id", "question_text", "vote_counter", "response_counter", "created_time", "user_id", "user_name")
+	"""
+	conn = get_db_connection()
+	cur = conn.cursor()
+
+	query = "SELECT \
+				Question.question_id, Question.question_text, Question.vote_counter, Question.response_counter, Question.created_time, App_user.user_id, App_user.name\
+			FROM Question \
+			INNER JOIN App_user\
+				ON Question.user_id = App_user.user_id\
+			LIMIT %s OFFSET %s"
+
+	cur.execute(query, (num_to_load, offset))
+	questions = cur.fetchall()
+	
+	if questions is None:
+		questions = []
+
+	question_keys = ("question_id", "question_text", "vote_counter", "response_counter", "created_time", "user_id", "user_name")
+	questions = [dict(zip(question_keys, question)) for question in questions]
+
+	cur.close()
+	conn.close()
+
+	return questions
+
+def load_more_trending_questions(
+	user_id: int,
+	num_to_load: int,
+	offset: int
+):
+	"""
+	load more questions for the "Trending" page
+	params:
+		user_id,
+		num_to_load: limit,
+		offset
+	returns:
+		list of questions
+		where each question is a dictonary of values
+		("question_id", "question_text", "vote_counter", "response_counter", "created_time", "user_id", "user_name")
+	"""
+	conn = get_db_connection()
+	cur = conn.cursor()
+
+	query = "SELECT \
+				Question.question_id, Question.question_text, Question.vote_counter, Question.response_counter, Question.created_time, App_user.user_id, App_user.name\
+			FROM Question \
+			INNER JOIN App_user\
+				ON Question.user_id = App_user.user_id\
+			LIMIT %s OFFSET %s"
+
+	cur.execute(query, (num_to_load, offset))
+	questions = cur.fetchall()
+
+	if questions is None:
+		questions = []
+
+	question_keys = ("question_id", "question_text", "vote_counter", "response_counter", "created_time", "user_id", "user_name")
+	questions = [dict(zip(question_keys, question)) for question in questions]
+
+	cur.close()
+	conn.close()
+
+	return questions
+
+def add_question(
+	user_id: int,
+	question_text:str,
+):
+
+	conn = get_db_connection()
+	cur = conn.cursor()
+
+	query = "INSERT INTO Question (user_id, question_text) VALUES (%s, %s)"
+
+	cur.execute(query, (user_id, question_text))
+	conn.commit()
+
+	query = "SELECT \
+				Question.question_id \
+			FROM Question \
+			WHERE user_id = %s \
+			ORDER BY created_time DESC LIMIT 1"
+	
+	cur.execute(query, (user_id,))
+	question = cur.fetchone()
+
+	cur.close()
+	conn.close()
+
+	if question is None:
+		question_id = -1
+	else:
+		question_id = question[0]
+
+	return question_id
+
+def add_response(
+	user_id: int,
+	question_id: int,
+	response_text: str
+):
+
+	conn = get_db_connection()
+	cur = conn.cursor()
+
+	query = "INSERT INTO Response (type, user_id, question_id, response_text) VALUES (%s, %s, %s, %s)"
+
+	cur.execute(query, ('response', user_id, question_id, response_text))
+	conn.commit()
+
+	query = "SELECT \
+				Response.response_id, Response.response_text, Response.vote_counter, Response.response_counter, Response.created_time, App_user.user_id, App_user.name\
+			FROM Response \
+			INNER JOIN App_user\
+				ON Response.user_id = App_user.user_id\
+			WHERE user_id = %s \
+			ORDER BY Response.created_time DESC LIMIT 1"
+	
+	cur.execute(query, (user_id,))
+	response = cur.fetchone()
+
+	cur.close()
+	conn.close()
+
+	if response is None:
+		return -1
+
+	response_keys = ("response_id", "response_text", "vote_counter", "response_counter", "created_time", "user_id", "user_name")
+	response = dict(zip(response_keys, response))
+
+	return response

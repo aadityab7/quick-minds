@@ -28,7 +28,7 @@ CREATE TABLE IF NOT EXISTS App_user  (
     facebook_id text,
     github_id text,
     picture_url text,
-    account_creation_datetime date DEFAULT CURRENT_TIMESTAMP,
+    account_creation_datetime timestamp DEFAULT CURRENT_TIMESTAMP,
     password text
 );
 
@@ -36,38 +36,26 @@ CREATE TABLE IF NOT EXISTS Post  (
     post_id serial PRIMARY KEY,
     type text DEFAULT 'question', --might not need this ("question", "response")
     vote_counter integer DEFAULT 0,
-    created_time date DEFAULT CURRENT_TIMESTAMP
-);
+    response_counter integer DEFAULT 0,
+    created_time timestamp DEFAULT CURRENT_TIMESTAMP,
+    user_id integer NOT NULL,
 
-CREATE TABLE IF NOT EXISTS Question  (
-    question_id serial PRIMARY KEY,
-    post_id integer, 
-    user_id integer, 
-    question_text text NOT NULL,
-
-    CONSTRAINT fk_question_post
-        FOREIGN KEY(post_id) 
-        REFERENCES Post(post_id)
-        ON DELETE CASCADE,
-
-    CONSTRAINT fk_question_app_user
+    CONSTRAINT fk_post_app_user
         FOREIGN KEY(user_id) 
         REFERENCES App_user(user_id)
         ON DELETE CASCADE
 );
 
+CREATE TABLE IF NOT EXISTS Question  (
+    question_id serial PRIMARY KEY,
+    question_text text NOT NULL
+) INHERITS (Post);
+
 CREATE TABLE IF NOT EXISTS Response  (
     response_id serial PRIMARY KEY,
-    post_id integer,
-    question_id integer, 
-    response_text text NOT NULL, 
-    user_id integer DEFAULT 0, --user 0 = AI chat bot
+    question_id integer NOT NULL, 
+    response_text text NOT NULL,
     chat_id integer DEFAULT -1, --default chat id = -1, AI chat not available
-
-    CONSTRAINT fk_response_post
-        FOREIGN KEY(post_id) 
-        REFERENCES Post(post_id)
-        ON DELETE CASCADE,
 
     CONSTRAINT fk_response_question
         FOREIGN KEY(question_id) 
@@ -78,13 +66,13 @@ CREATE TABLE IF NOT EXISTS Response  (
         FOREIGN KEY(user_id) 
         REFERENCES App_user(user_id)
         ON DELETE CASCADE
-);
+) INHERITS (Post);
 
 CREATE TABLE IF NOT EXISTS AI_chat  (
     chat_id serial PRIMARY KEY,
     response_id integer,
     title text,
-    created_time date DEFAULT CURRENT_TIMESTAMP,
+    created_time timestamp DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT fk_ai_chat_response
         FOREIGN KEY(response_id) 
@@ -97,7 +85,7 @@ CREATE TABLE IF NOT EXISTS Chat_message  (
     chat_id integer,
     sender_user_id integer,
     message_text text,
-    created_time date DEFAULT CURRENT_TIMESTAMP,
+    created_time timestamp DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT fk_chat_message_ai_chat
         FOREIGN KEY(chat_id)
@@ -115,7 +103,7 @@ CREATE TABLE IF NOT EXISTS Comment  (
     response_id integer, 
     user_id integer, 
     comment_text text NOT NULL, 
-    created_time date DEFAULT CURRENT_TIMESTAMP,
+    created_time timestamp DEFAULT CURRENT_TIMESTAMP,
     
     CONSTRAINT fk_comment_response
         FOREIGN KEY(response_id) 
