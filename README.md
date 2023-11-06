@@ -21,3 +21,7 @@ One Stop for all learning needs - combining the best of AI and community's colle
 5. Install all the required dependencies listed in `requirements.text` as:
 
 `pip install -r requirements.txt`
+
+6. to start the application server
+
+`python app.py`
