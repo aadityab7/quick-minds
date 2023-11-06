@@ -270,6 +270,18 @@ def load_more_questions():
 
 	return jsonify({'questions': questions})
 
+@app.route('/question_detail/<int:question_id>/', methods = ('GET', 'POST'))
+def question_detail(question_id):
+	if session.get('user_id'):
+		transaction = utils.get_question(question_id)
+		return render_template('question_detail.html', question = question,
+			user_id = session['user_id'], 
+			user_name = session['user_name'], 
+			user_picture_url = session['user_picture_url']
+		)
+	else:
+		return redirect(url_for('login'))
+
 @app.route('/add_question', methods = ('POST'))
 def add_question():
 	question_text = request.form.get('question_text')
