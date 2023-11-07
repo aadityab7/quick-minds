@@ -335,6 +335,9 @@ def question_detail(question_id):
 
 @app.route('/add_response', methods = ['POST'])
 def add_response():
+	print("recived request")
+	print(request.form)
+	
 	response_text = request.form.get('response_text')
 	question_id = request.form.get('question_id')
 
@@ -387,3 +390,13 @@ def upload_image():
 
 		# Return the URL of the saved image
 		return jsonify({'url': image_url})
+
+@app.route('/load_more_responses', methods = ['POST'])
+def load_more_responses():
+	question_id = request.form.get('question_id')
+	limit = int(request.form.get('num_to_load', 10))
+	offset = int(request.form.get('offset', 0))
+
+	responses = utils.load_more_responses(question_id = question_id, limit = limit, offset = offset)
+
+	return jsonify({'responses' : responses})

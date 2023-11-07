@@ -296,7 +296,7 @@ def add_response(
 			FROM Response \
 			INNER JOIN App_user\
 				ON Response.user_id = App_user.user_id\
-			WHERE user_id = %s \
+			WHERE Response.user_id = %s \
 			ORDER BY Response.created_time DESC LIMIT 1"
 	
 	cur.execute(query, (user_id,))
@@ -448,3 +448,33 @@ def add_image_to_post(
 		image_id = image_id[0]
 
 	return image_id
+
+def load_more_responses(
+	question_id: int,
+	limit: int,
+	offset: int
+):
+	conn = get_db_connection()
+	cur = conn.cursor()
+
+	query =	"SELECT \
+				Response.response_id, Response.response_text, Response.vote_counter, Response.response_counter, Response.created_time, App_user.user_id, App_user.name \
+			FROM Response \
+			INNER JOIN App_user \
+				ON Response.user_id = App_user.user_id \
+			WHERE question_id = %s \
+			LIMIT %s OFFSET %s"
+
+	cur.execute(query, (question_id, limit, offset))
+	responses = cur.fetchall()
+
+	if responses is None:
+		responses = []
+
+	response_keys = ("response_id", "response_text", "vote_counter", "response_counter", "created_time", "user_id", "user_name")
+	responses = [dict(zip(response_keys, response)) for response in responses]
+
+	cur.close()
+	conn.close()
+
+	return responses

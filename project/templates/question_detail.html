@@ -6,32 +6,248 @@
 	
 
 	<div class="mx-auto max-w-screen-xl px-4 py-8 sm:px-6 lg:px-8">
-		<div id="lower" class="grow py-3 px-3 rounded-t-lg">
+		
 			
-			<div class="flex items-center justify-between mb-3 gap-4">	
-				<h1 class="text-xl font-bold">{{question["question_title"]}}</h1>
+		<div class="flex items-center justify-between mb-3 gap-4">	
+			<h1 class="text-xl font-bold">{{question["question_title"]}}</h1>
 
-				<a href="{{url_for('ask_question')}}"> 
-					<button type="submit" class="rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">Ask Question</button>
-				</a>
+			<a href="{{url_for('ask_question')}}"> 
+				<button type="submit" class="rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">Ask Question</button>
+			</a>
+		</div>
+
+		<div class="block sm:flex items-start gap-4 mb-2 items-center">
+      		<p id = "user_name" class="text-gray-500 font-bold">{{question["user_name"]}}</p>
+      		<p id = "created_time" class="text-gray-500">{{question["created_time"]}}</p>
+      	</div>
+
+      	<div class="flex items-start gap-4">
+  			<p id = "vote_counter" class="text-gray-500 text-sm">{{question["vote_counter"]}} votes</p>
+  			<p id = "response_counter" class="text-gray-500 text-sm">{{question["response_counter"]}} responses</p>
+  		</div>
+
+		<hr class="my-4">
+			
+		<div class="mt-3">
+			{{ question['question_text'] |safe }}
+		</div>
+
+		<hr class="my-4">
+
+		<div id = "responses">
+			<h1 class="text-xl font-bold text-gray-500">Responses</h1>
+
+			<template id="response-template">
+	          	<a href="" class="p-4">
+	            	<div class="response-list-box">
+	            		<div class="flex items-start gap-4 mb-2 items-center">
+		              		<p id = "user_name" class="text-gray-500 font-bold"></p>
+		              		<p id = "created_time" class="text-gray-500"></p>
+		              	</div>
+
+	              		<h1 id = "response_text" class="text-xl"> </h1>
+	              		
+	              		<div class="flex items-start gap-4 mt-2">
+	              			<p id = "vote_counter" class="text-gray-500 text-sm font-bold"></p>
+	              			<p id = "response_counter" class="text-gray-500 text-sm font-bold"></p>
+	              		</div>
+	              		
+	            	</div>
+	          	</a>
+
+	          	<hr>
+	        </template>
+
+		</div>
+
+        <button id = "load-more-button" class="hidden mt-4 rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">Load more responses</button>
+
+        <p id = "no-more-responses" class="hidden mt-2">No more responses available</p>
+
+        <hr class="my-4">
+
+        <form id = "add_response_form" method="post" enctype = "multipart/form-data">
+			<div>
+				<div class="border-b border-gray-900/10 pb-4">
+					<div class="grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6">
+						<div class="col-span-full">
+					          <h1 class="text-xl font-bold text-gray-500">Share your Response</h1>
+
+					          <div class="mt-2">
+					            <textarea id="response-text" name="response-text" rows="2" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"></textarea>
+					          </div>
+					          <div class="flex items-center gap-2 mt-2">
+					          	<svg class="h-5 w-5 text-gray-300" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+						            <path fill-rule="evenodd" d="M1.5 6a2.25 2.25 0 012.25-2.25h16.5A2.25 2.25 0 0122.5 6v12a2.25 2.25 0 01-2.25 2.25H3.75A2.25 2.25 0 011.5 18V6zM3 16.06V18c0 .414.336.75.75.75h16.5A.75.75 0 0021 18v-1.94l-2.69-2.689a1.5 1.5 0 00-2.12 0l-.88.879.97.97a.75.75 0 11-1.06 1.06l-5.16-5.159a1.5 1.5 0 00-2.12 0L3 16.061zm10.125-7.81a1.125 1.125 0 112.25 0 1.125 1.125 0 01-2.25 0z" clip-rule="evenodd" />
+						        </svg>
+						        <label for="file-upload" class="relative cursor-pointer rounded-md bg-white font-semibold text-indigo-600 focus-within:outline-none focus-within:ring-2 focus-within:ring-indigo-600 focus-within:ring-offset-2 hover:text-indigo-500">
+						            <span>Add Image</span>
+						            <input id="file-upload" name="file-upload" type="file" class="sr-only" accept=".png, .jpg, .jpeg, .gif">
+					            </label>
+					          </div>
+					          <p class="mt-3 text-sm leading-6 text-gray-600">Images are useful in a post, but make sure the post is still clear without them. If you post images of code or error messages, copy and paste or type the actual code or message into the post directly. <b>PNG, JPG, GIF up to 10MB</b></p>
+					          
+				        </div>
+					</div>
+				</div>
 			</div>
 
-			<div class="block sm:flex items-start gap-4 mb-2 items-center">
-          		<p id = "user_name" class="text-gray-500 font-bold">{{question["user_name"]}}</p>
-          		<p id = "created_time" class="text-gray-500">{{question["created_time"]}}</p>
-          	</div>
+			<button id = "response-button" type="button" class="rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">Post your response</button>
+		</form>
 
-          	<div class="flex items-start gap-4 mb-3">
-      			<p id = "vote_counter" class="text-gray-500 text-sm">{{question["vote_counter"]}} votes</p>
-      			<p id = "response_counter" class="text-gray-500 text-sm">{{question["response_counter"]}} responses</p>
-      		</div>
+		<hr class="my-4">
 
-			<hr>
-				
-			<div class="mt-3">
-				{{ question['question_text'] |safe }}
-			</div>
-	    </div>
 	</div>
+
+	<script>
+	    var offset = {{ responses|length }};
+	    var numToLoad = 10;
+	    var isLoading = false;
+	    var loadComplete = false;
+
+	    const question_id = {{question.question_id}};
+	    const add_response_form = document.getElementById('add_response_form');
+	    const responses = document.getElementById('responses');
+	    const fileInput = document.getElementById('file-upload');
+
+	    console.log('question_id is:');
+	    console.log(question_id);
+
+	    // Function to load more questions
+	    function loadMoreQuestions() {
+	        if (loadComplete) {
+	            return;
+	        }
+
+	        if (isLoading) {
+	            return;
+	        }
+
+	        document.getElementById('load-more-button').classList.add('hidden');
+
+	        isLoading = true;
+
+	        var currentOffset = offset;
+
+	        $.ajax({
+	            type: 'POST',
+	            url: '/load_more_responses',
+	            data: { question_id: question_id, num_to_load: numToLoad, offset: currentOffset },
+	            success: function (data) {
+	                if (data.responses.length === 0) {
+	                    loadComplete = true;
+	                }
+
+	                data.responses.forEach(function (response) {
+	                    var template = document.getElementById("response-template");
+	                    var clone = document.importNode(template.content, true);
+
+	                    clone.querySelector("#user_name").textContent = response.user_name;
+	                    clone.querySelector("#response_counter").textContent = response.response_counter + ' comments';
+	                    clone.querySelector("#response_text").textContent = response.response_text;
+	                    clone.querySelector("#created_time").textContent = response.created_time;
+	                    clone.querySelector("#vote_counter").textContent = response.vote_counter + ' votes';
+
+	                    if (response.vote_counter > 0) {
+	                        clone.querySelector("#vote_counter").classList.add('text-green-600');
+	                    } else if (response.vote_counter < 0) {
+	                        clone.querySelector("#vote_counter").classList.add('text-red-600');
+	                    }
+
+	                    document.getElementById('responses').appendChild(clone);
+	                });
+
+	                offset += numToLoad;
+	                isLoading = false;
+
+			        if (loadComplete === false){
+			    	    document.getElementById('load-more-button').classList.remove('hidden');
+			        }
+			        else{
+			        	document.getElementById('no-more-responses').classList.remove('hidden');
+			        }
+
+	            }
+	        });
+	    }
+
+	    // Load initial data for both sections when the page loads
+	    loadMoreQuestions();
+
+	    // Load more responses when the "Load More" button is clicked
+	    document.getElementById('load-more-button').addEventListener('click', function () {
+	        loadMoreQuestions();
+	    });
+
+	    fileInput.addEventListener('change', function () {
+            const file = fileInput.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                	
+                	const formData = new FormData();
+                	formData.append("image", fileInput.files[0]);
+                	
+                	// Make an AJAX request to the Flask server
+	                fetch('/upload_image', {
+	                    method: 'POST',
+	                    body: formData
+	                })
+	                .then(response => response.json())
+	                .then(data => {
+	                    const imageUrl = data.url;
+	                    const imageMarkdown = `![Alt Text](${imageUrl})`;
+	                    const markdownInput = document.getElementById("response-text");
+	                    markdownInput.value += imageMarkdown;
+	                })
+	                .catch(error => {
+	                    console.error('Error uploading image:', error);
+	                });
+
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        document.getElementById('response-button').addEventListener('click', function() {
+        	console.log('response-button pressed!')
+        	const response_text = document.getElementById('response-text').value;
+        	console.log(response_text);
+
+        	$.ajax({
+	            type: 'POST',
+	            url: '/add_response',
+	            data: {question_id : question_id, response_text: response_text},
+	            success: function (data) {
+	            	add_response_to_list(data.response);
+	            },
+	            error: function(xhr, status, error) {
+	                console.error('Error adding response:', error);
+	            }
+        	});
+        });
+
+        function add_response_to_list(response) {
+        	console.log(response);
+			var template = document.getElementById("response-template");
+            var clone = document.importNode(template.content, true);
+
+            clone.querySelector("#user_name").textContent = response.user_name;
+            clone.querySelector("#response_counter").textContent = response.response_counter + ' comments';
+            clone.querySelector("#response_text").textContent = response.response_text;
+            clone.querySelector("#created_time").textContent = response.created_time;
+            clone.querySelector("#vote_counter").textContent = response.vote_counter + ' votes';
+
+            if (response.vote_counter > 0) {
+                clone.querySelector("#vote_counter").classList.add('text-green-600');
+            } else if (response.vote_counter < 0) {
+                clone.querySelector("#vote_counter").classList.add('text-red-600');
+            }
+
+            document.getElementById('responses').appendChild(clone);
+        }
+
+	</script>
+
 
 {% endblock %}
