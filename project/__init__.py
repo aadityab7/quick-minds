@@ -313,7 +313,7 @@ def load_more_questions():
 	# Get the number of transactions to load and offset from the request
 	num_to_load = int(request.form.get('num_to_load', 10))
 	offset = int(request.form.get('offset', 0))
-	
+
 	questions = utils.load_more_questions(user_id = session['user_id'], num_to_load = num_to_load, offset = offset)
 
 	return jsonify({'questions': questions})
@@ -361,3 +361,32 @@ def vote_unvote():
 	val = utils.vote_unvote(post_id = post_id, user_id = session['user_id'], vote_type = vote_type)
 
 	return jsonify({'val' : val})
+
+@app.route('/test_markdown')
+def test_markdown():
+	return render_template('test_markdown.html')
+
+
+@app.route('/upload_image', methods = ['POST'])
+def upload_image():
+	print("request recieved")
+
+	if 'image' not in request.files:
+		return jsonify({'error': 'No image part'})
+
+	print("has image")
+	image = request.files['image']
+
+	if image.filename == '':
+		return jsonify({'error': 'No selected image file'})
+
+	print("has file_name")
+
+	if image:
+		image_url = os.path.join(app.config['UPLOAD_FOLDER'], image.filename)
+
+		# Save the image to the specified folder
+		image.save(image_url)
+
+		# Return the URL of the saved image
+		return jsonify({'url': image_url})

@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Markdown Form with Image Upload</title>
+</head>
+<body>
+    <form id="markdown-form">
+        <textarea id="markdown-input" name="content" rows="10" cols="50" placeholder="Enter Markdown here..."></textarea>
+        <input type="file" id="image-upload" accept="image/*" />
+        <button type="button" id="embed-image-button">Embed Image</button>
+        <div id="image-preview"></div>
+        <button type="submit">Submit</button>
+    </form>
+
+    <script>
+        // Function to handle the image upload and embedding
+        document.getElementById("embed-image-button").addEventListener("click", function () {
+            const imageUpload = document.getElementById("image-upload");
+            const imagePreview = document.getElementById("image-preview");
+
+            if (imageUpload.files && imageUpload.files[0]) {
+                const formData = new FormData();
+                formData.append("image", imageUpload.files[0]);
+
+                // Make an AJAX request to the Flask server
+                fetch('/upload_image', {
+                    method: 'POST',
+                    body: imageUpload.files[0]
+                })
+                .then(response => response.json())
+                .then(data => {
+                    const imageUrl = data.url;
+                    const imageMarkdown = `![Alt Text](${imageUrl})`;
+                    const markdownInput = document.getElementById("markdown-input");
+                    markdownInput.value += imageMarkdown;
+                })
+                .catch(error => {
+                    console.error('Error uploading image:', error);
+                });
+            }
+        });
+
+        // Handle form submission (you can customize this part)
+        document.getElementById("markdown-form").addEventListener("submit", function (e) {
+            e.preventDefault();
+
+            const markdownContent = document.getElementById("markdown-input").value;
+            // You can now parse the Markdown content and do something with it
+            console.log(markdownContent);
+        });
+    </script>
+</body>
+</html>
