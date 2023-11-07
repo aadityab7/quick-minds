@@ -271,7 +271,7 @@
             clone.querySelector("#response_counter").textContent = response.response_counter + ' comments';
             clone.querySelector("#response_text").textContent = response.response_text;
             clone.querySelector("#created_time").textContent = response.created_time;
-            clone.querySelector("#vote_counter").textContent = response.vote_counter + ' votes';
+            clone.querySelector("#response_vote_counter").textContent = response.vote_counter + ' votes';
 
             if (response.vote_counter > 0) {
                 clone.querySelector("#vote_counter").classList.add('text-green-600');

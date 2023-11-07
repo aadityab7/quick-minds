@@ -19,3 +19,8 @@ conn.commit()
 
 cur.close()
 conn.close()
+
+"""
+gcloud sql connect quickminds --user=postgres
+password
+"""
