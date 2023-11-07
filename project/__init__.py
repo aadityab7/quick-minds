@@ -70,7 +70,7 @@ def ask_question():
 					return redirect(request.referrer)
 				
 				if file_url != '':
-					image_id = utils.add_image_to_question(file_url, question_id)
+					image_id = utils.add_image_to_post(file_url, question_id)
 					if image_id == -1:
 						flash("An error occured when inserting image")
 						return redirect(request.referrer)
@@ -320,15 +320,14 @@ def load_more_questions():
 	else:
 		questions = utils.load_more_trending_questions(user_id = session['user_id'], num_to_load = num_to_load, offset = offset)
 
-	{'question_id' : 20, 'author_user_id' : 34, 'question_text' : 'Why are you??', 'created_time' : "05-11-23", 'votes' : -20}
-
 	return jsonify({'questions': questions})
 
 @app.route('/question_detail/<int:question_id>/', methods = ('GET', 'POST'))
 def question_detail(question_id):
 	if session.get('user_id'):
-		transaction = utils.get_question(question_id)
+		question, images = utils.get_question(question_id)
 		return render_template('question_detail.html', question = question,
+			images = images,
 			user_id = session['user_id'], 
 			user_name = session['user_name'], 
 			user_picture_url = session['user_picture_url']

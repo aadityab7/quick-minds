@@ -24,10 +24,12 @@
 		        <template id="question-template">
 		          	<a href="">
 		            	<div class="question-list-box">
-		              		<p id = "author_user_id"> </p>
+		              		<p id = "user_id"></p>
+		              		<p id = "user_name"></p>
 		              		<p id = "question_text"> </p>
 		              		<p id = "created_time"></p>
-		              		<p id="votes"></p>
+		              		<p id = "vote_counter"></p>
+		              		<p id = "response_counter"></p>
 		            	</div>
 		          	</a>
 		        </template>
@@ -37,10 +39,12 @@
 		        <template id="question-template">
 		          	<a href="">
 		            	<div class="question-list-box">
-		              		<p id = "author_user_id" class = "m-4"> </p>
+		              		<p id = "user_id"></p>
+		              		<p id = "user_name"></p>
 		              		<p id = "question_text"> </p>
 		              		<p id = "created_time"></p>
-		              		<p id="votes"></p>
+		              		<p id = "vote_counter"></p>
+		              		<p id = "response_counter"></p>
 		            	</div>
 		          	</a>
 		        </template>
@@ -141,18 +145,20 @@
 	                        var clone = document.importNode(template.content, true);
 
 	                        // Create the URL with the question_id
-	                        var question_url = "/" + question.question_id + "/question_detail/";
+	                        var question_url = "/question_detail/" + question.question_id + "/";
 
 	                        clone.querySelector("a").setAttribute("href", question_url);
-	                        clone.querySelector("#author_user_id").textContent = question.author_user_id;
+	                        clone.querySelector("#user_id").textContent = question.user_id;
+	                        clone.querySelector("#user_name").textContent = question.user_name;
+	                        clone.querySelector("#response_counter").textContent = question.response_counter;
 	                        clone.querySelector("#question_text").textContent = question.question_text;
 	                        clone.querySelector("#created_time").textContent = question.created_time;
-	                        clone.querySelector("#votes").textContent = question.votes;
+	                        clone.querySelector("#vote_counter").textContent = question.vote_counter;
 
-	                        if (question.votes > 0) {
-	                            clone.querySelector("#votes").classList.add('text-green-600');
-	                        } else {
-	                            clone.querySelector("#votes").classList.add('text-red-600');
+	                        if (question.vote_counter > 0) {
+	                            clone.querySelector("#vote_counter").classList.add('text-green-600');
+	                        } else if (question.vote_counter < 0) {
+	                            clone.querySelector("#vote_counter").classList.add('text-red-600');
 	                        }
 
 	                        // Append the populated template to the appropriate container
@@ -174,18 +180,20 @@
 	                        var clone = document.importNode(template.content, true);
 
 	                        // Create the URL with the question_id
-	                        var question_url = "/" + question.question_id + "/question_detail/";
+	                        var question_url = "/question_detail/" + question.question_id + "/";
 
 	                        clone.querySelector("a").setAttribute("href", question_url);
-	                        clone.querySelector("#author_user_id").textContent = question.author_user_id;
+	                        clone.querySelector("#user_id").textContent = question.user_id;
+	                        clone.querySelector("#user_name").textContent = question.user_name;
+	                        clone.querySelector("#response_counter").textContent = question.response_counter;
 	                        clone.querySelector("#question_text").textContent = question.question_text;
 	                        clone.querySelector("#created_time").textContent = question.created_time;
-	                        clone.querySelector("#votes").textContent = question.votes;
+	                        clone.querySelector("#vote_counter").textContent = question.vote_counter;
 
-	                        if (question.votes > 0) {
-	                            clone.querySelector("#votes").classList.add('text-green-600');
-	                        } else {
-	                            clone.querySelector("#votes").classList.add('text-red-600');
+	                        if (question.vote_counter > 0) {
+	                            clone.querySelector("#vote_counter").classList.add('text-green-600');
+	                        } else if (question.vote_counter < 0) {
+	                            clone.querySelector("#vote_counter").classList.add('text-red-600');
 	                        }
 
 	                        // Append the populated template to the appropriate container

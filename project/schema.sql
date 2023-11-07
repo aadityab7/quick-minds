@@ -15,7 +15,6 @@ DROP TABLE IF EXISTS User_Tag CASCADE;
 DROP TABLE IF EXISTS Follow CASCADE;
 DROP TABLE IF EXISTS Post_Vote CASCADE;
 DROP TABLE IF EXISTS Question_Tag CASCADE;
-DROP TABLE IF EXISTS Post_Image CASCADE;
 
 CREATE TABLE IF NOT EXISTS App_user  ( 
     user_id serial PRIMARY KEY,
@@ -118,13 +117,20 @@ CREATE TABLE IF NOT EXISTS Comment  (
 
 CREATE TABLE IF NOT EXISTS Image  (
     image_id serial PRIMARY KEY,
-    post_id integer NOT NULL,
     url text NOT NULL,
     alt_text text,
+    question_id integer,
+    response_id integer,
+    post_type text DEFAULT 'question',
 
-    CONSTRAINT fk_image_post
-        FOREIGN KEY(post_id) 
-        REFERENCES Post(post_id)
+    CONSTRAINT fk_image_question
+        FOREIGN KEY(question_id) 
+        REFERENCES Question(question_id)
+        ON DELETE CASCADE,
+
+    CONSTRAINT fk_image_response
+        FOREIGN KEY(response_id) 
+        REFERENCES Response(response_id)
         ON DELETE CASCADE
 );
 

@@ -446,33 +446,40 @@ def get_question(
 	question_keys = ("question_id", "question_text", "vote_counter", "response_counter", "created_time", "user_id", "user_name")
 	question = dict(zip(question_keys, question))
 
+	query = "SELECT url FROM Image WHERE question_id = %s"
+	cur.execute(query, (question["question_id"],))
+	images = cur.fetchall()
+
+	if images is None:
+		images = []
+
 	cur.close()
 	conn.close()
 
-	return question
+	return question, images
 
-def add_image_to_question(
+def add_image_to_post(
 	image_file_url: str,
-	question_id: int
+	question_or_response_id: int,
+	post_type: str = 'question'
 ):
 	conn = get_db_connection()
 	cur = conn.cursor()
 
-	query = "SELECT post_id FROM Question WHERE question_id = %s"
-	cur.execute(query, (question_id,))
-	post_id = cur.fetchone()
-
-	if post_id is None:
-		return -1
+	if post_type == 'question':
+		query = "INSERT INTO Image (url, question_id, post_type) VALUES (%s, %s, %s)"
 	else:
-		post_id = post_id[0]
+		query = "INSERT INTO Image (url, response_id, post_type) VALUES (%s, %s, %s)"
 
-	query = "INSERT INTO Image (url, post_id) VALUES (%s, %s)"
-	cur.execute(query, (image_file_url, post_id))
+	cur.execute(query, (image_file_url, question_or_response_id, post_type))
 	conn.commit()
 
-	query = "SELECT image_id FROM Image WHERE post_id = %s AND url = %s"
-	cur.execute(query, (image_file_url, post_id))
+	if post_type == 'question':
+		query = "SELECT image_id FROM Image WHERE url = %s AND question_id = %s"
+	else:
+		query = "SELECT image_id FROM Image WHERE url = %s AND response_id = %s"
+
+	cur.execute(query, (image_file_url, question_or_response_id))
 	image_id = cur.fetchone()
 
 	cur.close()
