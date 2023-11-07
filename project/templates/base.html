@@ -11,7 +11,7 @@
 <body>
   <header id = "header" class="bg-gray-50">
     <div class="mx-auto max-w-screen-xl px-4 py-8 sm:px-6 lg:px-8">
-      <div id = "headerContent" class="flex items-center justify-between sm:gap-4">
+      <div id = "headerContent" class="flex items-center justify-between sm:gap-8">
         <div id = "app_title">
           <a href="{{ url_for('index') }}">
             <h1 class="text-xl text-gray-900 sm:text-xl">
@@ -22,14 +22,15 @@
         
 
         <div
-          class="flex flex-1 items-center justify-end gap-4 sm:gap-8"
+          id = "right-hand-side-buttons"
+          class="flex flex-1 items-center justify-end gap-4 sm:gap-4"
         >
-            <form method="GET" action="/search">
-                <div id="searchBar" class="relative hidden sm:block">
+            <form method="GET" action="/search" class="flex grow">
+                <div id="searchBar" class="relative hidden sm:flex grow">
                     <label class="sr-only" for="search"> Search </label>
 
                     <input
-                      class="h-10 w-full rounded-full border-none bg-white pe-10 ps-4 text-sm shadow-sm sm:w-56"
+                      class="h-10 w-full rounded-full border-none bg-white pe-10 ps-4 text-sm shadow-sm"
                       id="search"
                       type="search"
                       placeholder="Search website..."
@@ -153,7 +154,7 @@
           <a
             id = "sign_up_button"
             href = "{{url_for('sign_up')}}"
-            class="{% if user_id%} hidden {% else %} block {% endif %} inline-block shrink-0 rounded-md border border-blue-600 bg-blue-600 px-12 py-3 text-sm font-medium text-white transition hover:bg-transparent hover:text-blue-600 focus:outline-none focus:ring active:text-blue-500"
+            class="hidden {% if user_id%} sm:hidden {% else %} sm:inline-block {% endif %} shrink-0 rounded-md border border-blue-600 bg-blue-600 px-12 py-3 text-sm font-medium text-white transition hover:bg-transparent hover:text-blue-600 focus:outline-none focus:ring active:text-blue-500"
           >
             Sign Up
           </a>

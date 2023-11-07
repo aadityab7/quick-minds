@@ -4,22 +4,36 @@
 
 {% block content %}
 	<div class="mx-auto max-w-screen-xl px-4 py-8 sm:px-6 lg:px-8">
-
 		<div id="lower" class="grow py-3 px-3 rounded-t-lg">
-			<a href="{{url_for('ask_question')}}"> ASK QUESTION </a>
+			<div class="flex items-center justify-between">	
+				<h1 class="text-xl font-bold">Top Questions</h1>
 
-		    <div id="for_you_page">
+				<a href="{{url_for('ask_question')}}"> 
+					<button type="submit" class="rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">Ask Question</button>
+				</a>
+			</div>
+
+			
+
+		    <div id="for_you_page" class="mt-8">
 		        <template id="question-template">
-		          	<a href="">
+		          	<a href="" class="p-4">
 		            	<div class="question-list-box">
-		              		<p id = "user_id"></p>
-		              		<p id = "user_name"></p>
-		              		<p id = "question_text"> </p>
-		              		<p id = "created_time"></p>
-		              		<p id = "vote_counter"></p>
-		              		<p id = "response_counter"></p>
+		            		<div class="flex items-start gap-4 mb-2 items-center">
+			              		<p id = "user_name" class="text-gray-500 font-bold"></p>
+			              		<p id = "created_time" class="text-gray-500"></p>
+			              	</div>
+
+		              		<h1 id = "question_title" class="text-xl"> </h1>
+		              		
+		              		<div class="flex items-start gap-4 mt-2">
+		              			<p id = "vote_counter" class="text-gray-500 text-sm font-bold"></p>
+		              			<p id = "response_counter" class="text-gray-500 text-sm font-bold"></p>
+		              		</div>
+		              		
 		            	</div>
 		          	</a>
+		          	<hr>
 		        </template>
 		    </div>
 	    </div>
@@ -83,12 +97,11 @@
                         var question_url = "/question_detail/" + question.question_id + "/";
 
                         clone.querySelector("a").setAttribute("href", question_url);
-                        clone.querySelector("#user_id").textContent = question.user_id;
                         clone.querySelector("#user_name").textContent = question.user_name;
-                        clone.querySelector("#response_counter").textContent = question.response_counter;
-                        clone.querySelector("#question_text").textContent = question.question_text;
+                        clone.querySelector("#response_counter").textContent = question.response_counter + ' responses';
+                        clone.querySelector("#question_title").textContent = question.question_title;
                         clone.querySelector("#created_time").textContent = question.created_time;
-                        clone.querySelector("#vote_counter").textContent = question.vote_counter;
+                        clone.querySelector("#vote_counter").textContent = question.vote_counter + ' votes';
 
                         if (question.vote_counter > 0) {
                             clone.querySelector("#vote_counter").classList.add('text-green-600');

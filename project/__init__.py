@@ -10,6 +10,8 @@ import sqlite3
 import requests
 from werkzeug.utils import secure_filename
 
+import markdown
+
 import psycopg2
 
 from utilities import utils
@@ -19,7 +21,7 @@ app.config['SECRET_KEY'] = os.environ.get("SECRET_KEY", os.urandom(12))
 app.config["SESSION_PERMANENT"] = False
 app.config["SESSION_TYPE"] = "filesystem"
 app.config['MAX_CONTENT_LENGTH'] = 10 * 1024 * 1024  # 10 MB
-app.config['UPLOAD_FOLDER'] = '.\\image_folder'
+app.config['UPLOAD_FOLDER'] = "G:\\quick-minds\\image_folder"
 
 Session(app)
 oauth = OAuth(app)
@@ -63,7 +65,7 @@ def ask_question():
 			elif not question_details:
 				flash('question details are required!')
 			else:
-				question_id = utils.add_question(user_id = session['user_id'], question_text = question_title + question_details)
+				question_id = utils.add_question(user_id = session['user_id'], question_title = question_title, question_text = question_details)
 
 				if question_id == -1:
 					flash("An error occured")
@@ -321,9 +323,9 @@ def load_more_questions():
 @app.route('/question_detail/<int:question_id>/', methods = ('GET', 'POST'))
 def question_detail(question_id):
 	if session.get('user_id'):
-		question, images = utils.get_question(question_id)
+		question = utils.get_question(question_id)
+
 		return render_template('question_detail.html', question = question,
-			images = images,
 			user_id = session['user_id'], 
 			user_name = session['user_name'], 
 			user_picture_url = session['user_picture_url']
@@ -369,18 +371,13 @@ def test_markdown():
 
 @app.route('/upload_image', methods = ['POST'])
 def upload_image():
-	print("request recieved")
-
 	if 'image' not in request.files:
 		return jsonify({'error': 'No image part'})
 
-	print("has image")
 	image = request.files['image']
 
 	if image.filename == '':
 		return jsonify({'error': 'No selected image file'})
-
-	print("has file_name")
 
 	if image:
 		image_url = os.path.join(app.config['UPLOAD_FOLDER'], image.filename)

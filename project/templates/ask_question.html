@@ -8,12 +8,12 @@
 		<form method="post" enctype = "multipart/form-data">
 		  <div class="space-y-12">
 		    <div class="border-b border-gray-900/10 pb-12">
-		      <h2 class="text-base font-semibold leading-7 text-gray-900">Ask a question</h2>
+		      <h1 class="text-xl font-bold">Ask a question</h1>
 		      <p class="mt-1 text-sm leading-6 text-gray-600">This question will be displayed publicly.</p>
 
 		      <div class="mt-10 grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6">
 		        <div class="sm:col-span-4">
-		          <label for="question-title" class="block text-sm font-medium leading-6 text-gray-900">Title</label>
+		          <label for="question-title" class="block text-l font-medium leading-6 text-gray-900">Title</label>
 		          <p class="mt-1 text-sm leading-6 text-gray-600">Try to be specific as if you are asking question to someone in person.</p>
 		          <div class="mt-2">
 		            <div class="flex rounded-md shadow-sm ring-1 ring-inset ring-gray-300 focus-within:ring-2 focus-within:ring-inset focus-within:ring-indigo-600 sm:max-w-md">
@@ -23,11 +23,11 @@
 		        </div>
 
 		        <div class="col-span-full">
-		          <label for="question-details" class="block text-sm font-medium leading-6 text-gray-900">Details of the Question</label>
+		          <label for="question-details" class="block text-l font-medium leading-6 text-gray-900">Details of the Question</label>
 		          <p class="mt-3 text-sm leading-6 text-gray-600">Introduce the problem and provide more context and description about the question. <b>You can use Markdown syntax</b></p>
 
 		          <div class="mt-2">
-		            <textarea id="question-details" name="question-details" rows="3" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"></textarea>
+		            <textarea id="question-details" name="question-details" rows="4" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"></textarea>
 		          </div>
 		          <div class="flex items-center gap-2 mt-2">
 		          	<svg class="h-5 w-5 text-gray-300" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
@@ -46,7 +46,7 @@
 		        	<label for="question-details" class="block text-sm font-medium leading-6 text-gray-900">Last Added Image</label>
 		        	<p id = 'fileName' class="mt-3 text-sm leading-6 text-gray-600"></p>
 					<canvas id="thumbnailCanvas" width="150" height="150"></canvas>   
-					<button id = "removeButton" type="button" class="text-sm font-semibold leading-6 text-gray-900">Remove Image</button>
+					<button id = "removeButton" type="button" class="text-sm font-semibold leading-6 text-gray-900">Close</button>
 				</div>
 
 		      </div>
@@ -66,7 +66,6 @@
         const thumbnailCanvas = document.getElementById('thumbnailCanvas');
         const ctx = thumbnailCanvas.getContext('2d');
         const removeButton = document.getElementById('removeButton');
-        const imageFormInputBlock = document.getElementById('image-form-input-block');
         const fileName = document.getElementById('fileName');
     
         fileInput.addEventListener('change', function () {
@@ -109,22 +108,19 @@
                         thumbnailCanvas.height = newHeight;
                         ctx.drawImage(img, 0, 0, newWidth, newHeight);
 
-                        imagePreview.style.display = 'block';
-                		imageFormInputBlock.classList.add('hidden');
+                        imagePreview.style.display = 'block';                		
                     };
                 };
                 reader.readAsDataURL(file);
             } else {
                 thumbnailCanvas.width = 0;
                 thumbnailCanvas.height = 0;
-                imagePreview.style.display = 'none';
-                imageFormInputBlock.classList.remove('hidden');
+                imagePreview.style.display = 'none';      
                 img.src = '';
             }
         });
 
         removeButton.addEventListener('click', function () {
-        	imageFormInputBlock.classList.remove('hidden');
             imagePreview.style.display = 'none';
             fileInput.value = '';
             previewImage.src = '';

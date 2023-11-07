@@ -1,5 +1,6 @@
 import os
 import psycopg2
+import markdown
 
 def get_db_connection():
 	"""
@@ -223,7 +224,7 @@ def load_more_questions(
 	cur = conn.cursor()
 
 	query = "SELECT \
-				Question.question_id, Question.question_text, Question.vote_counter, Question.response_counter, Question.created_time, App_user.user_id, App_user.name\
+				Question.question_id, Question.question_title, Question.vote_counter, Question.response_counter, Question.created_time, App_user.user_id, App_user.name\
 			FROM Question \
 			INNER JOIN App_user\
 				ON Question.user_id = App_user.user_id\
@@ -235,7 +236,7 @@ def load_more_questions(
 	if questions is None:
 		questions = []
 
-	question_keys = ("question_id", "question_text", "vote_counter", "response_counter", "created_time", "user_id", "user_name")
+	question_keys = ("question_id", "question_title", "vote_counter", "response_counter", "created_time", "user_id", "user_name")
 	questions = [dict(zip(question_keys, question)) for question in questions]
 
 	cur.close()
@@ -245,15 +246,16 @@ def load_more_questions(
 
 def add_question(
 	user_id: int,
-	question_text:str,
+	question_title: str,
+	question_text:str
 ):
 
 	conn = get_db_connection()
 	cur = conn.cursor()
 
-	query = "INSERT INTO Question (user_id, question_text) VALUES (%s, %s)"
+	query = "INSERT INTO Question (user_id, question_title, question_text) VALUES (%s, %s, %s)"
 
-	cur.execute(query, (user_id, question_text))
+	cur.execute(query, (user_id, question_title, question_text))
 	conn.commit()
 
 	query = "SELECT \
@@ -391,7 +393,7 @@ def get_question(
 	cur = conn.cursor()
 
 	query = "SELECT \
-				Question.question_id, Question.question_text, Question.vote_counter, Question.response_counter, Question.created_time, App_user.user_id, App_user.name \
+				Question.question_id, Question.question_title, Question.question_text, Question.vote_counter, Question.response_counter, Question.created_time, App_user.user_id, App_user.name \
 			FROM Question \
 			INNER JOIN App_user\
 			ON Question.user_id = App_user.user_id \
@@ -403,20 +405,15 @@ def get_question(
 	if question is None:
 		return -1
 		
-	question_keys = ("question_id", "question_text", "vote_counter", "response_counter", "created_time", "user_id", "user_name")
+	question_keys = ("question_id", "question_title", "question_text", "vote_counter", "response_counter", "created_time", "user_id", "user_name")
 	question = dict(zip(question_keys, question))
-
-	query = "SELECT url FROM Image WHERE question_id = %s"
-	cur.execute(query, (question["question_id"],))
-	images = cur.fetchall()
-
-	if images is None:
-		images = []
 
 	cur.close()
 	conn.close()
 
-	return question, images
+	question["question_text"] = markdown.markdown(question["question_text"])
+
+	return question
 
 def add_image_to_post(
 	image_file_url: str,

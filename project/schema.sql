@@ -47,6 +47,7 @@ CREATE TABLE IF NOT EXISTS Post  (
 
 CREATE TABLE IF NOT EXISTS Question  (
     question_id serial PRIMARY KEY,
+    question_title text NOT NULL,
     question_text text NOT NULL
 ) INHERITS (Post);
 
