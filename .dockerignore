@@ -1,0 +1,5 @@
+.env
+my_venv/
+flask_session/
+image_folder/
+__pycache__
