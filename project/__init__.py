@@ -8,6 +8,7 @@ import json
 import os
 import sqlite3
 import requests
+from werkzeug.utils import secure_filename
 
 import psycopg2
 
@@ -17,9 +18,15 @@ app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get("SECRET_KEY", os.urandom(12))
 app.config["SESSION_PERMANENT"] = False
 app.config["SESSION_TYPE"] = "filesystem"
+app.config['MAX_CONTENT_LENGTH'] = 10 * 1024 * 1024  # 10 MB
+app.config['UPLOAD_FOLDER'] = '.\\image_folder'
 
 Session(app)
 oauth = OAuth(app)
+
+@app.errorhandler(413)
+def too_large(e):
+    return make_response(jsonify(message="File is too large"), 413)
 
 @app.route('/', methods = ('GET', 'POST'))
 @app.route('/home', methods = ('GET', 'POST'))
@@ -27,6 +34,53 @@ def index():
 	if session.get('user_id') and session.get('user_id') != -1: 
 		print("rendering index page now!!")
 		return render_template('index.html', 
+			user_id = session['user_id'], 
+			user_name = session['user_name'], 
+			user_picture_url = session['user_picture_url'])
+	else:
+		return redirect(url_for('login'))
+
+@app.route('/ask_question', methods = ('GET', 'POST'))
+def ask_question():
+	if session.get('user_id'):
+		user_id = session['user_id']
+
+		if request.method == 'POST':
+			question_title = request.form['question-title']
+			question_details = request.form['question-details']
+
+			file_url = ''
+			filename = ''
+			if 'file-upload' in request.files:
+				image_file = request.files['file-upload']
+				filename = secure_filename(image_file.filename)
+				if filename != '':
+					file_url = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+					image_file.save(file_url)
+
+			if not question_title:
+				flash("Please enter the Title!")
+			elif not question_details:
+				flash('question details are required!')
+			else:
+				question_id = utils.add_question(user_id = session['user_id'], question_text = question_title + question_details)
+
+				if question_id == -1:
+					flash("An error occured")
+					return redirect(request.referrer)
+				
+				if file_url != '':
+					image_id = utils.add_image_to_question(file_url, question_id)
+					if image_id == -1:
+						flash("An error occured when inserting image")
+						return redirect(request.referrer)
+
+				return render_template('index.html', 
+					user_id = session['user_id'], 
+					user_name = session['user_name'], 
+					user_picture_url = session['user_picture_url'])
+
+		return render_template('ask_question.html',
 			user_id = session['user_id'], 
 			user_name = session['user_name'], 
 			user_picture_url = session['user_picture_url'])
@@ -282,19 +336,7 @@ def question_detail(question_id):
 	else:
 		return redirect(url_for('login'))
 
-@app.route('/add_question', methods = ('POST'))
-def add_question():
-	question_text = request.form.get('question_text')
-
-	question_id = utils.add_question(user_id = session['user_id'], question_text = question_text)
-
-	if question_id == -1:
-		flash("An error occured")
-		return redirect(request.referrer)
-
-	return redirect({{ url_for('question_detail', question_id = question_id) }})
-
-@app.route('/add_response', methods = ('POST'))
+@app.route('/add_response', methods = ['POST'])
 def add_response():
 	response_text = request.form.get('response_text')
 	question_id = request.form.get('question_id')
@@ -307,7 +349,7 @@ def add_response():
 
 	return jsonify({'response' : response})
 
-@app.route('/follow_unfollow', methods = ('POST'))
+@app.route('/follow_unfollow', methods = ['POST'])
 def follow_unfollow():
 	follower_user_id = request.form.get('follower_user_id')
 	followed_user_id = request.form.get('followed_user_id')
@@ -316,7 +358,7 @@ def follow_unfollow():
 
 	return jsonify({'status' : status})
 
-@app.route('/vote_unvote', methods = ('POST'))
+@app.route('/vote_unvote', methods = ['POST'])
 def vote_unvote():
 	post_id = request.form.get('post_id')
 	vote_type = request.form.get('vote_type')

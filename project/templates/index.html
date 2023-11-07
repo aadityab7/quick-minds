@@ -3,47 +3,51 @@
 {% block title %}QUICK MINDS{% endblock %}
 
 {% block content %}
+	<div class="mx-auto max-w-screen-xl px-4 py-8 sm:px-6 lg:px-8">
 
-	<div id="lower" class="grow py-3 px-3 bg-gray-50 rounded-t-lg">
-      
-		<div id = "section-buttons" class="flex justify-center items-center mb-3">
-			<button id = "for_you_page_button" class="mr-3">For You</button>
+		<div id="lower" class="grow py-3 px-3 rounded-t-lg">
+	      
+			<div id = "section-buttons" class="flex justify-center items-center mb-3">
+				<button id = "for_you_page_button" class="mr-3">For You</button>
 
-			<span
-				aria-hidden="true"
-				class="block h-4 w-px rounded-full bg-gray-900"
-			></span>
+				<span
+					aria-hidden="true"
+					class="block h-4 w-px rounded-full bg-gray-900"
+				></span>
 
-			<button id="trending_page_button" class="ml-3">Trending</button>
-		</div>
+				<button id="trending_page_button" class="ml-3">Trending</button>
+			</div>
 
-	    <div id="for_you_page">
-	        <template id="question-template">
-	          	<a href="">
-	            	<div class="question-list-box">
-	              		<p id = "author_user_id"> </p>
-	              		<p id = "question_text"> </p>
-	              		<p id = "created_time"></p>
-	              		<p id="votes"></p>
-	            	</div>
-	          	</a>
-	        </template>
+			<a href="{{url_for('ask_question')}}"> ASK QUESTION </a>
+
+		    <div id="for_you_page">
+		        <template id="question-template">
+		          	<a href="">
+		            	<div class="question-list-box">
+		              		<p id = "author_user_id"> </p>
+		              		<p id = "question_text"> </p>
+		              		<p id = "created_time"></p>
+		              		<p id="votes"></p>
+		            	</div>
+		          	</a>
+		        </template>
+		    </div>
+
+	      	<div id="trending_page">
+		        <template id="question-template">
+		          	<a href="">
+		            	<div class="question-list-box">
+		              		<p id = "author_user_id" class = "m-4"> </p>
+		              		<p id = "question_text"> </p>
+		              		<p id = "created_time"></p>
+		              		<p id="votes"></p>
+		            	</div>
+		          	</a>
+		        </template>
+		    </div>
+
 	    </div>
-
-      	<div id="trending_page">
-	        <template id="question-template">
-	          	<a href="">
-	            	<div class="question-list-box">
-	              		<p id = "author_user_id" class = "m-4"> </p>
-	              		<p id = "question_text"> </p>
-	              		<p id = "created_time"></p>
-	              		<p id="votes"></p>
-	            	</div>
-	          	</a>
-	        </template>
-	    </div>
-
-    	</div>
+	</div>
 
     <script>
 	    // Add event listeners to the buttons

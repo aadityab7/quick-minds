@@ -118,8 +118,14 @@ CREATE TABLE IF NOT EXISTS Comment  (
 
 CREATE TABLE IF NOT EXISTS Image  (
     image_id serial PRIMARY KEY,
+    post_id integer NOT NULL,
     url text NOT NULL,
-    alt_text text
+    alt_text text,
+
+    CONSTRAINT fk_image_post
+        FOREIGN KEY(post_id) 
+        REFERENCES Post(post_id)
+        ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS Tag  (
@@ -221,21 +227,4 @@ CREATE TABLE IF NOT EXISTS Question_Tag  (
         ON DELETE CASCADE,
 
     PRIMARY KEY (tag_id, question_id)
-);
-
-CREATE TABLE IF NOT EXISTS Post_Image  (
-    post_id integer,
-    image_id integer,
-
-    CONSTRAINT fk_post_image_post
-        FOREIGN KEY(post_id) 
-        REFERENCES Post(post_id)
-        ON DELETE CASCADE,
-
-    CONSTRAINT fk_post_image_image
-        FOREIGN KEY(image_id) 
-        REFERENCES Image(image_id)
-        ON DELETE CASCADE,
-
-    PRIMARY KEY (post_id, image_id)
 );

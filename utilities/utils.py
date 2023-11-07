@@ -423,3 +423,64 @@ def follow_unfollow(
 	conn.close()
 
 	return status
+
+def get_question(
+	question_id: int
+):
+	conn = get_db_connection()
+	cur = conn.cursor()
+
+	query = "SELECT \
+				Question.question_id, Question.question_text, Question.vote_counter, Question.response_counter, Question.created_time, App_user.user_id, App_user.name \
+			FROM Question \
+			INNER JOIN App_user\
+			ON Question.user_id = App_user.user_id \
+			WHERE question_id = %s"
+
+	cur.execute(query, (question_id,))
+	question = cur.fetchone()
+
+	if question is None:
+		return -1
+		
+	question_keys = ("question_id", "question_text", "vote_counter", "response_counter", "created_time", "user_id", "user_name")
+	question = dict(zip(question_keys, question))
+
+	cur.close()
+	conn.close()
+
+	return question
+
+def add_image_to_question(
+	image_file_url: str,
+	question_id: int
+):
+	conn = get_db_connection()
+	cur = conn.cursor()
+
+	query = "SELECT post_id FROM Question WHERE question_id = %s"
+	cur.execute(query, (question_id,))
+	post_id = cur.fetchone()
+
+	if post_id is None:
+		return -1
+	else:
+		post_id = post_id[0]
+
+	query = "INSERT INTO Image (url, post_id) VALUES (%s, %s)"
+	cur.execute(query, (image_file_url, post_id))
+	conn.commit()
+
+	query = "SELECT image_id FROM Image WHERE post_id = %s AND url = %s"
+	cur.execute(query, (image_file_url, post_id))
+	image_id = cur.fetchone()
+
+	cur.close()
+	conn.close()
+
+	if image_id is None:
+		return -1
+	else:
+		image_id = image_id[0]
+
+	return image_id

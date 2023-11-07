@@ -157,3 +157,4 @@ cython_debug/
 
 *.json
 flask_session/
+image_folder/
