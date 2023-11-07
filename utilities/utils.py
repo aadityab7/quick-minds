@@ -202,7 +202,7 @@ def check_database_user_authentication(
 
 	return message, user_id, user_name, user_picture_url
 
-def load_more_for_you_questions(
+def load_more_questions(
 	user_id: int,
 	num_to_load: int,
 	offset: int
@@ -232,46 +232,6 @@ def load_more_for_you_questions(
 	cur.execute(query, (num_to_load, offset))
 	questions = cur.fetchall()
 	
-	if questions is None:
-		questions = []
-
-	question_keys = ("question_id", "question_text", "vote_counter", "response_counter", "created_time", "user_id", "user_name")
-	questions = [dict(zip(question_keys, question)) for question in questions]
-
-	cur.close()
-	conn.close()
-
-	return questions
-
-def load_more_trending_questions(
-	user_id: int,
-	num_to_load: int,
-	offset: int
-):
-	"""
-	load more questions for the "Trending" page
-	params:
-		user_id,
-		num_to_load: limit,
-		offset
-	returns:
-		list of questions
-		where each question is a dictonary of values
-		("question_id", "question_text", "vote_counter", "response_counter", "created_time", "user_id", "user_name")
-	"""
-	conn = get_db_connection()
-	cur = conn.cursor()
-
-	query = "SELECT \
-				Question.question_id, Question.question_text, Question.vote_counter, Question.response_counter, Question.created_time, App_user.user_id, App_user.name\
-			FROM Question \
-			INNER JOIN App_user\
-				ON Question.user_id = App_user.user_id\
-			LIMIT %s OFFSET %s"
-
-	cur.execute(query, (num_to_load, offset))
-	questions = cur.fetchall()
-
 	if questions is None:
 		questions = []
 

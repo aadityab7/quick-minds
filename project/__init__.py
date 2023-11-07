@@ -313,12 +313,8 @@ def load_more_questions():
 	# Get the number of transactions to load and offset from the request
 	num_to_load = int(request.form.get('num_to_load', 10))
 	offset = int(request.form.get('offset', 0))
-	section = request.form.get('section', 'for_you')
-
-	if(section == 'for_you'):
-		questions = utils.load_more_for_you_questions(user_id = session['user_id'], num_to_load = num_to_load, offset = offset)
-	else:
-		questions = utils.load_more_trending_questions(user_id = session['user_id'], num_to_load = num_to_load, offset = offset)
+	
+	questions = utils.load_more_questions(user_id = session['user_id'], num_to_load = num_to_load, offset = offset)
 
 	return jsonify({'questions': questions})
 
