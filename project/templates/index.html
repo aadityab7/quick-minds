@@ -98,10 +98,10 @@
 
                         clone.querySelector("a").setAttribute("href", question_url);
                         clone.querySelector("#user_name").textContent = question.user_name;
-                        clone.querySelector("#response_counter").textContent = question.response_counter + ' responses';
+                        clone.querySelector("#response_counter").textContent = question.response_counter + ' response';
                         clone.querySelector("#question_title").textContent = question.question_title;
                         clone.querySelector("#created_time").textContent = question.created_time;
-                        clone.querySelector("#vote_counter").textContent = question.vote_counter + ' votes';
+                        clone.querySelector("#vote_counter").textContent = question.vote_counter + ' vote';
 
                         if (question.vote_counter > 0) {
                             clone.querySelector("#vote_counter").classList.add('text-green-600');

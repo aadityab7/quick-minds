@@ -291,6 +291,10 @@ def add_response(
 	cur.execute(query, ('response', user_id, question_id, response_text))
 	conn.commit()
 
+	query = "UPDATE Question SET response_counter = response_counter + 1 WHERE question_id = %s"
+	cur.execute(query, (question_id,))
+	conn.commit()
+
 	query = "SELECT \
 				Response.response_id, Response.response_text, Response.vote_counter, Response.response_counter, Response.created_time, App_user.user_id, App_user.name\
 			FROM Response \
@@ -302,16 +306,26 @@ def add_response(
 	cur.execute(query, (user_id,))
 	response = cur.fetchone()
 
+	query = "SELECT response_counter FROM Question WHERE question_id = %s"
+	
+	cur.execute(query, (question_id,))
+	question_response_counter = cur.fetchone()
+
 	cur.close()
 	conn.close()
 
 	if response is None:
 		return -1
 
+	if question_response_counter is None:
+		question_response_counter = 0
+	else:
+		question_response_counter = question_response_counter[0]
+
 	response_keys = ("response_id", "response_text", "vote_counter", "response_counter", "created_time", "user_id", "user_name")
 	response = dict(zip(response_keys, response))
 
-	return response
+	return response, question_response_counter
 
 def vote_unvote(
 	post_id: int,

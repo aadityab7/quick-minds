@@ -77,10 +77,7 @@ def ask_question():
 						flash("An error occured when inserting image")
 						return redirect(request.referrer)
 
-				return render_template('index.html', 
-					user_id = session['user_id'], 
-					user_name = session['user_name'], 
-					user_picture_url = session['user_picture_url'])
+				return redirect(url_for('question_detail', question_id = question_id))
 
 		return render_template('ask_question.html',
 			user_id = session['user_id'], 
@@ -88,6 +85,98 @@ def ask_question():
 			user_picture_url = session['user_picture_url'])
 	else:
 		return redirect(url_for('login'))
+
+#MAIN SECTION
+@app.route('/load_more_questions', methods = ('GET', 'POST'))
+def load_more_questions():
+	# Get the number of transactions to load and offset from the request
+	num_to_load = int(request.form.get('num_to_load', 10))
+	offset = int(request.form.get('offset', 0))
+
+	questions = utils.load_more_questions(user_id = session['user_id'], num_to_load = num_to_load, offset = offset)
+
+	return jsonify({'questions': questions})
+
+@app.route('/question_detail/<int:question_id>/', methods = ('GET', 'POST'))
+def question_detail(question_id):
+	if session.get('user_id'):
+		question = utils.get_question(question_id)
+
+		return render_template('question_detail.html', question = question,
+			user_id = session['user_id'], 
+			user_name = session['user_name'], 
+			user_picture_url = session['user_picture_url']
+		)
+	else:
+		return redirect(url_for('login'))
+
+@app.route('/add_response', methods = ['POST'])
+def add_response():
+	print("recived request")
+	print(request.form)
+	
+	response_text = request.form.get('response_text')
+	question_id = request.form.get('question_id')
+
+	response, question_response_counter = utils.add_response(user_id = session['user_id'], question_id = question_id, response_text = response_text)
+
+	if response == -1:
+		flash("An error occured")
+		return redirect(request.referrer)
+
+	return jsonify({'response' : response, 'question_response_counter' : question_response_counter})
+
+@app.route('/follow_unfollow', methods = ['POST'])
+def follow_unfollow():
+	follower_user_id = request.form.get('follower_user_id')
+	followed_user_id = request.form.get('followed_user_id')
+
+	status = utils.follow_unfollow(follower_user_id = follower_user_id, followed_user_id = followed_user_id)
+
+	return jsonify({'status' : status})
+
+@app.route('/vote_unvote', methods = ['POST'])
+def vote_unvote():
+	post_id = request.form.get('post_id')
+	vote_type = request.form.get('vote_type')
+
+	val = utils.vote_unvote(post_id = post_id, user_id = session['user_id'], vote_type = vote_type)
+
+	return jsonify({'val' : val})
+
+@app.route('/test_markdown')
+def test_markdown():
+	return render_template('test_markdown.html')
+
+
+@app.route('/upload_image', methods = ['POST'])
+def upload_image():
+	if 'image' not in request.files:
+		return jsonify({'error': 'No image part'})
+
+	image = request.files['image']
+
+	if image.filename == '':
+		return jsonify({'error': 'No selected image file'})
+
+	if image:
+		image_url = os.path.join(app.config['UPLOAD_FOLDER'], image.filename)
+
+		# Save the image to the specified folder
+		image.save(image_url)
+
+		# Return the URL of the saved image
+		return jsonify({'url': image_url})
+
+@app.route('/load_more_responses', methods = ['POST'])
+def load_more_responses():
+	question_id = request.form.get('question_id')
+	limit = int(request.form.get('num_to_load', 10))
+	offset = int(request.form.get('offset', 0))
+
+	responses = utils.load_more_responses(question_id = question_id, limit = limit, offset = offset)
+
+	return jsonify({'responses' : responses})
 
 #MAIN AUTHENTICATION SECTION (login, logout, sign_up)
 @app.route('/login')
@@ -308,95 +397,3 @@ def google_auth():
 		return redirect(request.referrer)
 
 	return redirect(url_for("index"))
-
-#MAIN SECTION
-@app.route('/load_more_questions', methods = ('GET', 'POST'))
-def load_more_questions():
-	# Get the number of transactions to load and offset from the request
-	num_to_load = int(request.form.get('num_to_load', 10))
-	offset = int(request.form.get('offset', 0))
-
-	questions = utils.load_more_questions(user_id = session['user_id'], num_to_load = num_to_load, offset = offset)
-
-	return jsonify({'questions': questions})
-
-@app.route('/question_detail/<int:question_id>/', methods = ('GET', 'POST'))
-def question_detail(question_id):
-	if session.get('user_id'):
-		question = utils.get_question(question_id)
-
-		return render_template('question_detail.html', question = question,
-			user_id = session['user_id'], 
-			user_name = session['user_name'], 
-			user_picture_url = session['user_picture_url']
-		)
-	else:
-		return redirect(url_for('login'))
-
-@app.route('/add_response', methods = ['POST'])
-def add_response():
-	print("recived request")
-	print(request.form)
-	
-	response_text = request.form.get('response_text')
-	question_id = request.form.get('question_id')
-
-	response = utils.add_response(user_id = session['user_id'], question_id = question_id, response_text = response_text)
-
-	if response == -1:
-		flash("An error occured")
-		return redirect(request.referrer)
-
-	return jsonify({'response' : response})
-
-@app.route('/follow_unfollow', methods = ['POST'])
-def follow_unfollow():
-	follower_user_id = request.form.get('follower_user_id')
-	followed_user_id = request.form.get('followed_user_id')
-
-	status = utils.follow_unfollow(follower_user_id = follower_user_id, followed_user_id = followed_user_id)
-
-	return jsonify({'status' : status})
-
-@app.route('/vote_unvote', methods = ['POST'])
-def vote_unvote():
-	post_id = request.form.get('post_id')
-	vote_type = request.form.get('vote_type')
-
-	val = utils.vote_unvote(post_id = post_id, user_id = session['user_id'], vote_type = vote_type)
-
-	return jsonify({'val' : val})
-
-@app.route('/test_markdown')
-def test_markdown():
-	return render_template('test_markdown.html')
-
-
-@app.route('/upload_image', methods = ['POST'])
-def upload_image():
-	if 'image' not in request.files:
-		return jsonify({'error': 'No image part'})
-
-	image = request.files['image']
-
-	if image.filename == '':
-		return jsonify({'error': 'No selected image file'})
-
-	if image:
-		image_url = os.path.join(app.config['UPLOAD_FOLDER'], image.filename)
-
-		# Save the image to the specified folder
-		image.save(image_url)
-
-		# Return the URL of the saved image
-		return jsonify({'url': image_url})
-
-@app.route('/load_more_responses', methods = ['POST'])
-def load_more_responses():
-	question_id = request.form.get('question_id')
-	limit = int(request.form.get('num_to_load', 10))
-	offset = int(request.form.get('offset', 0))
-
-	responses = utils.load_more_responses(question_id = question_id, limit = limit, offset = offset)
-
-	return jsonify({'responses' : responses})
