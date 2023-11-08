@@ -132,7 +132,7 @@ def check_database_user_authentication(
 				user_picture_url = res[2]
 
 		elif type == "github":
-			query = "SELECT user_id, name, picture_url FROM App_user WHERE github_id = %s"
+			query = "SELECT user_id, name, picture_url FROM App_user WHERE github_id = '%s'"
 
 			cur.execute(query, (github_id,))
 			res = cur.fetchone()
