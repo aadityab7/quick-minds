@@ -103,8 +103,6 @@ def question_detail(question_id):
 
 @app.route('/add_response', methods = ['POST'])
 def add_response():
-	print("recived request")
-	print(request.form)
 	
 	response_text = request.form.get('response_text')
 	question_id = request.form.get('question_id')
@@ -119,10 +117,9 @@ def add_response():
 
 @app.route('/follow_unfollow', methods = ['POST'])
 def follow_unfollow():
-	follower_user_id = request.form.get('follower_user_id')
 	followed_user_id = request.form.get('followed_user_id')
 
-	status = utils.follow_unfollow(follower_user_id = follower_user_id, followed_user_id = followed_user_id)
+	status = utils.follow_unfollow(follower_user_id = session['user_id'], followed_user_id = followed_user_id)
 
 	return jsonify({'status' : status})
 

@@ -338,6 +338,8 @@ def add_response(
 	response_keys = ("response_id", "response_text", "vote_counter", "response_counter", "created_time", "user_id", "user_name")
 	response = dict(zip(response_keys, response))
 
+	response['response_text'] = markdown.markdown(response['response_text'])
+
 	return response, question_response_counter
 
 
@@ -556,7 +558,7 @@ def follow_unfollow(
 	add follow if not already else remove
 	return: followed, unfollowed
 	"""
-	status = 'followed'
+	status = 'following'
 
 	conn = get_db_connection()
 	cur = conn.cursor()
@@ -572,7 +574,7 @@ def follow_unfollow(
 		cur.execute(query, (follower_user_id, followed_user_id))
 		conn.commit()
 	else:
-		status = 'unfollowed'
+		status = 'follow'
 		query = "DELETE FROM Follow WHERE follower_user_id = %s AND followed_user_id = %s"
 
 		cur.execute(query, (follower_user_id, followed_user_id))
@@ -681,6 +683,9 @@ def load_more_responses(
 
 	response_keys = ("response_id", "response_text", "vote_counter", "response_counter", "created_time", "user_id", "user_name", "following")
 	responses = [dict(zip(response_keys, response)) for response in responses]
+
+	for response in responses:
+		response['response_text'] = markdown.markdown(response['response_text'])
 
 	cur.close()
 	conn.close()

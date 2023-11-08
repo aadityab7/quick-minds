@@ -95,7 +95,7 @@
 			              		<p id = "created_time" class="text-gray-500"></p>
 			              	</div>
 
-		              		<h1 id = "response_text" class="sm:text-xl"> </h1>
+		              		<div id = "response_text" class="sm:text-xl"> </div>
 		              		
 		              		<div class="flex items-start gap-4 mt-2">
 		              			
@@ -161,7 +161,7 @@
 	    const fileInput = document.getElementById('file-upload');
 
 	    // Function to load more questions
-	    function loadMoreQuestions() {
+	    function loadMoreResponses() {
 	        if (loadComplete) {
 	            return;
 	        }
@@ -195,7 +195,7 @@
 
 	                    clone.querySelector("#user_name").textContent = response.user_name;
 	                    clone.querySelector("#response_counter").textContent = response.response_counter + ' comments';
-	                    clone.querySelector("#response_text").textContent = response.response_text;
+	                    clone.querySelector("#response_text").innerHTML	= response.response_text;
 	                    clone.querySelector("#created_time").textContent = response.created_time;
 	                    clone.querySelector("#response_vote_counter").textContent = response.vote_counter;
 
@@ -223,7 +223,7 @@
 	    }
 
 	    // Load initial data for both sections when the page loads
-	    loadMoreQuestions();
+	    loadMoreResponses();
 
 	    fileInput.addEventListener('change', function () {
             const file = fileInput.files[0];
@@ -383,7 +383,7 @@
 
 		    // Load more responses when the "Load More" button is clicked
 		    if (event.target.id === 'load-more-button') {
-		    	loadMoreQuestions();
+		    	loadMoreResponses();
 		    }
 		});
 

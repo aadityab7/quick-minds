@@ -220,7 +220,7 @@ CREATE TABLE IF NOT EXISTS Post_Vote  (
     CONSTRAINT fk_post_vote_app_user
         FOREIGN KEY(user_id) 
         REFERENCES App_user(user_id)
-        ON DELETE CASCADE,
+        ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS Question_Tag  (

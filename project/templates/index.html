@@ -17,22 +17,26 @@
 
 		    <div id="for_you_page" class="mt-8">
 		        <template id="question-template">
-		          	<a href="" class="p-4">
-		            	<div class="question-list-box">
-		            		<div class="flex items-start gap-4 mb-2 items-center">
-			              		<p id = "user_name" class="text-gray-500 font-bold"></p>
-			              		<p id = "created_time" class="text-gray-500"></p>
-			              	</div>
+		        	<div class="p-4">
+		        		<div class="flex items-start gap-4 items-center pb-2">
+		              		<p id = "user_name" class="text-gray-500 font-bold"></p>
+		              		<button id = "follow" data-user-id = "" class="text-blue-500"></button>
+		              	</div>
 
-		              		<h1 id = "question_title" class="text-xl"> </h1>
-		              		
-		              		<div class="flex items-start gap-4 mt-2">
-		              			<p id = "vote_counter" class="text-gray-500 text-sm font-bold"></p>
-		              			<p id = "response_counter" class="text-gray-500 text-sm font-bold"></p>
-		              		</div>
-		              		
-		            	</div>
-		          	</a>
+			          	<a href="">
+			            	<div class="question-list-box">
+			              		<h1 id = "question_title" class="text-xl"> </h1>
+
+			              		<p id = "created_time" class="text-sm text-gray-500 mt-3"></p>
+			              		<div class="flex items-start gap-4 mt-2">
+			              			<p id = "vote_counter" class="text-gray-500 text-sm font-bold"></p>
+			              			<p id = "response_counter" class="text-gray-500 text-sm font-bold"></p>
+			              		</div>
+			              		
+			            	</div>
+			          	</a>
+		        	</div>
+		        	
 		          	<hr>
 		        </template>
 		    </div>
@@ -103,6 +107,15 @@
                         clone.querySelector("#created_time").textContent = question.created_time;
                         clone.querySelector("#vote_counter").textContent = question.vote_counter + ' vote';
 
+                        if (question.following){
+                        	clone.querySelector("#follow").textContent = 'following';
+                        }
+                        else{
+                        	clone.querySelector("#follow").textContent = 'follow';
+                        }
+
+                        clone.querySelector("#follow").setAttribute('data-user-id', question.user_id);
+
                         if (question.vote_counter > 0) {
                             clone.querySelector("#vote_counter").classList.add('text-green-600');
                         } else if (question.vote_counter < 0) {
@@ -129,6 +142,25 @@
 	        if (isScrolledToBottom()) {
 	            console.log('Scrolled to the bottom');
 	            loadMoreQuestions();	        }
+	    });
+
+	    function handleQuestionVoteClick(event) {
+	    	const followed_user_id = event.target.getAttribute('data-user-id');
+
+    		$.ajax({
+		        type: 'POST',
+		        url: '/follow_unfollow',
+		        data: { followed_user_id: followed_user_id },
+		        success: function (data) {
+		        	event.target.textContent = data.status;
+		        }
+		    });
+	    }
+
+	    document.addEventListener('click', function(event) {
+	    	if (event.target.id === 'follow') {
+	    		handleQuestionVoteClick(event);
+	    	}
 	    });
 	</script>
 
