@@ -137,12 +137,22 @@ def follow_unfollow():
 
 @app.route('/vote_unvote', methods = ['POST'])
 def vote_unvote():
-	post_id = request.form.get('post_id')
-	vote_type = request.form.get('vote_type')
+	question_id = int(request.form.get('question_id', -1))
+	response_id = int(request.form.get('response_id', -1))
+	post_type = request.form.get('post_type', 'question')
+	up_or_down_vote = request.form.get('up_or_down_vote', 'up')
 
-	val = utils.vote_unvote(post_id = post_id, user_id = session['user_id'], vote_type = vote_type)
+	print(question_id, response_id, post_type, up_or_down_vote)
 
-	return jsonify({'val' : val})
+	vote_count, my_vote = utils.vote_unvote(user_id = session['user_id'], 
+											question_id = question_id, 
+											response_id = response_id, 
+											post_type = post_type,
+											up_or_down_vote = up_or_down_vote)
+
+	print(vote_count, my_vote)
+
+	return jsonify({'vote_count' : vote_count, 'my_vote' : my_vote})
 
 @app.route('/test_markdown')
 def test_markdown():

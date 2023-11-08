@@ -202,21 +202,25 @@ CREATE TABLE IF NOT EXISTS Follow  (
 );
 
 CREATE TABLE IF NOT EXISTS Post_Vote  (
-    post_id integer,
+    question_id integer,
+    response_id integer,
     user_id integer,
     val integer DEFAULT 1,
 
-    CONSTRAINT fk_post_vote_post
-        FOREIGN KEY(post_id) 
-        REFERENCES Post(post_id)
+    CONSTRAINT fk_post_vote_question
+        FOREIGN KEY(question_id) 
+        REFERENCES Question(question_id)
+        ON DELETE CASCADE,
+    
+    CONSTRAINT fk_post_vote_response
+        FOREIGN KEY(response_id) 
+        REFERENCES Response(response_id)
         ON DELETE CASCADE,
 
     CONSTRAINT fk_post_vote_app_user
         FOREIGN KEY(user_id) 
         REFERENCES App_user(user_id)
         ON DELETE CASCADE,
-
-    PRIMARY KEY (post_id, user_id)
 );
 
 CREATE TABLE IF NOT EXISTS Question_Tag  (

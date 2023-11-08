@@ -327,43 +327,213 @@ def add_response(
 
 	return response, question_response_counter
 
-def vote_unvote(
-	post_id: int,
-	user_id: int,
-	vote_type: str
+
+def handle_question_vote(
+	user_id,
+	question_id,
+	up_or_down_vote
 ):
-	"""
-	vote_type = "up" or "down"
-	add vote if doesn't exists already else remove vote
-	return +1 for upvote -1 for down vote and 0 for vote removal
-	"""
-
-	val = 1 if vote_type == 'up' else -1
-
 	conn = get_db_connection()
 	cur = conn.cursor()
 
-	query = "SELECT 1 FROM Post_Vote WHERE post_id = %s AND user_id = %s"
-	cur.execute(query, (post_id, user_id))
+	#extract post_id
+	query = "SELECT post_id FROM Question WHERE question_id = %s"
+	cur.execute(query, (question_id,))
+	post_id = cur.fetchone()[0]
+
+	#check if user has a vote on this post or not and if yes what vote
+	query = "SELECT val FROM Post_Vote WHERE question_id = %s AND user_id = %s"
+	cur.execute(query, (question_id, user_id))
 	result = cur.fetchone()
 
 	if result is None:
-		#vote doesn't exists
-		query = "INSERT INTO Post_Vote (post_id, user_id, val) VALUES (%s, %s, %s)"
+		#no existing vote
+		#cast new vote
+		if up_or_down_vote == 'up':
+			#added up vote
+			value = 1
+			my_vote = 0
+			counter_update = +1
+		else:
+			#added down vote
+			value = -1
+			my_vote = 1
+			counter_update = -1
 
-		cur.execute(query, (post_id, user_id, val))
+
+		query = "INSERT INTO Post_Vote (question_id, user_id, val) VALUES (%s, %s, %s)"
+		cur.execute(query, (question_id, user_id, value))
 		conn.commit()
+		
 	else:
-		val = 0
-		query = "DELETE FROM Post_Vote WHERE post_id = %s AND user_id = %s"
+		#vote already exists
+		val = result[0]
 
-		cur.execute(query, (post_id, user_id))
+		#remove the existing vote
+		query = "DELETE FROM Post_Vote WHERE question_id = %s AND user_id = %s"
+		cur.execute(query, (question_id, user_id))
 		conn.commit()
+
+		if up_or_down_vote == 'up':
+			if val == 1:
+				#remove up vote
+				my_vote = 2
+				counter_update = -1
+			else:
+				#remove down vote
+				my_vote = 3
+				counter_update = +1
+		else:
+			if val == 1:
+				#remove up vote
+				my_vote = 2
+				counter_update = -1
+			else:
+				#remove down vote
+				my_vote = 3
+				counter_update = +1
+
+	query = "UPDATE Post SET vote_counter = vote_counter + %s WHERE post_id = %s"
+	cur.execute(query, (counter_update, post_id))
+	conn.commit()
+
+	query = "SELECT vote_counter FROM Post WHERE post_id = %s"
+	cur.execute(query, (post_id,))
+	vote_count = cur.fetchone()[0]
 
 	cur.close()
 	conn.close()
 
-	return val
+	return vote_count, my_vote
+
+
+def handle_response_vote(
+	user_id,
+	response_id,
+	up_or_down_vote
+):
+	conn = get_db_connection()
+	cur = conn.cursor()
+
+	#extract post_id
+	query = "SELECT post_id FROM Response WHERE response_id = %s"
+	cur.execute(query, (response_id,))
+	post_id = cur.fetchone()[0]
+
+	#check if user has a vote on this post or not and if yes what vote
+	query = "SELECT val FROM Post_Vote WHERE response_id = %s AND user_id = %s"
+	cur.execute(query, (response_id, user_id))
+	result = cur.fetchone()
+
+	if result is None:
+		#no existing vote
+		#cast new vote
+		if up_or_down_vote == 'up':
+			#added up vote
+			value = 1
+			my_vote = 0
+			counter_update = +1
+		else:
+			#added down vote
+			value = -1
+			my_vote = 1
+			counter_update = -1
+
+		query = "INSERT INTO Post_Vote (response_id, user_id, val) VALUES (%s, %s, %s)"
+		cur.execute(query, (response_id, user_id, value))
+		conn.commit()
+
+		
+	else:
+		#vote already exists
+		val = result[0]
+
+		#remove the existing vote
+		query = "DELETE FROM Post_Vote WHERE response_id = %s AND user_id = %s"
+		cur.execute(query, (response_id, user_id))
+		conn.commit()
+
+		if up_or_down_vote == 'up':
+			if val == 1:
+				#remove up vote
+				my_vote = 2
+				counter_update = -1
+			else:
+				#remove down vote
+				my_vote = 3
+				counter_update = +1
+		else:
+			if val == 1:
+				#remove up vote
+				my_vote = 2
+				counter_update = -1
+			else:
+				#remove down vote
+				my_vote = 3
+				counter_update = +1
+
+	query = "UPDATE Post SET vote_counter = vote_counter + %s WHERE post_id = %s"
+	cur.execute(query, (counter_update, post_id))
+	conn.commit()
+
+	query = "SELECT vote_counter FROM Post WHERE post_id = %s"
+	cur.execute(query, (post_id,))
+	vote_count = cur.fetchone()[0]
+
+	cur.close()
+	conn.close()
+
+	return vote_count, my_vote
+
+def vote_unvote(
+	user_id: int,
+	question_id: int,
+	response_id: int,
+	post_type: str,
+	up_or_down_vote: str
+):
+	"""
+	post_type can "question" or "response"
+	vote can be "up" or "down"
+	
+	my_vote:
+		0: add up_vote
+		1: add down_vote
+		2: remove up_vote
+		3: remove down_vote
+
+	if user already have vote on post:
+		delete record 
+
+		if up_vote and val == 1:
+			my_vote = 2
+			counter = -1
+		else if up_vote and val == -1:
+			my_vote = 3
+			counter = +1
+		else if down vote and val == -1:
+			my_vote = 3
+			counter = +1
+		else if down and val == 1:
+			my_vote = 2
+			counter = -1
+	else:
+		insert new record with user_id, post_id and val
+		if up:
+			my_vote = 0
+			counter = +1
+		else if down:
+			my_vote = 1
+			counter = -1
+
+	returns vote_count, my_vote
+	"""
+
+	if post_type == 'question':
+		return handle_question_vote(user_id, question_id, up_or_down_vote)
+	else:
+		return handle_response_vote(user_id, response_id, up_or_down_vote)
+
 
 def follow_unfollow(
 	follower_user_id: int,

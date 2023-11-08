@@ -50,15 +50,15 @@
 		<hr class="my-4">
 
 		<div id = "responses">
-			<h1 class="text-xl font-bold text-gray-500">{{question["response_counter"]}} Response</h1>
+			<h1 id = "question_response_counter" class="text-xl font-bold text-gray-500">{{question["response_counter"]}} Response</h1>
 
 			<template id="response-template">
 
-				<div class="grid grid-cols-12 items-start gap-2 sm:gap-0">
+				<div id = "complete_repsonse_block" class="grid grid-cols-12 items-start gap-2 sm:gap-0" data-response-id = "">
 					<div id = 'response-votes' class="py-4 col-span-1 align-center justify-center">
 						<div class="flex mb-2 align-center justify-center">
-							<button id="response_upvote_button">
-								<img class = 'w-6' src="https://img.icons8.com/ios/50/circled-chevron-up.png">
+							<button>
+								<img id="response_upvote_button" data-response-id = "" class = 'w-6' src="https://img.icons8.com/ios/50/circled-chevron-up.png">
 							</button>
 						</div>
 						
@@ -67,29 +67,26 @@
 						</div>
 		  				
 						<div class="flex mt-2 align-center justify-center">
-							<button id="response_downvote_button">
-								<img class="w-6" src="https://img.icons8.com/ios/50/circled-chevron-down.png">
+							<button>
+								<img id="response_downvote_button" data-response-id = "" class="w-6" src="https://img.icons8.com/ios/50/circled-chevron-down.png">
 							</button>	
 						</div>
 					</div>
 
 					<div id = 'single-response' class="col-span-11 p-4">
-						<a href="">
-			            	<div class="response-list-box">
-			            		<div class="sm:flex items-start gap-4 mb-2 items-center">
-				              		<p id = "user_name" class="text-gray-500 font-bold"></p>
-				              		<p id = "created_time" class="text-gray-500"></p>
-				              	</div>
+		            	<div class="response-list-box">
+		            		<div class="sm:flex items-start gap-4 mb-2 items-center">
+			              		<p id = "user_name" class="text-gray-500 font-bold"></p>
+			              		<p id = "created_time" class="text-gray-500"></p>
+			              	</div>
 
-			              		<h1 id = "response_text" class="sm:text-xl"> </h1>
-			              		
-			              		<div class="flex items-start gap-4 mt-2">
-			              			
-			              			<p id = "response_counter" class="text-gray-500 text-sm font-bold"></p>
-			              		</div>
-			              		
-			            	</div>
-			          	</a>
+		              		<h1 id = "response_text" class="sm:text-xl"> </h1>
+		              		
+		              		<div class="flex items-start gap-4 mt-2">
+		              			
+		              			<p id = "response_counter" class="text-gray-500 text-sm font-bold"></p>
+		              		</div>
+		            	</div>
 					</div>
 				</div>
 				
@@ -176,6 +173,10 @@
 	                data.responses.forEach(function (response) {
 	                    var template = document.getElementById("response-template");
 	                    var clone = document.importNode(template.content, true);
+	                    
+	                    clone.querySelector("#complete_repsonse_block").setAttribute("data-response-id", response.response_id);
+	                    clone.querySelector("#response_upvote_button").setAttribute("data-response-id", response.response_id);
+	                    clone.querySelector("#response_downvote_button").setAttribute("data-response-id", response.response_id);
 
 	                    clone.querySelector("#user_name").textContent = response.user_name;
 	                    clone.querySelector("#response_counter").textContent = response.response_counter + ' comments';
@@ -184,9 +185,9 @@
 	                    clone.querySelector("#response_vote_counter").textContent = response.vote_counter;
 
 	                    if (response.vote_counter > 0) {
-	                        clone.querySelector("#vote_counter").classList.add('text-green-600');
+	                        clone.querySelector("#response_vote_counter").classList.add('text-green-600');
 	                    } else if (response.vote_counter < 0) {
-	                        clone.querySelector("#vote_counter").classList.add('text-red-600');
+	                        clone.querySelector("#response_vote_counter").classList.add('text-red-600');
 	                    }
 
 	                    document.getElementById('responses').appendChild(clone);
@@ -208,11 +209,6 @@
 
 	    // Load initial data for both sections when the page loads
 	    loadMoreQuestions();
-
-	    // Load more responses when the "Load More" button is clicked
-	    document.getElementById('load-more-button').addEventListener('click', function () {
-	        loadMoreQuestions();
-	    });
 
 	    fileInput.addEventListener('change', function () {
             const file = fileInput.files[0];
@@ -244,43 +240,98 @@
             }
         });
 
-        document.getElementById('response-button').addEventListener('click', function() {
-        	const response_text_element = document.getElementById('response-text');
-        	const response_text = response_text_element.value;
-
-        	$.ajax({
-	            type: 'POST',
-	            url: '/add_response',
-	            data: {question_id : question_id, response_text: response_text},
-	            success: function (data) {
-	            	add_response_to_list(data.response);
-	            	response_text_element.value = '';
-	            	document.getElementById('response_counter').innerText = data.question_response_counter + ' responses';
-	            },
-	            error: function(xhr, status, error) {
-	                console.error('Error adding response:', error);
-	            }
-        	});
-        });
-
         function add_response_to_list(response) {
 			var template = document.getElementById("response-template");
             var clone = document.importNode(template.content, true);
+            
+            clone.querySelector("#complete_repsonse_block").setAttribute("data-response-id", response.response_id);
+            clone.querySelector("#response_upvote_button").setAttribute("data-response-id", response.response_id);
+            clone.querySelector("#response_downvote_button").setAttribute("data-response-id", response.response_id);
 
             clone.querySelector("#user_name").textContent = response.user_name;
             clone.querySelector("#response_counter").textContent = response.response_counter + ' comments';
             clone.querySelector("#response_text").textContent = response.response_text;
             clone.querySelector("#created_time").textContent = response.created_time;
-            clone.querySelector("#response_vote_counter").textContent = response.vote_counter + ' votes';
+            clone.querySelector("#response_vote_counter").textContent = response.vote_counter;
 
             if (response.vote_counter > 0) {
-                clone.querySelector("#vote_counter").classList.add('text-green-600');
+                clone.querySelector("#response_vote_counter").classList.add('text-green-600');
             } else if (response.vote_counter < 0) {
-                clone.querySelector("#vote_counter").classList.add('text-red-600');
+                clone.querySelector("#response_vote_counter").classList.add('text-red-600');
             }
 
             document.getElementById('responses').appendChild(clone);
         }
+
+        function handleResponseVoteClick(event, post_type, up_or_down_vote) {
+		    // Extract the response_id from the clicked button's data-response-id attribute
+		    var responseId = event.target.getAttribute("data-response-id");
+
+		    var responseContainer = document.querySelector(`[data-response-id="${responseId}"]`);
+		    var voteCounter = responseContainer.querySelector("#response_vote_counter");
+
+		    // Make a POST request to up-vote the response with the responseId
+		    $.ajax({
+		        type: 'POST',
+		        url: '/vote_unvote',
+		        data: { response_id: responseId, post_type: post_type, up_or_down_vote : up_or_down_vote},
+		        success: function (data) {
+
+		        	voteCounter.innerText = data.vote_count;
+
+		        	if (data.vote_count > 0) {
+		        		voteCounter.classList.remove('text-red-600');
+		        		voteCounter.classList.add('text-green-600');
+		        	}
+		        	else if (data.vote_count < 0){
+		        		voteCounter.classList.add('text-red-600');
+		        		voteCounter.classList.remove('text-green-600');
+		        	}
+		        	else {
+		        		voteCounter.classList.remove('text-red-600');
+		        		voteCounter.classList.remove('text-green-600');
+		        	}
+		        }
+		    });
+		    
+		}
+
+
+
+		// Add an event listener to handle the up-vote button click
+		document.addEventListener('click', function(event) {
+		    if (event.target.id === 'response_upvote_button') {
+		        handleResponseVoteClick(event, 'response', 'up');
+		    }
+
+		    if (event.target.id === 'response_downvote_button') {
+		        handleResponseVoteClick(event, 'response', 'down');
+		    }
+
+		    if (event.target.id === 'response-button') {
+		    	const response_text_element = document.getElementById('response-text');
+	        	const response_text = response_text_element.value;
+
+	        	$.ajax({
+		            type: 'POST',
+		            url: '/add_response',
+		            data: {question_id : question_id, response_text: response_text},
+		            success: function (data) {
+		            	add_response_to_list(data.response);
+		            	response_text_element.value = '';
+		            	document.getElementById('question_response_counter').innerText = data.question_response_counter + ' response';
+		            },
+		            error: function(xhr, status, error) {
+		                console.error('Error adding response:', error);
+		            }
+	        	});
+		    }
+
+		    // Load more responses when the "Load More" button is clicked
+		    if (event.target.id === 'load-more-button') {
+		    	loadMoreQuestions();
+		    }
+		});
 
 	</script>
 
