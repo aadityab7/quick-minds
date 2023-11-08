@@ -234,7 +234,7 @@ def load_more_questions(
 
 	query = "SELECT \
 				Question.question_id, Question.question_title, Question.vote_counter, Question.response_counter, \
-				Question.created_time, App_user.user_id, App_user.name \
+				Question.created_time, App_user.user_id, App_user.name, \
 				CASE WHEN Follow.followed_user_id IS NULL THEN false ELSE true END AS following	\
 			FROM Question \
 			INNER JOIN App_user\
@@ -593,7 +593,7 @@ def get_question(
 	query = "SELECT \
 				Question.question_id, Question.question_title, Question.question_text, \
 				Question.vote_counter, Question.response_counter, Question.created_time, \
-				App_user.user_id, App_user.name \
+				App_user.user_id, App_user.name, \
 				CASE WHEN Follow.followed_user_id IS NULL THEN false ELSE true END AS following	\
 			FROM Question \
 			INNER JOIN App_user\
@@ -663,7 +663,7 @@ def load_more_responses(
 
 	query =	"SELECT \
 				Response.response_id, Response.response_text, Response.vote_counter, \
-				Response.response_counter, Response.created_time, App_user.user_id, App_user.name \
+				Response.response_counter, Response.created_time, App_user.user_id, App_user.name, \
 				CASE WHEN Follow.followed_user_id IS NULL THEN false ELSE true END AS following	\
 			FROM Response \
 			INNER JOIN App_user \

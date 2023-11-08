@@ -14,6 +14,9 @@ import markdown
 
 import psycopg2
 
+import urllib
+from google.cloud import storage
+
 from utilities import utils
 
 app = Flask(__name__)
@@ -21,7 +24,7 @@ app.config['SECRET_KEY'] = os.environ.get("SECRET_KEY", os.urandom(12))
 app.config["SESSION_PERMANENT"] = False
 app.config["SESSION_TYPE"] = "filesystem"
 app.config['MAX_CONTENT_LENGTH'] = 10 * 1024 * 1024  # 10 MB
-app.config['UPLOAD_FOLDER'] = "G:\\quick-minds\\image_folder"
+app.config['UPLOAD_FOLDER'] = ".\\image_folder"
 
 Session(app)
 oauth = OAuth(app)
@@ -51,6 +54,7 @@ def ask_question():
 			question_title = request.form['question-title']
 			question_details = request.form['question-details']
 
+			"""
 			file_url = ''
 			filename = ''
 			if 'file-upload' in request.files:
@@ -59,6 +63,8 @@ def ask_question():
 				if filename != '':
 					file_url = os.path.join(app.config['UPLOAD_FOLDER'], filename)
 					image_file.save(file_url)
+
+			"""
 
 			if not question_title:
 				flash("Please enter the Title!")
@@ -71,11 +77,13 @@ def ask_question():
 					flash("An error occured")
 					return redirect(request.referrer)
 				
+				"""
 				if file_url != '':
 					image_id = utils.add_image_to_post(file_url, question_id)
 					if image_id == -1:
 						flash("An error occured when inserting image")
 						return redirect(request.referrer)
+				"""
 
 				return redirect(url_for('question_detail', question_id = question_id))
 
@@ -161,22 +169,41 @@ def vote_unvote():
 def test_markdown():
 	return render_template('test_markdown.html')
 
-
 @app.route('/upload_image', methods = ['POST'])
 def upload_image():
+	
+	"""
+	I need to be able to extract 
+	file name 
+	image file itself
+	content type
+	"""
+	#print('request recived to upload image!!')
+
 	if 'image' not in request.files:
-		return jsonify({'error': 'No image part'})
+		return jsonify({'error': 'No image uploaded!!'})
 
 	image = request.files['image']
 
 	if image.filename == '':
-		return jsonify({'error': 'No selected image file'})
+		return jsonify({'error': 'No File Name!!'})
 
 	if image:
-		image_url = os.path.join(app.config['UPLOAD_FOLDER'], image.filename)
+		bucket_name = 'quickmindsimagestoragebucket'
+		content_type = image.content_type
+		filename = image.filename
 
-		# Save the image to the specified folder
-		image.save(image_url)
+		#print(f"uploading {filename} to {bucket_name}")
+
+		gcs_client = storage.Client()
+		storage_bucket = gcs_client.get_bucket(bucket_name)
+		blob = storage_bucket.blob(filename)
+
+		#print("starting image upload...")
+
+		blob.upload_from_string(image.read(), content_type = content_type)
+
+		image_url = blob.public_url;
 
 		# Return the URL of the saved image
 		return jsonify({'url': image_url})
