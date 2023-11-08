@@ -93,14 +93,17 @@ def load_more_questions():
 	num_to_load = int(request.form.get('num_to_load', 10))
 	offset = int(request.form.get('offset', 0))
 
-	questions = utils.load_more_questions(user_id = session['user_id'], num_to_load = num_to_load, offset = offset)
+	questions = utils.load_more_questions(
+					user_id = session['user_id'], 
+					num_to_load = num_to_load, offset = offset
+				)
 
 	return jsonify({'questions': questions})
 
 @app.route('/question_detail/<int:question_id>/', methods = ('GET', 'POST'))
 def question_detail(question_id):
 	if session.get('user_id'):
-		question = utils.get_question(question_id)
+		question = utils.get_question(user_id = session['user_id'], question_id = question_id)
 
 		return render_template('question_detail.html', question = question,
 			user_id = session['user_id'], 
@@ -184,7 +187,10 @@ def load_more_responses():
 	limit = int(request.form.get('num_to_load', 10))
 	offset = int(request.form.get('offset', 0))
 
-	responses = utils.load_more_responses(question_id = question_id, limit = limit, offset = offset)
+	responses = utils.load_more_responses(
+					user_id = session['user_id'], question_id = question_id, 
+					limit = limit, offset = offset
+				)
 
 	return jsonify({'responses' : responses})
 

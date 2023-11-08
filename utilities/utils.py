@@ -223,20 +223,33 @@ def load_more_questions(
 	conn = get_db_connection()
 	cur = conn.cursor()
 
+	"""
+	SELECT \
+		Question.question_id, Question.question_title, Question.vote_counter, Question.response_counter, Question.created_time, App_user.user_id, App_user.name\
+	FROM Question \
+	INNER JOIN App_user\
+		ON Question.user_id = App_user.user_id\
+	LIMIT %s OFFSET %s
+	"""
+
 	query = "SELECT \
-				Question.question_id, Question.question_title, Question.vote_counter, Question.response_counter, Question.created_time, App_user.user_id, App_user.name\
+				Question.question_id, Question.question_title, Question.vote_counter, Question.response_counter, \
+				Question.created_time, App_user.user_id, App_user.name \
+				CASE WHEN Follow.followed_user_id IS NULL THEN false ELSE true END AS following	\
 			FROM Question \
 			INNER JOIN App_user\
 				ON Question.user_id = App_user.user_id\
-			LIMIT %s OFFSET %s"
+			LEFT JOIN Follow \
+				on App_user.user_id = Follow.followed_user_id and Follow.follower_user_id = %s \
+			LIMIT %s OFFSET %s;"
 
-	cur.execute(query, (num_to_load, offset))
+	cur.execute(query, (user_id, num_to_load, offset))
 	questions = cur.fetchall()
 	
 	if questions is None:
 		questions = []
 
-	question_keys = ("question_id", "question_title", "vote_counter", "response_counter", "created_time", "user_id", "user_name")
+	question_keys = ("question_id", "question_title", "vote_counter", "response_counter", "created_time", "user_id", "user_name", "following")
 	questions = [dict(zip(question_keys, question)) for question in questions]
 
 	cur.close()
@@ -571,25 +584,31 @@ def follow_unfollow(
 	return status
 
 def get_question(
+	user_id: int,
 	question_id: int
 ):
 	conn = get_db_connection()
 	cur = conn.cursor()
 
 	query = "SELECT \
-				Question.question_id, Question.question_title, Question.question_text, Question.vote_counter, Question.response_counter, Question.created_time, App_user.user_id, App_user.name \
+				Question.question_id, Question.question_title, Question.question_text, \
+				Question.vote_counter, Question.response_counter, Question.created_time, \
+				App_user.user_id, App_user.name \
+				CASE WHEN Follow.followed_user_id IS NULL THEN false ELSE true END AS following	\
 			FROM Question \
 			INNER JOIN App_user\
 			ON Question.user_id = App_user.user_id \
+			LEFT JOIN Follow \
+				on App_user.user_id = Follow.followed_user_id and Follow.follower_user_id = %s \
 			WHERE question_id = %s"
 
-	cur.execute(query, (question_id,))
+	cur.execute(query, (user_id, question_id,))
 	question = cur.fetchone()
 
 	if question is None:
 		return -1
 		
-	question_keys = ("question_id", "question_title", "question_text", "vote_counter", "response_counter", "created_time", "user_id", "user_name")
+	question_keys = ("question_id", "question_title", "question_text", "vote_counter", "response_counter", "created_time", "user_id", "user_name", "following")
 	question = dict(zip(question_keys, question))
 
 	cur.close()
@@ -634,6 +653,7 @@ def add_image_to_post(
 	return image_id
 
 def load_more_responses(
+	user_id: int,
 	question_id: int,
 	limit: int,
 	offset: int
@@ -642,20 +662,24 @@ def load_more_responses(
 	cur = conn.cursor()
 
 	query =	"SELECT \
-				Response.response_id, Response.response_text, Response.vote_counter, Response.response_counter, Response.created_time, App_user.user_id, App_user.name \
+				Response.response_id, Response.response_text, Response.vote_counter, \
+				Response.response_counter, Response.created_time, App_user.user_id, App_user.name \
+				CASE WHEN Follow.followed_user_id IS NULL THEN false ELSE true END AS following	\
 			FROM Response \
 			INNER JOIN App_user \
 				ON Response.user_id = App_user.user_id \
+			LEFT JOIN Follow \
+				on App_user.user_id = Follow.followed_user_id and Follow.follower_user_id = %s \
 			WHERE question_id = %s \
 			LIMIT %s OFFSET %s"
 
-	cur.execute(query, (question_id, limit, offset))
+	cur.execute(query, (user_id, question_id, limit, offset))
 	responses = cur.fetchall()
 
 	if responses is None:
 		responses = []
 
-	response_keys = ("response_id", "response_text", "vote_counter", "response_counter", "created_time", "user_id", "user_name")
+	response_keys = ("response_id", "response_text", "vote_counter", "response_counter", "created_time", "user_id", "user_name", "following")
 	responses = [dict(zip(response_keys, response)) for response in responses]
 
 	cur.close()
