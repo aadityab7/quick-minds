@@ -54,18 +54,6 @@ def ask_question():
 			question_title = request.form['question-title']
 			question_details = request.form['question-details']
 
-			"""
-			file_url = ''
-			filename = ''
-			if 'file-upload' in request.files:
-				image_file = request.files['file-upload']
-				filename = secure_filename(image_file.filename)
-				if filename != '':
-					file_url = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-					image_file.save(file_url)
-
-			"""
-
 			if not question_title:
 				flash("Please enter the Title!")
 			elif not question_details:
@@ -76,14 +64,6 @@ def ask_question():
 				if question_id == -1:
 					flash("An error occured")
 					return redirect(request.referrer)
-				
-				"""
-				if file_url != '':
-					image_id = utils.add_image_to_post(file_url, question_id)
-					if image_id == -1:
-						flash("An error occured when inserting image")
-						return redirect(request.referrer)
-				"""
 
 				return redirect(url_for('question_detail', question_id = question_id))
 
@@ -95,7 +75,7 @@ def ask_question():
 		return redirect(url_for('login'))
 
 #MAIN SECTION
-@app.route('/load_more_questions', methods = ('GET', 'POST'))
+@app.route('/load_more_questions', methods = ['POST'])
 def load_more_questions():
 	# Get the number of transactions to load and offset from the request
 	num_to_load = int(request.form.get('num_to_load', 10))

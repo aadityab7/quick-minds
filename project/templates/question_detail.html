@@ -24,18 +24,27 @@
 		<div class="mt-8 grid grid-cols-12 items-start gap-2 sm:gap-0">
 			<div id = "question_votes" class="col-span-1 align-center justify-center">
 				<div class="flex mb-2 align-center justify-center">
-					<button>
-						<img class = 'w-6' src="https://img.icons8.com/ios/50/circled-chevron-up.png">
+					<button >
+						<img id = "question_upvote_button" 
+							data-question-id = {{question.question_id}} 
+							class = 'w-6 hover:bg-indigo-500 rounded-full' 
+							src="https://img.icons8.com/ios/50/circled-chevron-up.png">
 					</button>
 				</div>
 				
 				<div class="flex align-center justify-center">
-					<p id = "vote_counter" class="text-l font-bold">{{question["vote_counter"]}}</p>
+					<p id = "question_vote_counter" class="text-l font-bold {% if (question['vote_counter'] > 0) %} text-green-600 {% elif (question['vote_counter'] < 0) %} text-red-600 {% endif %}
+					">
+						{{question["vote_counter"]}}
+					</p>
 				</div>
   				
 				<div class="flex mt-2 align-center justify-center">
 					<button>
-						<img class="w-6" src="https://img.icons8.com/ios/50/circled-chevron-down.png">
+						<img id = "question_downvote_button" 
+							data-question-id = {{question.question_id}} 
+							class="w-6 hover:bg-indigo-500 rounded-full" 
+							src="https://img.icons8.com/ios/50/circled-chevron-down.png">
 					</button>	
 				</div>
 				
@@ -58,7 +67,10 @@
 					<div id = 'response-votes' class="py-4 col-span-1 align-center justify-center">
 						<div class="flex mb-2 align-center justify-center">
 							<button>
-								<img id="response_upvote_button" data-response-id = "" class = 'w-6' src="https://img.icons8.com/ios/50/circled-chevron-up.png">
+								<img id="response_upvote_button" 
+									data-response-id = "" 
+									class = 'w-6 hover:bg-indigo-500 rounded-full' 
+									src="https://img.icons8.com/ios/50/circled-chevron-up.png">
 							</button>
 						</div>
 						
@@ -68,7 +80,10 @@
 		  				
 						<div class="flex mt-2 align-center justify-center">
 							<button>
-								<img id="response_downvote_button" data-response-id = "" class="w-6" src="https://img.icons8.com/ios/50/circled-chevron-down.png">
+								<img id="response_downvote_button" 
+								data-response-id = "" 
+								class="w-6 hover:bg-indigo-500 rounded-full" 
+								src="https://img.icons8.com/ios/50/circled-chevron-down.png">
 							</button>	
 						</div>
 					</div>
@@ -296,6 +311,37 @@
 		    
 		}
 
+		function handleQuestionVoteClick(event, post_type, up_or_down_vote) {
+		    // Extract the response_id from the clicked button's data-response-id attribute
+		    var questionId = event.target.getAttribute("data-question-id");
+
+		    var voteCounter = document.querySelector("#question_vote_counter");
+
+		    // Make a POST request to up-vote the response with the responseId
+		    $.ajax({
+		        type: 'POST',
+		        url: '/vote_unvote',
+		        data: { question_id: questionId, post_type: post_type, up_or_down_vote : up_or_down_vote},
+		        success: function (data) {
+
+		        	voteCounter.innerText = data.vote_count;
+
+		        	if (data.vote_count > 0) {
+		        		voteCounter.classList.remove('text-red-600');
+		        		voteCounter.classList.add('text-green-600');
+		        	}
+		        	else if (data.vote_count < 0){
+		        		voteCounter.classList.add('text-red-600');
+		        		voteCounter.classList.remove('text-green-600');
+		        	}
+		        	else {
+		        		voteCounter.classList.remove('text-red-600');
+		        		voteCounter.classList.remove('text-green-600');
+		        	}
+		        }
+		    });
+		    
+		}
 
 
 		// Add an event listener to handle the up-vote button click
@@ -306,6 +352,14 @@
 
 		    if (event.target.id === 'response_downvote_button') {
 		        handleResponseVoteClick(event, 'response', 'down');
+		    }
+
+		    if (event.target.id === 'question_upvote_button'){
+		    	handleQuestionVoteClick(event, 'question', 'up');
+		    }
+
+		    if (event.target.id === 'question_downvote_button'){
+		    	handleQuestionVoteClick(event, 'question', 'down');
 		    }
 
 		    if (event.target.id === 'response-button') {
