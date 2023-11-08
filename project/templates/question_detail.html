@@ -1,4 +1,4 @@
-{% extends 'base.html' %}
+	{% extends 'base.html' %}
 
 {% block title %}QUESTION DETAIL{% endblock %}
 
@@ -16,10 +16,14 @@
 			</a>
 		</div>
 
-		<div class="block sm:flex items-start gap-4 mb-2 items-center">
+		<div class="flex items-start gap-4 mb-2 items-center">
       		<p id = "user_name" class="text-gray-500 font-bold">{{question["user_name"]}}</p>
-      		<p id = "created_time" class="text-gray-500">{{question["created_time"]}}</p>
+		    <button id = "follow" data-user-id = {{question.user_id}} class="text-blue-500 {% if (question['user_id'] == user_id) %} hidden {% endif %}">
+	    		{% if (question['following'] == true) %} following {%else%} follow {%endif%}
+			</button>
       	</div>
+
+      		<p id = "created_time" class="text-gray-500">{{question["created_time"]}}</p>
 		
 		<div class="mt-8 grid grid-cols-12 items-start gap-2 sm:gap-0">
 			<div id = "question_votes" class="col-span-1 align-center justify-center">
@@ -90,17 +94,24 @@
 
 					<div id = 'single-response' class="col-span-11 p-4">
 		            	<div class="response-list-box">
-		            		<div class="sm:flex items-start gap-4 mb-2 items-center">
+		            		<div class="flex items-start gap-4 mb-2 items-center">
 			              		<p id = "user_name" class="text-gray-500 font-bold"></p>
-			              		<p id = "created_time" class="text-gray-500"></p>
+		              			<button id = "follow" data-user-id = "" class="text-blue-500"></button>
 			              	</div>
+			              	<p id = "created_time" class="text-sm text-gray-500 mb-3"></p>		              		
 
 		              		<div id = "response_text" class="sm:text-xl"> </div>
+			              	
+			              	<div class="flex items-center justify-between mt-2">
+			              		<div class="flex items-start gap-4 mt-2">
+			              			<p id = "response_counter" class="text-gray-500 text-sm font-bold"></p>
+			              		</div>
+			              		<div class="flex items-end gap-4 mt-2">
+			              			<button id = 'view_comment' class="text-gray-500 text-sm font-semibold">View comments</button>
+			              			<button id = 'add_comment' class="text-gray-500 text-sm font-semibold">Add comment</button>
+			              		</div>
+			              	</div>
 		              		
-		              		<div class="flex items-start gap-4 mt-2">
-		              			
-		              			<p id = "response_counter" class="text-gray-500 text-sm font-bold"></p>
-		              		</div>
 		            	</div>
 					</div>
 				</div>
@@ -156,6 +167,7 @@
 	    var loadComplete = false;
 
 	    const question_id = {{question.question_id}};
+	    const user_id = {{user_id}};
 	    const add_response_form = document.getElementById('add_response_form');
 	    const responses = document.getElementById('responses');
 	    const fileInput = document.getElementById('file-upload');
@@ -198,6 +210,19 @@
 	                    clone.querySelector("#response_text").innerHTML	= response.response_text;
 	                    clone.querySelector("#created_time").textContent = response.created_time;
 	                    clone.querySelector("#response_vote_counter").textContent = response.vote_counter;
+	                    clone.querySelector("#follow").setAttribute('data-user-id', response.user_id);
+
+			            if(response.user_id !== user_id){
+			            	if (response.following){
+			                	clone.querySelector("#follow").textContent = 'following';
+			                }
+			                else{
+			                	clone.querySelector("#follow").textContent = 'follow';
+			                }
+			            }
+			            else{
+			            	clone.querySelector("#follow").classList.add('hidden');
+			            }
 
 	                    if (response.vote_counter > 0) {
 	                        clone.querySelector("#response_vote_counter").classList.add('text-green-600');
@@ -265,9 +290,23 @@
 
             clone.querySelector("#user_name").textContent = response.user_name;
             clone.querySelector("#response_counter").textContent = response.response_counter + ' comments';
-            clone.querySelector("#response_text").textContent = response.response_text;
+            clone.querySelector("#response_text").innerHTML = response.response_text;
             clone.querySelector("#created_time").textContent = response.created_time;
             clone.querySelector("#response_vote_counter").textContent = response.vote_counter;
+            clone.querySelector("#follow").setAttribute('data-user-id', response.user_id);
+
+
+            if(response.user_id !== user_id){
+            	if (response.following){
+                	clone.querySelector("#follow").textContent = 'following';
+                }
+                else{
+                	clone.querySelector("#follow").textContent = 'follow';
+                }
+            }
+            else{
+            	clone.querySelector("#follow").classList.add('hidden');
+            }
 
             if (response.vote_counter > 0) {
                 clone.querySelector("#response_vote_counter").classList.add('text-green-600');
@@ -343,6 +382,18 @@
 		    
 		}
 
+		function handleFollow(event) {
+	    	const followed_user_id = event.target.getAttribute('data-user-id');
+
+    		$.ajax({
+		        type: 'POST',
+		        url: '/follow_unfollow',
+		        data: { followed_user_id: followed_user_id },
+		        success: function (data) {
+		        	event.target.textContent = data.status;
+		        }
+		    });
+	    }
 
 		// Add an event listener to handle the up-vote button click
 		document.addEventListener('click', function(event) {
@@ -361,6 +412,10 @@
 		    if (event.target.id === 'question_downvote_button'){
 		    	handleQuestionVoteClick(event, 'question', 'down');
 		    }
+
+		    if (event.target.id === 'follow') {
+	    		handleFollow(event);
+	    	}
 
 		    if (event.target.id === 'response-button') {
 		    	const response_text_element = document.getElementById('response-text');

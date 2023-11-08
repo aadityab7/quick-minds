@@ -48,9 +48,10 @@
 	    var for_you_page = document.getElementById('for_you_page');
 
 	    // Lazy loading and infinite scrolling
-	    var offset = {{ questions|length }}; 
 	    // Adjust the initial offset based on what's already loaded for "For You"
-	 
+	    var offset = {{ questions|length }}; 
+	    const user_id = {{user_id}};
+
 	    var numToLoad = 10;  // Adjust the number of questions to load at a time
 	    var isLoading = false;  // Flag to track whether an AJAX request is in progress
 	    var loadComplete = false; // All "For You" questions already loaded
@@ -106,15 +107,20 @@
                         clone.querySelector("#question_title").textContent = question.question_title;
                         clone.querySelector("#created_time").textContent = question.created_time;
                         clone.querySelector("#vote_counter").textContent = question.vote_counter + ' vote';
+                        clone.querySelector("#follow").setAttribute('data-user-id', question.user_id);
 
-                        if (question.following){
-                        	clone.querySelector("#follow").textContent = 'following';
+                        if(question.user_id !== user_id){
+                        	if (question.following){
+	                        	clone.querySelector("#follow").textContent = 'following';
+	                        }
+	                        else{
+	                        	clone.querySelector("#follow").textContent = 'follow';
+	                        }
                         }
                         else{
-                        	clone.querySelector("#follow").textContent = 'follow';
+                        	clone.querySelector("#follow").classList.add('hidden');
                         }
-
-                        clone.querySelector("#follow").setAttribute('data-user-id', question.user_id);
+                        
 
                         if (question.vote_counter > 0) {
                             clone.querySelector("#vote_counter").classList.add('text-green-600');
@@ -144,7 +150,7 @@
 	            loadMoreQuestions();	        }
 	    });
 
-	    function handleQuestionVoteClick(event) {
+	    function handleFollow(event) {
 	    	const followed_user_id = event.target.getAttribute('data-user-id');
 
     		$.ajax({
@@ -159,7 +165,7 @@
 
 	    document.addEventListener('click', function(event) {
 	    	if (event.target.id === 'follow') {
-	    		handleQuestionVoteClick(event);
+	    		handleFollow(event);
 	    	}
 	    });
 	</script>
