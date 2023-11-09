@@ -197,6 +197,16 @@ def load_more_responses():
 
 	return jsonify({'responses' : responses})
 
+@app.route('/load_more_web_search_results', methods = ['POST'])
+def load_more_web_search_results():
+	question_id = request.form.get('question_id')
+	limit = int(request.form.get('num_to_load', 10))
+	offset = int(request.form.get('offset', 0))
+
+	web_search_results = utils.load_more_web_search_results(question_id = question_id, limit = limit, offset = offset)
+
+	return jsonify({'web_search_results' : web_search_results})
+
 #MAIN AUTHENTICATION SECTION (login, logout, sign_up)
 @app.route('/login')
 def login():
@@ -264,7 +274,7 @@ def email_register():
 			flash("password and password_confirmation are not same!!")
 			return redirect(request.referrer) 
 		else:
-			auth_result = utils.check_database_user_authentication(name = first_name + last_name, email = email, password = password, type = "email_register")
+			auth_result = utils.check_database_user_authentication(name = first_name + " " + last_name, email = email, password = password, type = "email_register")
 			message, session["user_id"], session["user_name"], session["user_picture_url"] = auth_result
 
 			if message != "OK":

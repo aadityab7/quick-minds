@@ -8,8 +8,8 @@ DROP TABLE IF EXISTS Comment CASCADE;
 DROP TABLE IF EXISTS Image CASCADE;
 DROP TABLE IF EXISTS Tag CASCADE;
 DROP TABLE IF EXISTS Related_content CASCADE;
-DROP TABLE IF EXISTS Related_web_link CASCADE;
-DROP TABLE IF EXISTS Similar_question CASCADE;
+DROP TABLE IF EXISTS Related_web_search_results CASCADE;
+DROP TABLE IF EXISTS Related_question CASCADE;
 DROP TABLE IF EXISTS Related_video CASCADE;
 DROP TABLE IF EXISTS User_Tag CASCADE;
 DROP TABLE IF EXISTS Follow CASCADE;
@@ -142,7 +142,7 @@ CREATE TABLE IF NOT EXISTS Tag  (
 
 CREATE TABLE IF NOT EXISTS Related_content  (
     related_content_id serial PRIMARY KEY,
-    question_id integer,
+    question_id integer NOT NULL,
 
     CONSTRAINT fk_web_link_question
         FOREIGN KEY(question_id) 
@@ -150,13 +150,13 @@ CREATE TABLE IF NOT EXISTS Related_content  (
         ON DELETE CASCADE
 );
 
-CREATE TABLE IF NOT EXISTS Related_web_link  (
+CREATE TABLE IF NOT EXISTS Related_web_search_result  (
     title text NOT NULL,
     description text NOT NULL,
-    link text NOT NULL,
+    link text NOT NULL
 ) INHERITS (Related_content);
 
-CREATE TABLE IF NOT EXISTS Similar_question  (
+CREATE TABLE IF NOT EXISTS Related_question  (
     similar_question_id integer NOT NULL,
 
     CONSTRAINT fk_similar_question_question
@@ -203,7 +203,7 @@ CREATE TABLE IF NOT EXISTS Follow  (
     PRIMARY KEY (follower_user_id, followed_user_id)
 );
 
-CREATE TABLE IF NOT EXISTS Post_Vote  (
+CREATE TABLE IF NOT EXISTS Post_Vote (
     question_id integer,
     response_id integer,
     user_id integer,

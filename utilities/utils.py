@@ -2,6 +2,7 @@ import os
 import psycopg2
 import markdown
 import requests
+import re
 
 def get_db_connection():
 	"""
@@ -80,9 +81,12 @@ def add_question(
 	else:
 		question_id = question[0]
 
+	#keep track of all the images seperatly as well
+	#images = re.findall(r'[!][[].*[\]][(].*[)]', question_text)
+	
 	#before returning the question perform web search using custom search API to add 
 	#related web links to the questions
-	add_related_search_results_to_question(question_id = question_id, question_query = question_title + question_text)
+	add_related_search_results_to_question(question_id = question_id, question_query = question_title + " " + question_text)
 
 	return question_id
 
@@ -90,26 +94,26 @@ def add_related_search_results_to_question(
 	question_id: int,
 	question_query: str
 ):
+	#we have to remove images from this query
+
+	question_query = re.sub(r'[!][[].*[\]][(].*[)]', "", question_query)
+
 	response = make_web_search_request(question_query)
 
 	if response == -1:
-		print("An error occured!!")
+		print("An error occured in web search result!")
+		return
 
 	conn = get_db_connection()
 	cur = conn.cursor()
 
-	for response_item in response['items']:
+	for response_item in response.get('items', []):
 		title = response_item['htmlTitle']
 		link = response_item['link']
 		description = response_item['htmlSnippet']
-		thumbnail_image_url = None
 
-		cse_thumbnail = response_item['pagemap'].get('cse_thumbnail')
-		if cse_thumbnail is not None:
-			thumbnail_image_url = cse_thumbnail[0]['src']
-
-		query = "INSERT INTO Related_web_link (title, description, link, thumbnail_image_url) VALUES (%s, %s, %s, %s)"
-		cur.execute(query, (title, description, link, thumbnail_image_url))
+		query = "INSERT INTO Related_web_search_result (question_id, title, description, link) VALUES (%s, %s, %s, %s)"
+		cur.execute(query, (question_id, title, description, link))
 		conn.commit()
 
 	cur.close()
@@ -625,15 +629,15 @@ def load_more_questions(
 
 	cur.execute(query, (user_id, num_to_load, offset))
 	questions = cur.fetchall()
-	
+
+	cur.close()
+	conn.close()
+
 	if questions is None:
 		questions = []
 
 	question_keys = ("question_id", "question_title", "vote_counter", "response_counter", "created_time", "user_id", "user_name", "following")
 	questions = [dict(zip(question_keys, question)) for question in questions]
-
-	cur.close()
-	conn.close()
 
 	return questions
 
@@ -661,6 +665,9 @@ def load_more_responses(
 	cur.execute(query, (user_id, question_id, limit, offset))
 	responses = cur.fetchall()
 
+	cur.close()
+	conn.close()
+
 	if responses is None:
 		responses = []
 
@@ -670,13 +677,40 @@ def load_more_responses(
 	for response in responses:
 		response['response_text'] = markdown.markdown(response['response_text'])
 
+	return responses
+
+def load_more_web_search_results(
+	question_id: int,
+	limit: int,
+	offset: int
+):
+	conn = get_db_connection()
+	cur = conn.cursor()
+
+	query = "SELECT \
+				title, description, link \
+			FROM Related_web_search_result \
+			WHERE question_id = %s \
+			LIMIT %s OFFSET %s"
+
+	cur.execute(query, (question_id, limit, offset))
+	web_search_results = cur.fetchall()
+
 	cur.close()
 	conn.close()
 
-	return responses
+	if web_search_results is None:
+		return []
 
+	web_search_results_keys = ("title", "description", "link")
+	web_search_results = [dict(zip(web_search_results_keys, web_search_result)) for web_search_result in web_search_results]
 
-def make_web_search_request(search_query: str, num:int = 10):
+	return web_search_results
+
+def make_web_search_request(
+	search_query: str,
+	num:int = 10
+):
 	payload = {
 		'key': os.environ.get('API_KEY'),
 		'q': search_query,

@@ -1,108 +1,113 @@
-	{% extends 'base.html' %}
+{% extends 'base.html' %}
 
 {% block title %}QUESTION DETAIL{% endblock %}
 
 {% block content %}
 	
-
 	<div class="mx-auto max-w-screen-xl px-4 py-8 sm:px-6 lg:px-8">
 		
-			
-		<div class="flex items-center justify-between mb-3 gap-4">	
-			<h1 class="text-xl font-bold">{{question["question_title"]}}</h1>
+		<div id = "main-question-div"> 
+			<div id = "question-head-div" class="flex items-center justify-between mb-3 gap-4">	
+				<h1 class="text-xl font-bold">{{question["question_title"]}}</h1>
 
-			<a href="{{url_for('ask_question')}}"> 
-				<button type="submit" class="rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">Ask Question</button>
-			</a>
-		</div>
+				<a href="{{url_for('ask_question')}}"> 
+					<button type="submit" class="rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">Ask Question</button>
+				</a>
+			</div>
 
-		<div class="flex items-start gap-4 mb-2 items-center">
-      		<p id = "user_name" class="text-gray-500 font-bold">{{question["user_name"]}}</p>
-		    <button id = "follow" data-user-id = {{question.user_id}} class="text-blue-500 {% if (question['user_id'] == user_id) %} hidden {% endif %}">
-	    		{% if (question['following'] == true) %} following {%else%} follow {%endif%}
-			</button>
-      	</div>
-
-      		<p id = "created_time" class="text-gray-500">{{question["created_time"]}}</p>
-		
-		<div class="mt-8 grid grid-cols-12 items-start gap-2 sm:gap-0">
-			<div id = "question_votes" class="col-span-1 align-center justify-center">
-				<div class="flex mb-2 align-center justify-center">
-					<button >
-						<img id = "question_upvote_button" 
-							data-question-id = {{question.question_id}} 
-							class = 'w-6 hover:bg-indigo-500 rounded-full' 
-							src="https://img.icons8.com/ios/50/circled-chevron-up.png">
+			<div id = "question-and-user-metadata-div">
+				<div class="flex items-start gap-4 mb-2 items-center">
+		      		<p id = "user_name" class="text-gray-500 font-bold">{{question["user_name"]}}</p>
+				    <button id = "follow" data-user-id = {{question.user_id}} class="text-blue-500 {% if (question['user_id'] == user_id) %} hidden {% endif %}">
+			    		{% if (question['following'] == true) %} following {%else%} follow {%endif%}
 					</button>
-				</div>
-				
-				<div class="flex align-center justify-center">
-					<p id = "question_vote_counter" class="text-l font-bold {% if (question['vote_counter'] > 0) %} text-green-600 {% elif (question['vote_counter'] < 0) %} text-red-600 {% endif %}
-					">
-						{{question["vote_counter"]}}
-					</p>
-				</div>
-  				
-				<div class="flex mt-2 align-center justify-center">
-					<button>
-						<img id = "question_downvote_button" 
-							data-question-id = {{question.question_id}} 
-							class="w-6 hover:bg-indigo-500 rounded-full" 
-							src="https://img.icons8.com/ios/50/circled-chevron-down.png">
-					</button>	
-				</div>
-				
+		      	</div>
+
+		      	<p id = "created_time" class="text-gray-500">{{question["created_time"]}}</p>
 			</div>
-
-			<div id = 'question_details' class="col-span-11">
-				{{ question['question_text'] |safe }}
-			</div>
-		</div>
-		
-
-		<hr class="my-4">
-
-		<div id = "responses">
-			<h1 id = "question_response_counter" class="text-xl font-bold text-gray-500">{{question["response_counter"]}} Response</h1>
-
-			<template id="response-template">
-
-				<div id = "complete_repsonse_block" class="grid grid-cols-12 items-start gap-2 sm:gap-0" data-response-id = "">
-					<div id = 'response-votes' class="py-4 col-span-1 align-center justify-center">
-						<div class="flex mb-2 align-center justify-center">
-							<button>
-								<img id="response_upvote_button" 
-									data-response-id = "" 
-									class = 'w-6 hover:bg-indigo-500 rounded-full' 
-									src="https://img.icons8.com/ios/50/circled-chevron-up.png">
-							</button>
-						</div>
-						
-						<div class="flex align-center justify-center">
-							<p id = "response_vote_counter" class="text-l font-bold"></p>
-						</div>
-		  				
-						<div class="flex mt-2 align-center justify-center">
-							<button>
-								<img id="response_downvote_button" 
-								data-response-id = "" 
+			
+			<div id = "question-details-div" class="mt-8 grid grid-cols-12 items-start gap-2 sm:gap-0">
+				<div id = "question_votes" class="col-span-1 align-center justify-center">
+					<div class="flex mb-2 align-center justify-center">
+						<button >
+							<img id = "question_upvote_button" 
+								data-question-id = {{question.question_id}} 
+								class = 'w-6 hover:bg-indigo-500 rounded-full' 
+								src="https://img.icons8.com/ios/50/circled-chevron-up.png">
+						</button>
+					</div>
+					
+					<div class="flex align-center justify-center">
+						<p id = "question_vote_counter" class="text-l font-bold {% if (question['vote_counter'] > 0) %} text-green-600 {% elif (question['vote_counter'] < 0) %} text-red-600 {% endif %}
+						">
+							{{question["vote_counter"]}}
+						</p>
+					</div>
+	  				
+					<div class="flex mt-2 align-center justify-center">
+						<button>
+							<img id = "question_downvote_button" 
+								data-question-id = {{question.question_id}} 
 								class="w-6 hover:bg-indigo-500 rounded-full" 
 								src="https://img.icons8.com/ios/50/circled-chevron-down.png">
-							</button>	
-						</div>
+						</button>	
 					</div>
+					
+				</div>
 
-					<div id = 'single-response' class="col-span-11 p-4">
-		            	<div class="response-list-box">
-		            		<div class="flex items-start gap-4 mb-2 items-center">
-			              		<p id = "user_name" class="text-gray-500 font-bold"></p>
-		              			<button id = "follow" data-user-id = "" class="text-blue-500"></button>
-			              	</div>
-			              	<p id = "created_time" class="text-sm text-gray-500 mb-3"></p>		              		
+				<div id = 'question_details' class="col-span-11">
+					{{ question['question_text'] |safe }}
+				</div>
+			</div>
+		</div>	
+		
+		<hr class="my-4">
 
+		<div id = "main-responses-div"> 
+			<h1 id = "question_response_counter" class="text-xl font-bold text-gray-500">{{question["response_counter"]}} Response</h1>
+
+			<div id = "response-list">
+				
+				<template id="response-template">
+					<div id = "complete_repsonse_block" class="grid grid-cols-12 items-start gap-2 sm:gap-0" data-response-id = "">
+						
+						<div id = 'response-votes' class="py-4 col-span-1 align-center justify-center">
+							<div class="flex mb-2 align-center justify-center">
+								<button>
+									<img id="response_upvote_button" 
+										data-response-id = "" 
+										class = 'w-6 hover:bg-indigo-500 rounded-full' 
+										src="https://img.icons8.com/ios/50/circled-chevron-up.png">
+								</button>
+							</div>
+							
+							<div class="flex align-center justify-center">
+								<p id = "response_vote_counter" class="text-l font-bold"></p>
+							</div>
+			  				
+							<div class="flex mt-2 align-center justify-center">
+								<button>
+									<img id="response_downvote_button" 
+									data-response-id = "" 
+									class="w-6 hover:bg-indigo-500 rounded-full" 
+									src="https://img.icons8.com/ios/50/circled-chevron-down.png">
+								</button>	
+							</div>
+						</div>
+
+						<div id = 'response-details' class="col-span-11 p-4">
+							<div id = "response-and-user-metadata-div">
+								<div id = "response-user-data" class="flex items-start gap-4 mb-2 items-center">
+				              		<p id = "user_name" class="text-gray-500 font-bold"></p>
+			              			<button id = "follow" data-user-id = "" class="text-blue-500"></button>
+				              	</div>
+
+				              	<p id = "created_time" class="text-sm text-gray-500 mb-3"></p>	
+							</div>
+		            			              		
 		              		<div id = "response_text" class="sm:text-xl"> </div>
 			              	
-			              	<div class="flex items-center justify-between mt-2">
+			              	<div id = "response-comment-div" class="hidden flex items-center justify-between mt-2">
 			              		<div class="flex items-start gap-4 mt-2">
 			              			<p id = "response_counter" class="text-gray-500 text-sm font-bold"></p>
 			              		</div>
@@ -111,20 +116,22 @@
 			              			<button id = 'add_comment' class="text-gray-500 text-sm font-semibold">Add comment</button>
 			              		</div>
 			              	</div>
-		              		
-		            	</div>
+						</div>
 					</div>
-				</div>
-				
-	          	<hr>
-	        </template>
 
+		          	<hr>
+					
+		        </template>
+
+			</div>
+
+			<div id = "more-response-div">
+				<button id = "load-more-button" class="hidden mt-4 rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">Load more responses</button>
+
+	        	<p id = "no-more-responses" class="hidden mt-4 text-sm font-semibold">No more responses available</p>
+			</div>
 		</div>
-
-        <button id = "load-more-button" class="hidden mt-4 rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">Load more responses</button>
-
-        <p id = "no-more-responses" class="hidden mt-4">No more responses available</p>
-
+		
         <hr class="my-4">
 
         <form id = "add_response_form" method="post" enctype = "multipart/form-data">
@@ -158,22 +165,168 @@
 
 		<hr class="my-4">
 
+		<div id = "main-related-web-search-div">
+			<h1 id = "question_response_counter" class="text-xl font-bold text-gray-500">
+				Related web search results
+			</h1>
+
+			<div id = "web-search-list">
+				<template id="web-search-result-template">
+					<div id = "web-search-result-block" class="p-4">
+						<a id = 'web-search-result-redirect' href="">
+							<div id = "web-search-result-title" class="sm:text-xl hover:underline"> </div>
+							<div id = "web-search-result-link" class="text-green-400 text-sm"> </div>
+							<div id = "web-search-result-description" class="text-gray-500 text-sm font-semibold"> </div>
+						</a>
+					</div>
+					
+					<hr>
+				</template>
+			</div>
+
+			<div id = "more-web-search-results-div">
+				<button id = "load-more-web-search-button" class="hidden mt-4 rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">Load more Results</button>
+			</div>
+		</div>
+
+		<hr class="my-4">
 	</div>
 
 	<script>
+	    var numToLoad = 4;
+	    
 	    var offset = {{ responses|length }};
-	    var numToLoad = 10;
+	    var webSearchOffset = {{ web_search_results|length }};
+
 	    var isLoading = false;
 	    var loadComplete = false;
 
+	    var webSearchLoadComplete = false;
+	    var webSearchIsLoading = false;
+
 	    const question_id = {{question.question_id}};
 	    const user_id = {{user_id}};
+
 	    const add_response_form = document.getElementById('add_response_form');
-	    const responses = document.getElementById('responses');
+	    const responses = document.getElementById('response-list');
 	    const fileInput = document.getElementById('file-upload');
 
-	    // Function to load more questions
+	    function add_response_to_list(response) {
+			var template = document.getElementById("response-template");
+            var clone = document.importNode(template.content, true);
+            
+            clone.querySelector("#complete_repsonse_block").setAttribute("data-response-id", response.response_id);
+            clone.querySelector("#response_upvote_button").setAttribute("data-response-id", response.response_id);
+            clone.querySelector("#response_downvote_button").setAttribute("data-response-id", response.response_id);
+
+            clone.querySelector("#user_name").textContent = response.user_name;
+            clone.querySelector("#response_counter").textContent = response.response_counter + ' comments';
+            clone.querySelector("#response_text").innerHTML = response.response_text;
+            clone.querySelector("#created_time").textContent = response.created_time;
+            clone.querySelector("#response_vote_counter").textContent = response.vote_counter;
+            clone.querySelector("#follow").setAttribute('data-user-id', response.user_id);
+
+
+            if(response.user_id !== user_id){
+            	if (response.following){
+                	clone.querySelector("#follow").textContent = 'following';
+                }
+                else{
+                	clone.querySelector("#follow").textContent = 'follow';
+                }
+            }
+            else{
+            	clone.querySelector("#follow").classList.add('hidden');
+            }
+
+            if (response.vote_counter > 0) {
+                clone.querySelector("#response_vote_counter").classList.add('text-green-600');
+            } else if (response.vote_counter < 0) {
+                clone.querySelector("#response_vote_counter").classList.add('text-red-600');
+            }
+
+            document.getElementById('response-list').appendChild(clone);
+        }
+
+        function handleFollow(event) {
+	    	const followed_user_id = event.target.getAttribute('data-user-id');
+
+    		$.ajax({
+		        type: 'POST',
+		        url: '/follow_unfollow',
+		        data: { followed_user_id: followed_user_id },
+		        success: function (data) {
+		        	event.target.textContent = data.status;
+		        }
+		    });
+	    }
+
+	    function handleQuestionVoteClick(event, post_type, up_or_down_vote) {
+		    // Extract the response_id from the clicked button's data-response-id attribute
+		    var questionId = event.target.getAttribute("data-question-id");
+
+		    var voteCounter = document.querySelector("#question_vote_counter");
+
+		    // Make a POST request to up-vote the response with the responseId
+		    $.ajax({
+		        type: 'POST',
+		        url: '/vote_unvote',
+		        data: { question_id: questionId, post_type: post_type, up_or_down_vote : up_or_down_vote},
+		        success: function (data) {
+
+		        	voteCounter.innerText = data.vote_count;
+
+		        	if (data.vote_count > 0) {
+		        		voteCounter.classList.remove('text-red-600');
+		        		voteCounter.classList.add('text-green-600');
+		        	}
+		        	else if (data.vote_count < 0){
+		        		voteCounter.classList.add('text-red-600');
+		        		voteCounter.classList.remove('text-green-600');
+		        	}
+		        	else {
+		        		voteCounter.classList.remove('text-red-600');
+		        		voteCounter.classList.remove('text-green-600');
+		        	}
+		        }
+		    });  
+		}
+
+		function handleResponseVoteClick(event, post_type, up_or_down_vote) {
+		    // Extract the response_id from the clicked button's data-response-id attribute
+		    var responseId = event.target.getAttribute("data-response-id");
+
+		    var responseContainer = document.querySelector(`[data-response-id="${responseId}"]`);
+		    var voteCounter = responseContainer.querySelector("#response_vote_counter");
+
+		    // Make a POST request to up-vote the response with the responseId
+		    $.ajax({
+		        type: 'POST',
+		        url: '/vote_unvote',
+		        data: { response_id: responseId, post_type: post_type, up_or_down_vote : up_or_down_vote},
+		        success: function (data) {
+
+		        	voteCounter.innerText = data.vote_count;
+
+		        	if (data.vote_count > 0) {
+		        		voteCounter.classList.remove('text-red-600');
+		        		voteCounter.classList.add('text-green-600');
+		        	}
+		        	else if (data.vote_count < 0){
+		        		voteCounter.classList.add('text-red-600');
+		        		voteCounter.classList.remove('text-green-600');
+		        	}
+		        	else {
+		        		voteCounter.classList.remove('text-red-600');
+		        		voteCounter.classList.remove('text-green-600');
+		        	}
+		        }
+		    });   
+		}
+
 	    function loadMoreResponses() {
+	    	// Function to load more questions
+
 	        if (loadComplete) {
 	            return;
 	        }
@@ -193,7 +346,7 @@
 	            url: '/load_more_responses',
 	            data: { question_id: question_id, num_to_load: numToLoad, offset: currentOffset },
 	            success: function (data) {
-	                if (data.responses.length === 0) {
+	                if (data.responses.length < numToLoad) {
 	                    loadComplete = true;
 	                }
 
@@ -230,7 +383,7 @@
 	                        clone.querySelector("#response_vote_counter").classList.add('text-red-600');
 	                    }
 
-	                    document.getElementById('responses').appendChild(clone);
+	                    document.getElementById('response-list').appendChild(clone);
 	                });
 
 	                offset += numToLoad;
@@ -247,152 +400,57 @@
 	        });
 	    }
 
-	    // Load initial data for both sections when the page loads
-	    loadMoreResponses();
+	    function loadWebSearchResults() {
+	    	if (webSearchLoadComplete) {
+	            return;
+	        }
 
-	    fileInput.addEventListener('change', function () {
-            const file = fileInput.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function (e) {
-                	
-                	const formData = new FormData();
-                	formData.append("image", fileInput.files[0]);
-                	
-                	// Make an AJAX request to the Flask server
-	                fetch('/upload_image', {
-	                    method: 'POST',
-	                    body: formData
-	                })
-	                .then(response => response.json())
-	                .then(data => {
-	                    const imageUrl = data.url;
-	                    const imageMarkdown = `![Alt Text](${imageUrl})`;
-	                    const markdownInput = document.getElementById("response-text");
-	                    markdownInput.value += imageMarkdown;
-	                })
-	                .catch(error => {
-	                    console.error('Error uploading image:', error);
+	        if (webSearchIsLoading) {
+	            return;
+	        }
+
+	        document.getElementById('load-more-web-search-button').classList.add('hidden');
+
+	        webSearchIsLoading = true;
+
+	        var currentOffset = webSearchOffset;
+
+	        console.log('everything good till now')
+	        console.log(webSearchIsLoading)
+	        console.log(webSearchLoadComplete)
+	        console.log(webSearchOffset)
+
+	        $.ajax({
+	            type: 'POST',
+	            url: '/load_more_web_search_results',
+	            data: { question_id: question_id, num_to_load: numToLoad, offset: currentOffset },
+	            success: function (data) {
+	                if (data.web_search_results.length < numToLoad) {
+	                    webSearchLoadComplete = true;
+	                }
+
+	                data.web_search_results.forEach(function (web_search_result) {
+	                    var template = document.getElementById("web-search-result-template");
+	                    var clone = document.importNode(template.content, true);
+	                	
+	                    clone.querySelector("#web-search-result-title").innerHTML = web_search_result.title;
+	                    clone.querySelector("#web-search-result-link").textContent = web_search_result.link;
+	                    clone.querySelector("#web-search-result-description").innerHTML	= web_search_result.description;
+
+	                    clone.querySelector("#web-search-result-redirect").setAttribute('href', web_search_result.link);
+
+	                    document.getElementById('web-search-list').appendChild(clone);
 	                });
 
-                };
-                reader.readAsDataURL(file);
-            }
-        });
+	                webSearchOffset += numToLoad;
+	                webSearchIsLoading = false;
 
-        function add_response_to_list(response) {
-			var template = document.getElementById("response-template");
-            var clone = document.importNode(template.content, true);
-            
-            clone.querySelector("#complete_repsonse_block").setAttribute("data-response-id", response.response_id);
-            clone.querySelector("#response_upvote_button").setAttribute("data-response-id", response.response_id);
-            clone.querySelector("#response_downvote_button").setAttribute("data-response-id", response.response_id);
-
-            clone.querySelector("#user_name").textContent = response.user_name;
-            clone.querySelector("#response_counter").textContent = response.response_counter + ' comments';
-            clone.querySelector("#response_text").innerHTML = response.response_text;
-            clone.querySelector("#created_time").textContent = response.created_time;
-            clone.querySelector("#response_vote_counter").textContent = response.vote_counter;
-            clone.querySelector("#follow").setAttribute('data-user-id', response.user_id);
-
-
-            if(response.user_id !== user_id){
-            	if (response.following){
-                	clone.querySelector("#follow").textContent = 'following';
-                }
-                else{
-                	clone.querySelector("#follow").textContent = 'follow';
-                }
-            }
-            else{
-            	clone.querySelector("#follow").classList.add('hidden');
-            }
-
-            if (response.vote_counter > 0) {
-                clone.querySelector("#response_vote_counter").classList.add('text-green-600');
-            } else if (response.vote_counter < 0) {
-                clone.querySelector("#response_vote_counter").classList.add('text-red-600');
-            }
-
-            document.getElementById('responses').appendChild(clone);
-        }
-
-        function handleResponseVoteClick(event, post_type, up_or_down_vote) {
-		    // Extract the response_id from the clicked button's data-response-id attribute
-		    var responseId = event.target.getAttribute("data-response-id");
-
-		    var responseContainer = document.querySelector(`[data-response-id="${responseId}"]`);
-		    var voteCounter = responseContainer.querySelector("#response_vote_counter");
-
-		    // Make a POST request to up-vote the response with the responseId
-		    $.ajax({
-		        type: 'POST',
-		        url: '/vote_unvote',
-		        data: { response_id: responseId, post_type: post_type, up_or_down_vote : up_or_down_vote},
-		        success: function (data) {
-
-		        	voteCounter.innerText = data.vote_count;
-
-		        	if (data.vote_count > 0) {
-		        		voteCounter.classList.remove('text-red-600');
-		        		voteCounter.classList.add('text-green-600');
-		        	}
-		        	else if (data.vote_count < 0){
-		        		voteCounter.classList.add('text-red-600');
-		        		voteCounter.classList.remove('text-green-600');
-		        	}
-		        	else {
-		        		voteCounter.classList.remove('text-red-600');
-		        		voteCounter.classList.remove('text-green-600');
-		        	}
-		        }
-		    });
-		    
-		}
-
-		function handleQuestionVoteClick(event, post_type, up_or_down_vote) {
-		    // Extract the response_id from the clicked button's data-response-id attribute
-		    var questionId = event.target.getAttribute("data-question-id");
-
-		    var voteCounter = document.querySelector("#question_vote_counter");
-
-		    // Make a POST request to up-vote the response with the responseId
-		    $.ajax({
-		        type: 'POST',
-		        url: '/vote_unvote',
-		        data: { question_id: questionId, post_type: post_type, up_or_down_vote : up_or_down_vote},
-		        success: function (data) {
-
-		        	voteCounter.innerText = data.vote_count;
-
-		        	if (data.vote_count > 0) {
-		        		voteCounter.classList.remove('text-red-600');
-		        		voteCounter.classList.add('text-green-600');
-		        	}
-		        	else if (data.vote_count < 0){
-		        		voteCounter.classList.add('text-red-600');
-		        		voteCounter.classList.remove('text-green-600');
-		        	}
-		        	else {
-		        		voteCounter.classList.remove('text-red-600');
-		        		voteCounter.classList.remove('text-green-600');
-		        	}
-		        }
-		    });
-		    
-		}
-
-		function handleFollow(event) {
-	    	const followed_user_id = event.target.getAttribute('data-user-id');
-
-    		$.ajax({
-		        type: 'POST',
-		        url: '/follow_unfollow',
-		        data: { followed_user_id: followed_user_id },
-		        success: function (data) {
-		        	event.target.textContent = data.status;
-		        }
-		    });
+			        if (webSearchLoadComplete === false){
+			    	    document.getElementById('load-more-web-search-button').classList.remove('hidden');
+			        }
+			        
+	            }
+	        });
 	    }
 
 		// Add an event listener to handle the up-vote button click
@@ -440,9 +498,46 @@
 		    if (event.target.id === 'load-more-button') {
 		    	loadMoreResponses();
 		    }
+
+		    if (event.target.id === 'load-more-web-search-button') {
+		    	loadWebSearchResults();
+		    }
 		});
 
-	</script>
+		fileInput.addEventListener('change', function () {
+            const file = fileInput.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                	
+                	const formData = new FormData();
+                	formData.append("image", fileInput.files[0]);
+                	
+                	// Make an AJAX request to the Flask server
+	                fetch('/upload_image', {
+	                    method: 'POST',
+	                    body: formData
+	                })
+	                .then(response => response.json())
+	                .then(data => {
+	                    const imageUrl = data.url;
+	                    const imageMarkdown = `![Alt Text](${imageUrl})`;
+	                    const markdownInput = document.getElementById("response-text");
+	                    markdownInput.value += imageMarkdown;
+	                })
+	                .catch(error => {
+	                    console.error('Error uploading image:', error);
+	                });
 
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+		// Load initial data for both sections when the page loads
+	    loadMoreResponses();
+
+	    loadWebSearchResults();
+	</script>
 
 {% endblock %}
