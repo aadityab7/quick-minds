@@ -489,21 +489,13 @@ def handle_question_vote(
 		#no existing vote
 		#cast new vote
 		if up_or_down_vote == 'up':
-			#added up vote
-			value = 1
-			my_vote = 0
+			#only add up vote
+			my_vote = +1
 			counter_update = +1
 		else:
-			#added down vote
-			value = -1
-			my_vote = 1
+			#only add down vote
+			my_vote = -1
 			counter_update = -1
-
-
-		query = "INSERT INTO Post_Vote (question_id, user_id, val) VALUES (%s, %s, %s)"
-		cur.execute(query, (question_id, user_id, value))
-		conn.commit()
-		
 	else:
 		#vote already exists
 		val = result[0]
@@ -516,21 +508,26 @@ def handle_question_vote(
 		if up_or_down_vote == 'up':
 			if val == 1:
 				#remove up vote
-				my_vote = 2
+				my_vote = 0
 				counter_update = -1
 			else:
-				#remove down vote
-				my_vote = 3
-				counter_update = +1
+				#remove down vote - also we'll have to add a up vote
+				my_vote = +1
+				counter_update = +2
 		else:
 			if val == 1:
-				#remove up vote
-				my_vote = 2
-				counter_update = -1
+				#remove up vote - also we'll have to add a down vote
+				my_vote = -1
+				counter_update = -2
 			else:
 				#remove down vote
-				my_vote = 3
+				my_vote = 0
 				counter_update = +1
+
+	if my_vote != 0:
+		query = "INSERT INTO Post_Vote (question_id, user_id, val) VALUES (%s, %s, %s)"
+		cur.execute(query, (question_id, user_id, my_vote))
+		conn.commit()
 
 	query = "UPDATE Post SET vote_counter = vote_counter + %s WHERE post_id = %s"
 	cur.execute(query, (counter_update, post_id))
@@ -567,21 +564,13 @@ def handle_response_vote(
 		#no existing vote
 		#cast new vote
 		if up_or_down_vote == 'up':
-			#added up vote
-			value = 1
-			my_vote = 0
+			#only add up vote
+			my_vote = +1
 			counter_update = +1
 		else:
-			#added down vote
-			value = -1
-			my_vote = 1
+			#only add down vote
+			my_vote = -1
 			counter_update = -1
-
-		query = "INSERT INTO Post_Vote (response_id, user_id, val) VALUES (%s, %s, %s)"
-		cur.execute(query, (response_id, user_id, value))
-		conn.commit()
-
-		
 	else:
 		#vote already exists
 		val = result[0]
@@ -594,21 +583,26 @@ def handle_response_vote(
 		if up_or_down_vote == 'up':
 			if val == 1:
 				#remove up vote
-				my_vote = 2
+				my_vote = 0
 				counter_update = -1
 			else:
-				#remove down vote
-				my_vote = 3
-				counter_update = +1
+				#remove down vote - also we'll have to add a up vote
+				my_vote = +1
+				counter_update = +2
 		else:
 			if val == 1:
-				#remove up vote
-				my_vote = 2
-				counter_update = -1
+				#remove up vote - also we'll have to add a down vote
+				my_vote = -1
+				counter_update = -2
 			else:
 				#remove down vote
-				my_vote = 3
+				my_vote = 0
 				counter_update = +1
+
+	if my_vote != 0:
+		query = "INSERT INTO Post_Vote (response_id, user_id, val) VALUES (%s, %s, %s)"
+		cur.execute(query, (response_id, user_id, my_vote))
+		conn.commit()
 
 	query = "UPDATE Post SET vote_counter = vote_counter + %s WHERE post_id = %s"
 	cur.execute(query, (counter_update, post_id))
@@ -743,6 +737,34 @@ def load_more_web_search_results(
 
 	return web_search_results
 
+def load_more_video_results(
+	question_id: int,
+	limit: int,
+	offset: int
+):
+	conn = get_db_connection()
+	cur = conn.cursor()
+
+	query = "SELECT \
+				title, description, video_url, thumbnail_url, channel_title, player_embed_html \
+			FROM Related_video \
+			WHERE question_id = %s \
+			LIMIT %s OFFSET %s"
+
+	cur.execute(query, (question_id, limit, offset))
+	video_results = cur.fetchall()
+
+	cur.close()
+	conn.close()
+
+	if video_results is None:
+		return []
+
+	video_results_keys = ("title", "description", "video_url", "thumbnail_url", "channel_title", "player_embed_html")
+	video_results = [dict(zip(video_results_keys, video_result)) for video_result in video_results]
+
+	return video_results
+
 def make_web_search_request(
 	search_query: str,
 	num:int = 10
@@ -824,33 +846,32 @@ def vote_unvote(
 	vote can be "up" or "down"
 	
 	my_vote:
-		0: add up_vote
-		1: add down_vote
-		2: remove up_vote
-		3: remove down_vote
+		0: show nothing highlighted
+		+1: show up_vote highlighted
+		-1: show down_vote highlighted
 
 	if user already have vote on post:
 		delete record 
 
 		if up_vote and val == 1:
-			my_vote = 2
+			my_vote = 0
 			counter = -1
 		else if up_vote and val == -1:
-			my_vote = 3
+			my_vote = +1
 			counter = +1
 		else if down vote and val == -1:
-			my_vote = 3
+			my_vote = 0
 			counter = +1
 		else if down and val == 1:
-			my_vote = 2
+			my_vote = -1
 			counter = -1
 	else:
 		insert new record with user_id, post_id and val
 		if up:
-			my_vote = 0
+			my_vote = +1
 			counter = +1
 		else if down:
-			my_vote = 1
+			my_vote = -1
 			counter = -1
 
 	returns vote_count, my_vote

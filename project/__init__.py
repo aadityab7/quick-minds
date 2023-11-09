@@ -112,6 +112,10 @@ def add_response():
 	response_text = request.form.get('response_text')
 	question_id = request.form.get('question_id')
 
+	if not response_text:
+		flash("Please enter response text")
+		return redirect(request.referrer)
+
 	response, question_response_counter = utils.add_response(user_id = session['user_id'], question_id = question_id, response_text = response_text)
 
 	if response == -1:
@@ -142,8 +146,6 @@ def vote_unvote():
 											response_id = response_id, 
 											post_type = post_type,
 											up_or_down_vote = up_or_down_vote)
-
-	print(vote_count, my_vote)
 
 	return jsonify({'vote_count' : vote_count, 'my_vote' : my_vote})
 
@@ -212,6 +214,16 @@ def load_more_web_search_results():
 	web_search_results = utils.load_more_web_search_results(question_id = question_id, limit = limit, offset = offset)
 
 	return jsonify({'web_search_results' : web_search_results})
+
+@app.route('/load_more_video_results', methods=['POST'])
+def load_more_video_results():
+	question_id = request.form.get('question_id')
+	limit = int(request.form.get('num_to_load', 10))
+	offset = int(request.form.get('offset', 0))
+
+	video_results = utils.load_more_video_results(question_id = question_id, limit = limit, offset = offset)
+
+	return jsonify({'video_results' : video_results})
 
 #MAIN AUTHENTICATION SECTION (login, logout, sign_up)
 @app.route('/login')

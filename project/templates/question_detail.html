@@ -32,7 +32,7 @@
 						<button >
 							<img id = "question_upvote_button" 
 								data-question-id = {{question.question_id}} 
-								class = 'w-6 hover:bg-indigo-500 rounded-full' 
+								class = "w-6 hover:bg-indigo-500 rounded-full {%if (question['my_vote'] == 1)%} bg-indigo-500 {%endif%}" 
 								src="https://img.icons8.com/ios/50/circled-chevron-up.png">
 						</button>
 					</div>
@@ -48,7 +48,7 @@
 						<button>
 							<img id = "question_downvote_button" 
 								data-question-id = {{question.question_id}} 
-								class="w-6 hover:bg-indigo-500 rounded-full" 
+								class="w-6 hover:bg-indigo-500 rounded-full {%if (question['my_vote'] == -1)%} bg-indigo-500 {%endif%}" 
 								src="https://img.icons8.com/ios/50/circled-chevron-down.png">
 						</button>	
 					</div>
@@ -149,7 +149,7 @@
 						            <path fill-rule="evenodd" d="M1.5 6a2.25 2.25 0 012.25-2.25h16.5A2.25 2.25 0 0122.5 6v12a2.25 2.25 0 01-2.25 2.25H3.75A2.25 2.25 0 011.5 18V6zM3 16.06V18c0 .414.336.75.75.75h16.5A.75.75 0 0021 18v-1.94l-2.69-2.689a1.5 1.5 0 00-2.12 0l-.88.879.97.97a.75.75 0 11-1.06 1.06l-5.16-5.159a1.5 1.5 0 00-2.12 0L3 16.061zm10.125-7.81a1.125 1.125 0 112.25 0 1.125 1.125 0 01-2.25 0z" clip-rule="evenodd" />
 						        </svg>
 						        <label for="file-upload" class="relative cursor-pointer rounded-md bg-white font-semibold text-indigo-600 focus-within:outline-none focus-within:ring-2 focus-within:ring-indigo-600 focus-within:ring-offset-2 hover:text-indigo-500">
-						            <span>Add Image</span>
+						            <span id = "add-image-text">Add Image</span>
 						            <input id="file-upload" name="file-upload" type="file" class="sr-only" accept=".png, .jpg, .jpeg, .gif">
 					            </label>
 					          </div>
@@ -166,7 +166,7 @@
 		<hr class="my-4">
 
 		<div id = "main-related-web-search-div">
-			<h1 id = "question_response_counter" class="text-xl font-bold text-gray-500">
+			<h1 id = "related_web_searchs_heading" class="text-xl font-bold text-gray-500">
 				Related web search results
 			</h1>
 
@@ -185,11 +185,40 @@
 			</div>
 
 			<div id = "more-web-search-results-div">
-				<button id = "load-more-web-search-button" class="hidden mt-4 rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">Load more Results</button>
+				<button id = "load-more-web-search-button" class="hidden mt-4 rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">Load more Search Results</button>
 			</div>
 		</div>
 
 		<hr class="my-4">
+
+		<div id = "main-related-video-div">
+			<h1 id = "related_videos_heading" class="text-xl font-bold text-gray-500">
+				Related videos
+			</h1>
+
+			<div id = "video-list">
+				<template id="video-result-template">
+					<div id = "video-result-block" class="p-4 sm:flex gap-4">
+						<div id="video-result-player"> </div>
+						<div id = 'video-result-details' class="mt-2 sm:mt-0">
+							<a id = 'video-result-redirect' href="">
+								<div id = "video-result-title" class="sm:text-xl hover:underline"> </div>
+								<div id = "video-result-channel-title" class="text-gray-700 text-sm"> </div>
+								<div id = "video-result-link" class="text-green-400 text-sm"> </div>
+								<div id = "video-result-description" class="text-gray-500 text-sm font-semibold"> </div>
+							</a>
+						</div>
+						
+					</div>
+					
+					<hr>
+				</template>
+			</div>
+
+			<div id = "more-video-results-div">
+				<button id = "load-more-video-button" class="hidden mt-4 rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">Load more Videos</button>
+			</div>
+		</div>
 	</div>
 
 	<script>
@@ -197,12 +226,16 @@
 	    
 	    var offset = {{ responses|length }};
 	    var webSearchOffset = {{ web_search_results|length }};
+	    var videoOffset = {{ video_results|length }};
 
 	    var isLoading = false;
 	    var loadComplete = false;
 
 	    var webSearchLoadComplete = false;
 	    var webSearchIsLoading = false;
+
+	    var videoLoadComplete = false;
+	    var videoIsLoading = false;
 
 	    const question_id = {{question.question_id}};
 	    const user_id = {{user_id}};
@@ -226,6 +259,20 @@
             clone.querySelector("#response_vote_counter").textContent = response.vote_counter;
             clone.querySelector("#follow").setAttribute('data-user-id', response.user_id);
 
+            /*
+            if (response.my_vote === 0){
+				clone.querySelector("#response_upvote_button").classList.remove('bg-indigo-500');
+				clone.querySelector("#response_downvote_button").classList.remove('bg-indigo-500');
+            }
+            else if(response.my_vote === 1) {
+				clone.querySelector("#response_upvote_button").classList.add('bg-indigo-500');
+				clone.querySelector("#response_downvote_button").classList.remove('bg-indigo-500');
+            }
+            else{
+				clone.querySelector("#response_upvote_button").classList.remove('bg-indigo-500');
+				clone.querySelector("#response_downvote_button").classList.add('bg-indigo-500');
+            }
+            */
 
             if(response.user_id !== user_id){
             	if (response.following){
@@ -266,7 +313,8 @@
 		    var questionId = event.target.getAttribute("data-question-id");
 
 		    var voteCounter = document.querySelector("#question_vote_counter");
-
+		    var up_vote_button = document.querySelector("#question_upvote_button")
+		    var down_vote_button = document.querySelector("#question_downvote_button")
 		    // Make a POST request to up-vote the response with the responseId
 		    $.ajax({
 		        type: 'POST',
@@ -275,6 +323,21 @@
 		        success: function (data) {
 
 		        	voteCounter.innerText = data.vote_count;
+
+		        	const my_vote = data.my_vote;
+
+		        	if (my_vote === 0){
+		        		up_vote_button.classList.remove('bg-indigo-500');
+		        		down_vote_button.classList.remove('bg-indigo-500');
+		        	}
+		        	else if (my_vote === 1){
+		        		up_vote_button.classList.add('bg-indigo-500');
+		        		down_vote_button.classList.remove('bg-indigo-500');
+		        	}
+		        	else{
+						up_vote_button.classList.remove('bg-indigo-500');
+		        		down_vote_button.classList.add('bg-indigo-500');
+		        	}
 
 		        	if (data.vote_count > 0) {
 		        		voteCounter.classList.remove('text-red-600');
@@ -292,12 +355,33 @@
 		    });  
 		}
 
+		function handleResponseFormSubmission() {
+	    	const response_text_element = document.getElementById('response-text');
+        	const response_text = response_text_element.value;
+
+        	$.ajax({
+	            type: 'POST',
+	            url: '/add_response',
+	            data: {question_id : question_id, response_text: response_text},
+	            success: function (data) {
+	            	add_response_to_list(data.response);
+	            	response_text_element.value = '';
+	            	document.getElementById('question_response_counter').innerText = data.question_response_counter + ' response';
+	            },
+	            error: function(xhr, status, error) {
+	                console.error('Error adding response:', error);
+	            }
+        	});
+	    }
+
 		function handleResponseVoteClick(event, post_type, up_or_down_vote) {
 		    // Extract the response_id from the clicked button's data-response-id attribute
 		    var responseId = event.target.getAttribute("data-response-id");
 
 		    var responseContainer = document.querySelector(`[data-response-id="${responseId}"]`);
 		    var voteCounter = responseContainer.querySelector("#response_vote_counter");
+		    var up_vote_button = responseContainer.querySelector("#response_upvote_button");
+		    var down_vote_button = responseContainer.querySelector("#response_downvote_button");
 
 		    // Make a POST request to up-vote the response with the responseId
 		    $.ajax({
@@ -307,6 +391,20 @@
 		        success: function (data) {
 
 		        	voteCounter.innerText = data.vote_count;
+		        	const my_vote = data.my_vote;
+
+		        	if (my_vote === 0){
+		        		up_vote_button.classList.remove('bg-indigo-500');
+		        		down_vote_button.classList.remove('bg-indigo-500');
+		        	}
+		        	else if (my_vote === 1){
+		        		up_vote_button.classList.add('bg-indigo-500');
+		        		down_vote_button.classList.remove('bg-indigo-500');
+		        	}
+		        	else{
+						up_vote_button.classList.remove('bg-indigo-500');
+		        		down_vote_button.classList.add('bg-indigo-500');
+		        	}
 
 		        	if (data.vote_count > 0) {
 		        		voteCounter.classList.remove('text-red-600');
@@ -365,6 +463,21 @@
 	                    clone.querySelector("#response_vote_counter").textContent = response.vote_counter;
 	                    clone.querySelector("#follow").setAttribute('data-user-id', response.user_id);
 
+	                    /*
+	                    if (response.my_vote === 0){
+							clone.querySelector("#response_upvote_button").classList.remove('bg-indigo-500');
+							clone.querySelector("#response_downvote_button").classList.remove('bg-indigo-500');
+	                    }
+	                    else if(response.my_vote === 1) {
+							clone.querySelector("#response_upvote_button").classList.add('bg-indigo-500');
+							clone.querySelector("#response_downvote_button").classList.remove('bg-indigo-500');
+	                    }
+	                    else{
+							clone.querySelector("#response_upvote_button").classList.remove('bg-indigo-500');
+							clone.querySelector("#response_downvote_button").classList.add('bg-indigo-500');
+	                    }
+	                    */
+
 			            if(response.user_id !== user_id){
 			            	if (response.following){
 			                	clone.querySelector("#follow").textContent = 'following';
@@ -415,11 +528,6 @@
 
 	        var currentOffset = webSearchOffset;
 
-	        console.log('everything good till now')
-	        console.log(webSearchIsLoading)
-	        console.log(webSearchLoadComplete)
-	        console.log(webSearchOffset)
-
 	        $.ajax({
 	            type: 'POST',
 	            url: '/load_more_web_search_results',
@@ -453,6 +561,64 @@
 	        });
 	    }
 
+	    function loadMoreVideoResults(){
+	    	if (videoLoadComplete) {
+	            return;
+	        }
+
+	        if (videoIsLoading) {
+	            return;
+	        }
+
+	        document.getElementById('load-more-video-button').classList.add('hidden');
+
+	        videoIsLoading = true;
+
+	        var currentOffset = videoOffset;
+
+	        console.log('everything good till now')
+	        console.log(videoIsLoading)
+	        console.log(videoLoadComplete)
+	        console.log(videoOffset)
+
+	        $.ajax({
+	            type: 'POST',
+	            url: '/load_more_video_results',
+	            data: { question_id: question_id, num_to_load: numToLoad, offset: currentOffset },
+	            success: function (data) {
+	                if (data.video_results.length < numToLoad) {
+	                    videoLoadComplete = true;
+	                }
+
+	                data.video_results.forEach(function (video_result) {
+	                    var template = document.getElementById("video-result-template");
+	                    var clone = document.importNode(template.content, true);
+	                	
+	                	console.log(video_result)
+
+	                	clone.querySelector("#video-result-player").innerHTML = video_result.player_embed_html;
+	                    clone.querySelector("#video-result-title").innerHTML = video_result.title;
+	                    clone.querySelector("#video-result-channel-title").innerHTML = video_result.channel_title;
+	                    clone.querySelector("#video-result-link").textContent = video_result.video_url;
+	                    clone.querySelector("#video-result-description").innerHTML	= video_result.description;
+
+	                    clone.querySelector("#video-result-redirect").setAttribute('href', video_result.video_url);
+
+	                    document.getElementById('video-list').appendChild(clone);
+	                    
+	                });
+
+	                videoOffset += numToLoad;
+	                videoIsLoading = false;
+
+			        if (videoLoadComplete === false){
+			    	    document.getElementById('load-more-video-button').classList.remove('hidden');
+			        }
+			        
+	            }
+	        });
+	    }
+
 		// Add an event listener to handle the up-vote button click
 		document.addEventListener('click', function(event) {
 		    if (event.target.id === 'response_upvote_button') {
@@ -476,22 +642,7 @@
 	    	}
 
 		    if (event.target.id === 'response-button') {
-		    	const response_text_element = document.getElementById('response-text');
-	        	const response_text = response_text_element.value;
-
-	        	$.ajax({
-		            type: 'POST',
-		            url: '/add_response',
-		            data: {question_id : question_id, response_text: response_text},
-		            success: function (data) {
-		            	add_response_to_list(data.response);
-		            	response_text_element.value = '';
-		            	document.getElementById('question_response_counter').innerText = data.question_response_counter + ' response';
-		            },
-		            error: function(xhr, status, error) {
-		                console.error('Error adding response:', error);
-		            }
-	        	});
+		    	handleResponseFormSubmission();
 		    }
 
 		    // Load more responses when the "Load More" button is clicked
@@ -501,6 +652,10 @@
 
 		    if (event.target.id === 'load-more-web-search-button') {
 		    	loadWebSearchResults();
+		    }
+
+		    if (event.target.id === 'load-more-video-button') {
+		    	loadMoreVideoResults();
 		    }
 		});
 
@@ -513,6 +668,12 @@
                 	const formData = new FormData();
                 	formData.append("image", fileInput.files[0]);
                 	
+                	//update the text of button to display adding image and make the button inactive
+                	document.getElementById('file-upload').disabled = true;
+                	document.getElementById('add-image-text').innerText = 'Adding image to response...';
+                	document.getElementById('response-button').disabled = true;
+                	document.getElementById('response-button').innerText = 'Uploading Image';
+
                 	// Make an AJAX request to the Flask server
 	                fetch('/upload_image', {
 	                    method: 'POST',
@@ -524,9 +685,19 @@
 	                    const imageMarkdown = `![Alt Text](${imageUrl})`;
 	                    const markdownInput = document.getElementById("response-text");
 	                    markdownInput.value += imageMarkdown;
+
+	                    //on success revert back the text on "add image button" and make it active
+                		document.getElementById('file-upload').disabled = false;
+                		document.getElementById('add-image-text').innerText = 'Add Image';
+                		document.getElementById('response-button').disabled = false;
+                		document.getElementById('response-button').innerText = 'Post your response';
 	                })
 	                .catch(error => {
 	                    console.error('Error uploading image:', error);
+                		document.getElementById('file-upload').disabled = false;
+                		document.getElementById('add-image-text').innerText = 'Add Image';
+                		document.getElementById('response-button').disabled = false;
+                		document.getElementById('response-button').innerText = 'Post your response';
 	                });
 
                 };
@@ -538,6 +709,8 @@
 	    loadMoreResponses();
 
 	    loadWebSearchResults();
+
+	    loadMoreVideoResults();
 	</script>
 
 {% endblock %}
