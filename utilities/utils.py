@@ -1,6 +1,7 @@
 import os
 import psycopg2
 import markdown
+import requests
 
 def get_db_connection():
 	"""
@@ -13,6 +14,158 @@ def get_db_connection():
 		password=os.environ.get('DB_PASSWORD'))
 
 	return conn
+
+def add_image_to_post(
+	image_file_url: str,
+	question_or_response_id: int,
+	post_type: str = 'question'
+):
+	conn = get_db_connection()
+	cur = conn.cursor()
+
+	if post_type == 'question':
+		query = "INSERT INTO Image (url, question_id, post_type) VALUES (%s, %s, %s)"
+	else:
+		query = "INSERT INTO Image (url, response_id, post_type) VALUES (%s, %s, %s)"
+
+	cur.execute(query, (image_file_url, question_or_response_id, post_type))
+	conn.commit()
+
+	if post_type == 'question':
+		query = "SELECT image_id FROM Image WHERE url = %s AND question_id = %s"
+	else:
+		query = "SELECT image_id FROM Image WHERE url = %s AND response_id = %s"
+
+	cur.execute(query, (image_file_url, question_or_response_id))
+	image_id = cur.fetchone()
+
+	cur.close()
+	conn.close()
+
+	if image_id is None:
+		return -1
+	else:
+		image_id = image_id[0]
+
+	return image_id
+
+def add_question(
+	user_id: int,
+	question_title: str,
+	question_text:str
+):
+
+	conn = get_db_connection()
+	cur = conn.cursor()
+
+	query = "INSERT INTO Question (user_id, question_title, question_text) VALUES (%s, %s, %s)"
+
+	cur.execute(query, (user_id, question_title, question_text))
+	conn.commit()
+
+	query = "SELECT \
+				Question.question_id \
+			FROM Question \
+			WHERE user_id = %s \
+			ORDER BY created_time DESC LIMIT 1"
+	
+	cur.execute(query, (user_id,))
+	question = cur.fetchone()
+
+	cur.close()
+	conn.close()
+
+	if question is None:
+		question_id = -1
+	else:
+		question_id = question[0]
+
+	#before returning the question perform web search using custom search API to add 
+	#related web links to the questions
+	add_related_search_results_to_question(question_id = question_id, question_query = question_title + question_text)
+
+	return question_id
+
+def add_related_search_results_to_question(
+	question_id: int,
+	question_query: str
+):
+	response = make_web_search_request(question_query)
+
+	if response == -1:
+		print("An error occured!!")
+
+	conn = get_db_connection()
+	cur = conn.cursor()
+
+	for response_item in response['items']:
+		title = response_item['htmlTitle']
+		link = response_item['link']
+		description = response_item['htmlSnippet']
+		thumbnail_image_url = None
+
+		cse_thumbnail = response_item['pagemap'].get('cse_thumbnail')
+		if cse_thumbnail is not None:
+			thumbnail_image_url = cse_thumbnail[0]['src']
+
+		query = "INSERT INTO Related_web_link (title, description, link, thumbnail_image_url) VALUES (%s, %s, %s, %s)"
+		cur.execute(query, (title, description, link, thumbnail_image_url))
+		conn.commit()
+
+	cur.close()
+	conn.close()
+
+def add_response(
+	user_id: int,
+	question_id: int,
+	response_text: str
+):
+
+	conn = get_db_connection()
+	cur = conn.cursor()
+
+	query = "INSERT INTO Response (type, user_id, question_id, response_text) VALUES (%s, %s, %s, %s)"
+
+	cur.execute(query, ('response', user_id, question_id, response_text))
+	conn.commit()
+
+	query = "UPDATE Question SET response_counter = response_counter + 1 WHERE question_id = %s"
+	cur.execute(query, (question_id,))
+	conn.commit()
+
+	query = "SELECT \
+				Response.response_id, Response.response_text, Response.vote_counter, Response.response_counter, Response.created_time, App_user.user_id, App_user.name\
+			FROM Response \
+			INNER JOIN App_user\
+				ON Response.user_id = App_user.user_id\
+			WHERE Response.user_id = %s \
+			ORDER BY Response.created_time DESC LIMIT 1"
+	
+	cur.execute(query, (user_id,))
+	response = cur.fetchone()
+
+	query = "SELECT response_counter FROM Question WHERE question_id = %s"
+	
+	cur.execute(query, (question_id,))
+	question_response_counter = cur.fetchone()
+
+	cur.close()
+	conn.close()
+
+	if response is None:
+		return -1
+
+	if question_response_counter is None:
+		question_response_counter = 0
+	else:
+		question_response_counter = question_response_counter[0]
+
+	response_keys = ("response_id", "response_text", "vote_counter", "response_counter", "created_time", "user_id", "user_name")
+	response = dict(zip(response_keys, response))
+
+	response['response_text'] = markdown.markdown(response['response_text'])
+
+	return response, question_response_counter
 
 def check_database_user_authentication(
 		facebook_id:str = "", 
@@ -204,145 +357,75 @@ def check_database_user_authentication(
 
 	return message, user_id, user_name, user_picture_url
 
-def load_more_questions(
-	user_id: int,
-	num_to_load: int,
-	offset: int
+def follow_unfollow(
+	follower_user_id: int,
+	followed_user_id: int
 ):
+	"""
+	add follow if not already else remove
+	return: followed, unfollowed
+	"""
+	status = 'following'
 
-	"""
-	load more questions for the "For You" page
-	params:
-		user_id,
-		num_to_load: limit,
-		offset
-	returns:
-		list of questions
-		where each question is a dictonary of values
-		("question_id", "question_text", "vote_counter", "response_counter", "created_time", "user_id", "user_name")
-	"""
 	conn = get_db_connection()
 	cur = conn.cursor()
 
-	"""
-	SELECT \
-		Question.question_id, Question.question_title, Question.vote_counter, Question.response_counter, Question.created_time, App_user.user_id, App_user.name\
-	FROM Question \
-	INNER JOIN App_user\
-		ON Question.user_id = App_user.user_id\
-	LIMIT %s OFFSET %s
-	"""
+	query = "SELECT 1 FROM Follow WHERE follower_user_id = %s AND followed_user_id = %s"
+	cur.execute(query, (follower_user_id, followed_user_id))
+	result = cur.fetchone()
+
+	if result is None:
+		#don't currently follow
+		query = "INSERT INTO Follow (follower_user_id, followed_user_id) VALUES (%s, %s)"
+
+		cur.execute(query, (follower_user_id, followed_user_id))
+		conn.commit()
+	else:
+		status = 'follow'
+		query = "DELETE FROM Follow WHERE follower_user_id = %s AND followed_user_id = %s"
+
+		cur.execute(query, (follower_user_id, followed_user_id))
+		conn.commit()
+
+	cur.close()
+	conn.close()
+
+	return status
+
+def get_question(
+	user_id: int,
+	question_id: int
+):
+	conn = get_db_connection()
+	cur = conn.cursor()
 
 	query = "SELECT \
-				Question.question_id, Question.question_title, Question.vote_counter, Question.response_counter, \
-				Question.created_time, App_user.user_id, App_user.name, \
+				Question.question_id, Question.question_title, Question.question_text, \
+				Question.vote_counter, Question.response_counter, Question.created_time, \
+				App_user.user_id, App_user.name, \
 				CASE WHEN Follow.followed_user_id IS NULL THEN false ELSE true END AS following	\
 			FROM Question \
 			INNER JOIN App_user\
-				ON Question.user_id = App_user.user_id\
+			ON Question.user_id = App_user.user_id \
 			LEFT JOIN Follow \
 				on App_user.user_id = Follow.followed_user_id and Follow.follower_user_id = %s \
-			LIMIT %s OFFSET %s;"
+			WHERE question_id = %s"
 
-	cur.execute(query, (user_id, num_to_load, offset))
-	questions = cur.fetchall()
-	
-	if questions is None:
-		questions = []
-
-	question_keys = ("question_id", "question_title", "vote_counter", "response_counter", "created_time", "user_id", "user_name", "following")
-	questions = [dict(zip(question_keys, question)) for question in questions]
-
-	cur.close()
-	conn.close()
-
-	return questions
-
-def add_question(
-	user_id: int,
-	question_title: str,
-	question_text:str
-):
-
-	conn = get_db_connection()
-	cur = conn.cursor()
-
-	query = "INSERT INTO Question (user_id, question_title, question_text) VALUES (%s, %s, %s)"
-
-	cur.execute(query, (user_id, question_title, question_text))
-	conn.commit()
-
-	query = "SELECT \
-				Question.question_id \
-			FROM Question \
-			WHERE user_id = %s \
-			ORDER BY created_time DESC LIMIT 1"
-	
-	cur.execute(query, (user_id,))
+	cur.execute(query, (user_id, question_id,))
 	question = cur.fetchone()
 
-	cur.close()
-	conn.close()
-
 	if question is None:
-		question_id = -1
-	else:
-		question_id = question[0]
-
-	return question_id
-
-def add_response(
-	user_id: int,
-	question_id: int,
-	response_text: str
-):
-
-	conn = get_db_connection()
-	cur = conn.cursor()
-
-	query = "INSERT INTO Response (type, user_id, question_id, response_text) VALUES (%s, %s, %s, %s)"
-
-	cur.execute(query, ('response', user_id, question_id, response_text))
-	conn.commit()
-
-	query = "UPDATE Question SET response_counter = response_counter + 1 WHERE question_id = %s"
-	cur.execute(query, (question_id,))
-	conn.commit()
-
-	query = "SELECT \
-				Response.response_id, Response.response_text, Response.vote_counter, Response.response_counter, Response.created_time, App_user.user_id, App_user.name\
-			FROM Response \
-			INNER JOIN App_user\
-				ON Response.user_id = App_user.user_id\
-			WHERE Response.user_id = %s \
-			ORDER BY Response.created_time DESC LIMIT 1"
-	
-	cur.execute(query, (user_id,))
-	response = cur.fetchone()
-
-	query = "SELECT response_counter FROM Question WHERE question_id = %s"
-	
-	cur.execute(query, (question_id,))
-	question_response_counter = cur.fetchone()
+		return -1
+		
+	question_keys = ("question_id", "question_title", "question_text", "vote_counter", "response_counter", "created_time", "user_id", "user_name", "following")
+	question = dict(zip(question_keys, question))
 
 	cur.close()
 	conn.close()
 
-	if response is None:
-		return -1
+	question["question_text"] = markdown.markdown(question["question_text"])
 
-	if question_response_counter is None:
-		question_response_counter = 0
-	else:
-		question_response_counter = question_response_counter[0]
-
-	response_keys = ("response_id", "response_text", "vote_counter", "response_counter", "created_time", "user_id", "user_name")
-	response = dict(zip(response_keys, response))
-
-	response['response_text'] = markdown.markdown(response['response_text'])
-
-	return response, question_response_counter
-
+	return question
 
 def handle_question_vote(
 	user_id,
@@ -422,7 +505,6 @@ def handle_question_vote(
 
 	return vote_count, my_vote
 
-
 def handle_response_vote(
 	user_id,
 	response_id,
@@ -501,6 +583,113 @@ def handle_response_vote(
 
 	return vote_count, my_vote
 
+def load_more_questions(
+	user_id: int,
+	num_to_load: int,
+	offset: int
+):
+
+	"""
+	load more questions for the "For You" page
+	params:
+		user_id,
+		num_to_load: limit,
+		offset
+	returns:
+		list of questions
+		where each question is a dictonary of values
+		("question_id", "question_text", "vote_counter", "response_counter", "created_time", "user_id", "user_name")
+	"""
+	conn = get_db_connection()
+	cur = conn.cursor()
+
+	"""
+	SELECT \
+		Question.question_id, Question.question_title, Question.vote_counter, Question.response_counter, Question.created_time, App_user.user_id, App_user.name\
+	FROM Question \
+	INNER JOIN App_user\
+		ON Question.user_id = App_user.user_id\
+	LIMIT %s OFFSET %s
+	"""
+
+	query = "SELECT \
+				Question.question_id, Question.question_title, Question.vote_counter, Question.response_counter, \
+				Question.created_time, App_user.user_id, App_user.name, \
+				CASE WHEN Follow.followed_user_id IS NULL THEN false ELSE true END AS following	\
+			FROM Question \
+			INNER JOIN App_user\
+				ON Question.user_id = App_user.user_id\
+			LEFT JOIN Follow \
+				on App_user.user_id = Follow.followed_user_id and Follow.follower_user_id = %s \
+			LIMIT %s OFFSET %s;"
+
+	cur.execute(query, (user_id, num_to_load, offset))
+	questions = cur.fetchall()
+	
+	if questions is None:
+		questions = []
+
+	question_keys = ("question_id", "question_title", "vote_counter", "response_counter", "created_time", "user_id", "user_name", "following")
+	questions = [dict(zip(question_keys, question)) for question in questions]
+
+	cur.close()
+	conn.close()
+
+	return questions
+
+def load_more_responses(
+	user_id: int,
+	question_id: int,
+	limit: int,
+	offset: int
+):
+	conn = get_db_connection()
+	cur = conn.cursor()
+
+	query =	"SELECT \
+				Response.response_id, Response.response_text, Response.vote_counter, \
+				Response.response_counter, Response.created_time, App_user.user_id, App_user.name, \
+				CASE WHEN Follow.followed_user_id IS NULL THEN false ELSE true END AS following	\
+			FROM Response \
+			INNER JOIN App_user \
+				ON Response.user_id = App_user.user_id \
+			LEFT JOIN Follow \
+				on App_user.user_id = Follow.followed_user_id and Follow.follower_user_id = %s \
+			WHERE question_id = %s \
+			LIMIT %s OFFSET %s"
+
+	cur.execute(query, (user_id, question_id, limit, offset))
+	responses = cur.fetchall()
+
+	if responses is None:
+		responses = []
+
+	response_keys = ("response_id", "response_text", "vote_counter", "response_counter", "created_time", "user_id", "user_name", "following")
+	responses = [dict(zip(response_keys, response)) for response in responses]
+
+	for response in responses:
+		response['response_text'] = markdown.markdown(response['response_text'])
+
+	cur.close()
+	conn.close()
+
+	return responses
+
+
+def make_web_search_request(search_query: str, num:int = 10):
+	payload = {
+		'key': os.environ.get('API_KEY'),
+		'q': search_query,
+		'cx': os.environ.get('SEARCH_ENGINE_ID'),
+		'num': num
+	}
+
+	response = requests.get('https://www.googleapis.com/customsearch/v1', params=payload)
+	if response.status_code != 200:
+		return -1
+
+	return response.json()
+
 def vote_unvote(
 	user_id: int,
 	question_id: int,
@@ -549,146 +738,3 @@ def vote_unvote(
 		return handle_question_vote(user_id, question_id, up_or_down_vote)
 	else:
 		return handle_response_vote(user_id, response_id, up_or_down_vote)
-
-
-def follow_unfollow(
-	follower_user_id: int,
-	followed_user_id: int
-):
-	"""
-	add follow if not already else remove
-	return: followed, unfollowed
-	"""
-	status = 'following'
-
-	conn = get_db_connection()
-	cur = conn.cursor()
-
-	query = "SELECT 1 FROM Follow WHERE follower_user_id = %s AND followed_user_id = %s"
-	cur.execute(query, (follower_user_id, followed_user_id))
-	result = cur.fetchone()
-
-	if result is None:
-		#don't currently follow
-		query = "INSERT INTO Follow (follower_user_id, followed_user_id) VALUES (%s, %s)"
-
-		cur.execute(query, (follower_user_id, followed_user_id))
-		conn.commit()
-	else:
-		status = 'follow'
-		query = "DELETE FROM Follow WHERE follower_user_id = %s AND followed_user_id = %s"
-
-		cur.execute(query, (follower_user_id, followed_user_id))
-		conn.commit()
-
-	cur.close()
-	conn.close()
-
-	return status
-
-def get_question(
-	user_id: int,
-	question_id: int
-):
-	conn = get_db_connection()
-	cur = conn.cursor()
-
-	query = "SELECT \
-				Question.question_id, Question.question_title, Question.question_text, \
-				Question.vote_counter, Question.response_counter, Question.created_time, \
-				App_user.user_id, App_user.name, \
-				CASE WHEN Follow.followed_user_id IS NULL THEN false ELSE true END AS following	\
-			FROM Question \
-			INNER JOIN App_user\
-			ON Question.user_id = App_user.user_id \
-			LEFT JOIN Follow \
-				on App_user.user_id = Follow.followed_user_id and Follow.follower_user_id = %s \
-			WHERE question_id = %s"
-
-	cur.execute(query, (user_id, question_id,))
-	question = cur.fetchone()
-
-	if question is None:
-		return -1
-		
-	question_keys = ("question_id", "question_title", "question_text", "vote_counter", "response_counter", "created_time", "user_id", "user_name", "following")
-	question = dict(zip(question_keys, question))
-
-	cur.close()
-	conn.close()
-
-	question["question_text"] = markdown.markdown(question["question_text"])
-
-	return question
-
-def add_image_to_post(
-	image_file_url: str,
-	question_or_response_id: int,
-	post_type: str = 'question'
-):
-	conn = get_db_connection()
-	cur = conn.cursor()
-
-	if post_type == 'question':
-		query = "INSERT INTO Image (url, question_id, post_type) VALUES (%s, %s, %s)"
-	else:
-		query = "INSERT INTO Image (url, response_id, post_type) VALUES (%s, %s, %s)"
-
-	cur.execute(query, (image_file_url, question_or_response_id, post_type))
-	conn.commit()
-
-	if post_type == 'question':
-		query = "SELECT image_id FROM Image WHERE url = %s AND question_id = %s"
-	else:
-		query = "SELECT image_id FROM Image WHERE url = %s AND response_id = %s"
-
-	cur.execute(query, (image_file_url, question_or_response_id))
-	image_id = cur.fetchone()
-
-	cur.close()
-	conn.close()
-
-	if image_id is None:
-		return -1
-	else:
-		image_id = image_id[0]
-
-	return image_id
-
-def load_more_responses(
-	user_id: int,
-	question_id: int,
-	limit: int,
-	offset: int
-):
-	conn = get_db_connection()
-	cur = conn.cursor()
-
-	query =	"SELECT \
-				Response.response_id, Response.response_text, Response.vote_counter, \
-				Response.response_counter, Response.created_time, App_user.user_id, App_user.name, \
-				CASE WHEN Follow.followed_user_id IS NULL THEN false ELSE true END AS following	\
-			FROM Response \
-			INNER JOIN App_user \
-				ON Response.user_id = App_user.user_id \
-			LEFT JOIN Follow \
-				on App_user.user_id = Follow.followed_user_id and Follow.follower_user_id = %s \
-			WHERE question_id = %s \
-			LIMIT %s OFFSET %s"
-
-	cur.execute(query, (user_id, question_id, limit, offset))
-	responses = cur.fetchall()
-
-	if responses is None:
-		responses = []
-
-	response_keys = ("response_id", "response_text", "vote_counter", "response_counter", "created_time", "user_id", "user_name", "following")
-	responses = [dict(zip(response_keys, response)) for response in responses]
-
-	for response in responses:
-		response['response_text'] = markdown.markdown(response['response_text'])
-
-	cur.close()
-	conn.close()
-
-	return responses

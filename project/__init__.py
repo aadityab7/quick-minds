@@ -24,7 +24,6 @@ app.config['SECRET_KEY'] = os.environ.get("SECRET_KEY", os.urandom(12))
 app.config["SESSION_PERMANENT"] = False
 app.config["SESSION_TYPE"] = "filesystem"
 app.config['MAX_CONTENT_LENGTH'] = 10 * 1024 * 1024  # 10 MB
-app.config['UPLOAD_FOLDER'] = ".\\image_folder"
 
 Session(app)
 oauth = OAuth(app)
@@ -166,7 +165,7 @@ def upload_image():
 		return jsonify({'error': 'No File Name!!'})
 
 	if image:
-		bucket_name = 'quickmindsimagestoragebucket'
+		bucket_name = os.environ.get('STORAGE_BUCKET_NAME')
 		content_type = image.content_type
 		filename = image.filename
 

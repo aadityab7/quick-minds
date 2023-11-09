@@ -151,7 +151,9 @@ CREATE TABLE IF NOT EXISTS Related_content  (
 );
 
 CREATE TABLE IF NOT EXISTS Related_web_link  (
-    related_web_link_url text NOT NULL
+    title text NOT NULL,
+    description text NOT NULL,
+    link text NOT NULL,
 ) INHERITS (Related_content);
 
 CREATE TABLE IF NOT EXISTS Similar_question  (

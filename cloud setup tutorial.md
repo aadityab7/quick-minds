@@ -1,11 +1,12 @@
 # To initialize database from cloud shell:	
 
-1. `gcloud sql connect quickminds --user=postgres`
-2. Enter DB_PASSWORD
-3. `/c quickminds`
-4. Enter DB_PASSWORD
-5. copy and paste all the drop commands
-6. copy and paste all the create commands
+1. Create a Cloud SQL instance with PostgreSQL and in that create a database `quickminds`
+2. `gcloud sql connect quickminds --user=postgres`
+3. Enter DB_PASSWORD
+4. `/c quickminds`
+5. Enter DB_PASSWORD
+6. copy and paste all the drop table commands
+7. copy and paste all the create table commands
 
 # To deploy the latest version of app from local environment to cloud
 
@@ -33,3 +34,17 @@
 - FACEBOOK_CLIENT_SECRET
 - GITHUB_CLIENT_ID
 - GITHUB_CLIENT_SECRET
+- SEARCH_ENGINE_ID
+- STORAGE_BUCKET_NAME
+- API_KEY
+
+# To use Google Search API for web search:
+
+1. Enable Custom Search API
+2. Create a custom search engine (named : **quick minds web search**)
+3. Get the Search Engine ID
+4. The search API request will need to include:
+	- cx: name of custom search engine
+	- q: query string
+	- num: number of search results to get (max = 10)
+	- api_key: for auth
