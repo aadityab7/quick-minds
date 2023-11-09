@@ -1,6 +1,8 @@
 # quick-minds
 One Stop for all learning needs - combining the best of AI and community's collective knowledge to help us learn in the best way possible.
 
+To view the live project visit [quick minds website](https://quick-minds-4czszj4sdq-el.a.run.app).
+
 # How to get started
 1. clone the github repository in the folder of your choice:
 
