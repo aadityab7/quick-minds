@@ -166,7 +166,12 @@ CREATE TABLE IF NOT EXISTS Related_question  (
 ) INHERITS (Related_content);
 
 CREATE TABLE IF NOT EXISTS Related_video  (
-    related_video_url text NOT NULL
+    title text  NOT NULL, 
+    description text  NOT NULL, 
+    video_url text  NOT NULL, 
+    thumbnail_url text  NOT NULL, 
+    channel_title text  NOT NULL, 
+    player_embed_html text  NOT NULL
 ) INHERITS (Related_content);
 
 CREATE TABLE IF NOT EXISTS User_Tag  (

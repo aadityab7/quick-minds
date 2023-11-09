@@ -64,6 +64,8 @@ def ask_question():
 					flash("An error occured")
 					return redirect(request.referrer)
 
+				print(f" question added to database successfully!! {question_id}")
+				
 				return redirect(url_for('question_detail', question_id = question_id))
 
 		return render_template('ask_question.html',
@@ -91,6 +93,10 @@ def load_more_questions():
 def question_detail(question_id):
 	if session.get('user_id'):
 		question = utils.get_question(user_id = session['user_id'], question_id = question_id)
+
+		if question == -1:
+			flash("An error while fetching the question")
+			return redirect(request.referrer)
 
 		return render_template('question_detail.html', question = question,
 			user_id = session['user_id'], 

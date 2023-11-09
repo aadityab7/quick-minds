@@ -83,10 +83,17 @@ def add_question(
 
 	#keep track of all the images seperatly as well
 	#images = re.findall(r'[!][[].*[\]][(].*[)]', question_text)
+		
+	question_query = question_title + " " + question_text
+
+	#we have to remove images from this query to perform search 
+	question_query = re.sub(r'[!][[].*[\]][(].*[)]', "", question_query)
 	
+	add_related_youtube_videos_to_question(question_id = question_id, question_query = question_query)
+
 	#before returning the question perform web search using custom search API to add 
 	#related web links to the questions
-	add_related_search_results_to_question(question_id = question_id, question_query = question_title + " " + question_text)
+	add_related_search_results_to_question(question_id = question_id, question_query = question_query)
 
 	return question_id
 
@@ -94,10 +101,6 @@ def add_related_search_results_to_question(
 	question_id: int,
 	question_query: str
 ):
-	#we have to remove images from this query
-
-	question_query = re.sub(r'[!][[].*[\]][(].*[)]', "", question_query)
-
 	response = make_web_search_request(question_query)
 
 	if response == -1:
@@ -115,6 +118,39 @@ def add_related_search_results_to_question(
 		query = "INSERT INTO Related_web_search_result (question_id, title, description, link) VALUES (%s, %s, %s, %s)"
 		cur.execute(query, (question_id, title, description, link))
 		conn.commit()
+
+	cur.close()
+	conn.close()
+
+def add_related_youtube_videos_to_question(
+	question_id: int,
+	question_query: str
+):
+	video_results = make_youtube_video_search_request(question_query)
+
+	if video_results == -1:
+		print("An error occured in web search result!")
+		return
+
+	conn = get_db_connection()
+	cur = conn.cursor()
+
+	for video_id, video_details in video_results.items():
+		
+		video_url = f'https://www.youtube.com/watch?v={video_id}'
+
+		query = "INSERT INTO Related_video \
+					(question_id, title, description, video_url, thumbnail_url, channel_title, player_embed_html) \
+				VALUES (%s, %s, %s, %s, %s, %s, %s)"
+		
+		
+		cur.execute(query, 
+			(question_id, video_details['title'], video_details['description'], video_url, 
+			video_details['thumbnail_url'], video_details['channel_title'], video_details['player_embed_html'])
+		)		
+
+		conn.commit()
+		
 
 	cur.close()
 	conn.close()
@@ -723,6 +759,58 @@ def make_web_search_request(
 		return -1
 
 	return response.json()
+
+def make_youtube_video_search_request(
+	search_query: str,
+	num:int = 10
+):
+	search_params = {
+		'key' : os.environ.get('API_KEY'),
+		'q': search_query,
+		'part': 'snippet',
+		'maxResults': num
+	}
+
+	response = requests.get('https://www.googleapis.com/youtube/v3/search', params=search_params)
+
+	if response.status_code != 200:
+		return -1
+
+	response = response.json()
+	#now we need to fetch the player which we can then embed on our html page
+	video_results = dict()
+	video_ids = []
+
+	for response_item in response['items']:
+
+		video_results[response_item['id']['videoId']] = {
+			"title": response_item["snippet"]["title"],
+			"description": response_item["snippet"]["description"],
+			"thumbnail_url": response_item["snippet"]["thumbnails"]["high"]["url"],
+			"channel_title" : response_item["snippet"]["channelTitle"],
+			"player_embed_html": ""
+		}
+		
+		video_ids.append(response_item['id']['videoId'])
+
+	video_params = {
+		'key': os.environ.get('API_KEY'),
+		'id': ','.join(video_ids),
+		'part': 'player',
+		'maxResults': num
+	}
+
+	response = requests.get('https://www.googleapis.com/youtube/v3/videos', params=video_params)
+
+	if response.status_code != 200:
+		return video_results
+
+	response = response.json()
+
+	for response_item in response.get('items', []):
+		video_results[response_item["id"]]['player_embed_html'] = response_item["player"]["embedHtml"]
+
+	return video_results
 
 def vote_unvote(
 	user_id: int,
