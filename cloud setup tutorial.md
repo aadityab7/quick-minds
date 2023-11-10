@@ -3,7 +3,7 @@
 1. Create a Cloud SQL instance with PostgreSQL and in that create a database `quickminds`
 2. `gcloud sql connect quickminds --user=postgres`
 3. Enter DB_PASSWORD
-4. `/c quickminds`
+4. `\c quickminds`
 5. Enter DB_PASSWORD
 6. copy and paste all the drop table commands
 7. copy and paste all the create table commands

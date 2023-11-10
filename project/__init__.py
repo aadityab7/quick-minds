@@ -52,13 +52,14 @@ def ask_question():
 		if request.method == 'POST':
 			question_title = request.form['question-title']
 			question_details = request.form['question-details']
+			question_tags = request.form.get('question-tags', '')
 
 			if not question_title:
 				flash("Please enter the Title!")
 			elif not question_details:
 				flash('question details are required!')
 			else:
-				question_id = utils.add_question(user_id = session['user_id'], question_title = question_title, question_text = question_details)
+				question_id = utils.add_question(user_id = session['user_id'], question_title = question_title, question_text = question_details, question_tags = question_tags)
 
 				if question_id == -1:
 					flash("An error occured")

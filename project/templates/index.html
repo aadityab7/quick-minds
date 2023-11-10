@@ -28,11 +28,15 @@
 			              		<h1 id = "question_title" class="text-xl"> </h1>
 
 			              		<p id = "created_time" class="text-sm text-gray-500 mt-3"></p>
+
 			              		<div class="flex items-start gap-4 mt-2">
 			              			<p id = "vote_counter" class="text-gray-500 text-sm font-bold"></p>
 			              			<p id = "response_counter" class="text-gray-500 text-sm font-bold"></p>
 			              		</div>
 			              		
+			              		<div id = "question_tags" class="flex items-start gap-4 mt-3"> 
+
+			              		</div>
 			            	</div>
 			          	</a>
 		        	</div>
@@ -107,8 +111,20 @@
                         clone.querySelector("#question_title").textContent = question.question_title;
                         clone.querySelector("#created_time").textContent = question.created_time;
                         clone.querySelector("#vote_counter").textContent = question.vote_counter + ' vote';
+
                         clone.querySelector("#follow").setAttribute('data-user-id', question.user_id);
 
+                        var tag_html_content = "";
+
+                        console.log(question.tags);
+
+                        for (tag in question.tags) {
+                        	console.log(tag);
+                        	tag_html_content += ("<p class = 'rounded-md py-1 px-2 bg-indigo-400 text-white text-sm'>" + question.tags[tag] + "</p>");
+                        }
+
+                        clone.querySelector("#question_tags").innerHTML = tag_html_content;
+                        
                         if(question.user_id !== user_id){
                         	if (question.following){
 	                        	clone.querySelector("#follow").textContent = 'following';
@@ -146,8 +162,8 @@
 	    // Load more questions when scrolling to the bottom
 	    $(window).scroll(function () {
 	        if (isScrolledToBottom()) {
-	            console.log('Scrolled to the bottom');
-	            loadMoreQuestions();	        }
+	            loadMoreQuestions();	        
+	        }
 	    });
 
 	    function handleFollow(event) {

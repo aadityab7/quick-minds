@@ -57,15 +57,22 @@ def add_image_to_post(
 def add_question(
 	user_id: int,
 	question_title: str,
-	question_text:str
+	question_text:str,
+	question_tags: str
 ):
+	
+	question_query = question_title + " " + question_text + " " + question_tags
+	
+	question_tags = [tag.strip() for tag in question_tags.split(',')]
+	question_tags = str(set(question_tags))
+	question_tags = re.sub(r"[']", "", question_tags)
 
 	conn = get_db_connection()
 	cur = conn.cursor()
 
-	query = "INSERT INTO Question (user_id, question_title, question_text) VALUES (%s, %s, %s)"
+	query = "INSERT INTO Question (user_id, question_title, question_text, tags) VALUES (%s, %s, %s, %s)"
 
-	cur.execute(query, (user_id, question_title, question_text))
+	cur.execute(query, (user_id, question_title, question_text, question_tags))
 	conn.commit()
 
 	query = "SELECT \
@@ -88,18 +95,15 @@ def add_question(
 	#keep track of all the images seperatly as well
 	#images = re.findall(r'[!][[].*[\]][(].*[)]', question_text)
 		
-	question_query = question_title + " " + question_text
-
 	#we have to remove images from this query to perform search 
 	question_query = re.sub(r'[!][[].*[\]][(].*[)]', "", question_query)
 	question_query = re.sub(r'[!]', "", question_query)
 	
-	generate_and_add_ai_response_question(question_id = question_id, question_query = question_query)
+	#before returning the question find and add related resources and responses
 
-	#before returning the question perform web search using custom search API to add 
-	#related web links to the questions
-	add_related_search_results_to_question(question_id = question_id, question_query = question_query)
-	add_related_youtube_videos_to_question(question_id = question_id, question_query = question_query)
+	#generate_and_add_ai_response_question(question_id = question_id, question_query = question_query)
+	#add_related_search_results_to_question(question_id = question_id, question_query = question_query)
+	#add_related_youtube_videos_to_question(question_id = question_id, question_query = question_query)
 
 	return question_id
 
@@ -481,7 +485,7 @@ def get_question(
 		WITH QuestionUser AS (
 		    SELECT
 		        Question.question_id as question_id, Question.question_title, Question.question_text,
-				Question.vote_counter, Question.response_counter, Question.created_time,
+				Question.vote_counter, Question.response_counter, Question.created_time, Question.tags,
 				App_user.user_id as question_user_id, App_user.name
 		    FROM
 		        Question
@@ -528,7 +532,7 @@ def get_question(
 	cur.close()
 	conn.close()
 
-	question_keys =	("question_id", "question_title", "question_text", "vote_counter", "response_counter", "created_time", "user_id", "user_name", "following", "my_vote")
+	question_keys =	("question_id", "question_title", "question_text", "vote_counter", "response_counter", "created_time", "tags", "user_id", "user_name", "following", "my_vote")
 	question = dict(zip(question_keys, question))
 
 	question["question_text"] = markdown.markdown(question["question_text"])
@@ -717,7 +721,8 @@ def load_more_questions(
 
 	query = "SELECT \
 				Question.question_id, Question.question_title, Question.vote_counter, Question.response_counter, \
-				Question.created_time, App_user.user_id, App_user.name, \
+				Question.created_time, Question.tags, \
+				App_user.user_id, App_user.name, \
 				CASE WHEN Follow.followed_user_id IS NULL THEN false ELSE true END AS following	\
 			FROM Question \
 			INNER JOIN App_user\
@@ -735,7 +740,7 @@ def load_more_questions(
 	if questions is None:
 		questions = []
 
-	question_keys = ("question_id", "question_title", "vote_counter", "response_counter", "created_time", "user_id", "user_name", "following")
+	question_keys = ("question_id", "question_title", "vote_counter", "response_counter", "created_time", "tags", "user_id", "user_name", "following")
 	questions = [dict(zip(question_keys, question)) for question in questions]
 
 	return questions

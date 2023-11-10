@@ -177,12 +177,12 @@ CREATE TABLE IF NOT EXISTS Related_video  (
 ) INHERITS (Related_content);
 
 CREATE TABLE IF NOT EXISTS User_Tag  (
-    tag_id integer,
+    tag_name text,
     user_id integer,
 
     CONSTRAINT fk_user_tag_tag
-        FOREIGN KEY(tag_id) 
-        REFERENCES Tag(tag_id)
+        FOREIGN KEY(tag_name) 
+        REFERENCES Tag(tag_name)
         ON DELETE CASCADE,
 
     CONSTRAINT fk_user_tag_app_user
@@ -190,7 +190,7 @@ CREATE TABLE IF NOT EXISTS User_Tag  (
         REFERENCES App_user(user_id)
         ON DELETE CASCADE,
 
-    PRIMARY KEY (tag_id, user_id)
+    PRIMARY KEY (tag_name, user_id)
 );
 
 CREATE TABLE IF NOT EXISTS Follow  (
@@ -233,12 +233,12 @@ CREATE TABLE IF NOT EXISTS Post_Vote (
 );
 
 CREATE TABLE IF NOT EXISTS Question_Tag  (
-    tag_id integer,
+    tag_name text,
     question_id integer,
 
     CONSTRAINT fk_question_tag_tag
-        FOREIGN KEY(tag_id) 
-        REFERENCES Tag(tag_id)
+        FOREIGN KEY(tag_name) 
+        REFERENCES Tag(tag_name)
         ON DELETE CASCADE,
 
     CONSTRAINT fk_question_tag_question
@@ -246,5 +246,7 @@ CREATE TABLE IF NOT EXISTS Question_Tag  (
         REFERENCES Question(question_id)
         ON DELETE CASCADE,
 
-    PRIMARY KEY (tag_id, question_id)
+    PRIMARY KEY (tag_name, question_id)
 );
+
+INSERT INTO App_user (user_id, username, name, about) VALUES (0, 'google_vertex_ai', 'Google Vertex AI', 'Generative AI chat bot by Google which provides quick first response to user questions.');

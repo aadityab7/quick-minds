@@ -57,7 +57,17 @@
 
 				<div id = 'question_details' class="col-span-11">
 					{{ question['question_text'] |safe }}
+
+					<div id = "question_tags" class="flex items-start gap-4 mt-4">
+						{%if question['tags']%}
+							{% for tag in question['tags'] %}
+								<p class = 'rounded-md py-1 px-2 bg-indigo-400 text-white text-sm'> {{tag}} </p>
+							{% endfor %}
+						{%endif%}
+					</div>
 				</div>
+
+
 			</div>
 		</div>	
 		
@@ -259,16 +269,11 @@
             clone.querySelector("#response_vote_counter").textContent = response.vote_counter;
             clone.querySelector("#follow").setAttribute('data-user-id', response.user_id);
 
-            if (response.my_vote === 0){
-				clone.querySelector("#response_upvote_button").classList.remove('bg-indigo-500');
-				clone.querySelector("#response_downvote_button").classList.remove('bg-indigo-500');
-            }
-            else if(response.my_vote === 1) {
+            
+            if(response.my_vote === 1) {
 				clone.querySelector("#response_upvote_button").classList.add('bg-indigo-500');
-				clone.querySelector("#response_downvote_button").classList.remove('bg-indigo-500');
             }
-            else{
-				clone.querySelector("#response_upvote_button").classList.remove('bg-indigo-500');
+            else if(response.my_vote === -1){
 				clone.querySelector("#response_downvote_button").classList.add('bg-indigo-500');
             }
 
@@ -329,11 +334,13 @@
 		        		down_vote_button.classList.remove('bg-indigo-500');
 		        	}
 		        	else if (my_vote === 1){
-		        		up_vote_button.classList.add('bg-indigo-500');
+		        		up_vote_button.classList.remove('bg-indigo-500');
 		        		down_vote_button.classList.remove('bg-indigo-500');
+		        		up_vote_button.classList.add('bg-indigo-500');
 		        	}
 		        	else{
-						up_vote_button.classList.remove('bg-indigo-500');
+		        		up_vote_button.classList.remove('bg-indigo-500');
+		        		down_vote_button.classList.remove('bg-indigo-500');
 		        		down_vote_button.classList.add('bg-indigo-500');
 		        	}
 
@@ -461,16 +468,10 @@
 	                    clone.querySelector("#response_vote_counter").textContent = response.vote_counter;
 	                    clone.querySelector("#follow").setAttribute('data-user-id', response.user_id);
 
-	                    if (response.my_vote === 0){
-							clone.querySelector("#response_upvote_button").classList.remove('bg-indigo-500');
-							clone.querySelector("#response_downvote_button").classList.remove('bg-indigo-500');
-	                    }
-	                    else if(response.my_vote === 1) {
+	                    if(response.my_vote === 1) {
 							clone.querySelector("#response_upvote_button").classList.add('bg-indigo-500');
-							clone.querySelector("#response_downvote_button").classList.remove('bg-indigo-500');
 	                    }
-	                    else{
-							clone.querySelector("#response_upvote_button").classList.remove('bg-indigo-500');
+	                    else if(response.my_vote === -1){
 							clone.querySelector("#response_downvote_button").classList.add('bg-indigo-500');
 	                    }
 	                    
