@@ -48,7 +48,8 @@ CREATE TABLE IF NOT EXISTS Post  (
 CREATE TABLE IF NOT EXISTS Question  (
     question_id serial PRIMARY KEY,
     question_title text NOT NULL,
-    question_text text NOT NULL
+    question_text text NOT NULL,
+    tags text[5]
 ) INHERITS (Post);
 
 CREATE TABLE IF NOT EXISTS Response  (
@@ -136,8 +137,9 @@ CREATE TABLE IF NOT EXISTS Image  (
 );
 
 CREATE TABLE IF NOT EXISTS Tag  (
-    tag_id serial PRIMARY KEY,
-    tag_name text NOT NULL
+    tag_name text PRIMARY KEY,
+    tag_description text,
+    question_count integer DEFAULT 0
 );
 
 CREATE TABLE IF NOT EXISTS Related_content  (

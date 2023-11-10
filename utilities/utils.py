@@ -3,6 +3,10 @@ import psycopg2
 import markdown
 import requests
 import re
+import vertexai
+from vertexai.language_models import TextGenerationModel
+
+model = TextGenerationModel.from_pretrained("text-bison@001")
 
 def get_db_connection():
 	"""
@@ -88,12 +92,14 @@ def add_question(
 
 	#we have to remove images from this query to perform search 
 	question_query = re.sub(r'[!][[].*[\]][(].*[)]', "", question_query)
+	question_query = re.sub(r'[!]', "", question_query)
 	
-	add_related_youtube_videos_to_question(question_id = question_id, question_query = question_query)
+	generate_and_add_ai_response_question(question_id = question_id, question_query = question_query)
 
 	#before returning the question perform web search using custom search API to add 
 	#related web links to the questions
 	add_related_search_results_to_question(question_id = question_id, question_query = question_query)
+	add_related_youtube_videos_to_question(question_id = question_id, question_query = question_query)
 
 	return question_id
 
@@ -432,6 +438,38 @@ def follow_unfollow(
 
 	return status
 
+def generate_ai_response(
+	question_query: str,
+	temperature: float = 0.2,
+	max_output_tokens: int = 256,
+	top_p: float = 0.8,
+	top_k: int = 40
+):	
+	parameters = {
+					"temperature": temperature, 
+					"max_output_tokens": max_output_tokens,
+					"top_p": top_p,
+					"top_k": top_k
+				}
+
+	prompt = f"generate a infomative response for the following question and try to answer it such that no followups are needed : {question_query}"
+
+	response = model.predict(prompt, **parameters,)
+
+	result = markdown.markdown(response.text)
+
+	return result
+
+def generate_and_add_ai_response_question(
+	question_id: int,
+	question_query: str
+):
+	response = generate_ai_response(question_query)
+
+	print("result to be stored", response)
+
+	add_response(user_id =  0, question_id = question_id, response_text = response)
+
 def get_question(
 	user_id: int,
 	question_id: int
@@ -439,7 +477,35 @@ def get_question(
 	conn = get_db_connection()
 	cur = conn.cursor()
 
-	query = "SELECT \
+	query = """
+		WITH QuestionUser AS (
+		    SELECT
+		        Question.question_id as question_id, Question.question_title, Question.question_text,
+				Question.vote_counter, Question.response_counter, Question.created_time,
+				App_user.user_id as question_user_id, App_user.name
+		    FROM
+		        Question
+		        INNER JOIN App_user
+		        	ON Question.user_id = App_user.user_id
+		    WHERE
+		        Question.question_id = %s
+		)
+		SELECT
+		    qu.*, 
+		    CASE WHEN f.followed_user_id IS NULL THEN false ELSE true END AS following,
+		    CASE WHEN pv.val IS NULL THEN 0 WHEN pv.val = 1 THEN 1 ELSE -1 END AS my_vote
+		FROM
+		    QuestionUser qu
+		    LEFT JOIN Follow f
+		    	ON qu.question_user_id = f.followed_user_id AND f.follower_user_id = %s
+		    LEFT JOIN Post_Vote as pv
+		    	ON qu.question_id = pv.question_id AND pv.user_id = %s
+	"""
+
+	cur.execute(query, (question_id, user_id, user_id))
+
+	"""
+	alternate_query = "SELECT \
 				Question.question_id, Question.question_title, Question.question_text, \
 				Question.vote_counter, Question.response_counter, Question.created_time, \
 				App_user.user_id, App_user.name, \
@@ -451,17 +517,19 @@ def get_question(
 				on App_user.user_id = Follow.followed_user_id and Follow.follower_user_id = %s \
 			WHERE question_id = %s"
 
-	cur.execute(query, (user_id, question_id,))
+	cur.execute(alternate_query, (user_id, question_id,))
+	"""
+
 	question = cur.fetchone()
 
 	if question is None:
 		return -1
 		
-	question_keys = ("question_id", "question_title", "question_text", "vote_counter", "response_counter", "created_time", "user_id", "user_name", "following")
-	question = dict(zip(question_keys, question))
-
 	cur.close()
 	conn.close()
+
+	question_keys =	("question_id", "question_title", "question_text", "vote_counter", "response_counter", "created_time", "user_id", "user_name", "following", "my_vote")
+	question = dict(zip(question_keys, question))
 
 	question["question_text"] = markdown.markdown(question["question_text"])
 
@@ -634,6 +702,7 @@ def load_more_questions(
 		where each question is a dictonary of values
 		("question_id", "question_text", "vote_counter", "response_counter", "created_time", "user_id", "user_name")
 	"""
+
 	conn = get_db_connection()
 	cur = conn.cursor()
 
@@ -680,6 +749,35 @@ def load_more_responses(
 	conn = get_db_connection()
 	cur = conn.cursor()
 
+	query = """
+		WITH ResponseUser AS (
+		    SELECT
+		        Response.response_id as Response_id, Response.response_text,
+				Response.vote_counter, Response.response_counter, Response.created_time,
+				App_user.user_id as Response_user_id, App_user.name
+		    FROM
+		        Response
+		        INNER JOIN App_user
+		        	ON Response.user_id = App_user.user_id
+		    WHERE
+		        Response.question_id = %s
+		)
+		SELECT
+		    ru.*, 
+		    CASE WHEN f.followed_user_id IS NULL THEN false ELSE true END AS following,
+		    CASE WHEN pv.val IS NULL THEN 0 WHEN pv.val = 1 THEN 1 ELSE -1 END AS my_vote
+		FROM
+		    ResponseUser ru
+		    LEFT JOIN Follow f
+		    	ON ru.Response_user_id = f.followed_user_id AND f.follower_user_id = %s
+		    LEFT JOIN Post_Vote as pv
+		    	ON ru.Response_id = pv.response_id AND pv.user_id = %s
+		LIMIT %s OFFSET %s
+	"""
+
+	cur.execute(query, (question_id, user_id, user_id, limit, offset))
+
+	"""
 	query =	"SELECT \
 				Response.response_id, Response.response_text, Response.vote_counter, \
 				Response.response_counter, Response.created_time, App_user.user_id, App_user.name, \
@@ -693,6 +791,8 @@ def load_more_responses(
 			LIMIT %s OFFSET %s"
 
 	cur.execute(query, (user_id, question_id, limit, offset))
+	"""
+
 	responses = cur.fetchall()
 
 	cur.close()
@@ -701,7 +801,7 @@ def load_more_responses(
 	if responses is None:
 		responses = []
 
-	response_keys = ("response_id", "response_text", "vote_counter", "response_counter", "created_time", "user_id", "user_name", "following")
+	response_keys = ("response_id", "response_text", "vote_counter", "response_counter", "created_time", "user_id", "user_name", "following", "my_vote")
 	responses = [dict(zip(response_keys, response)) for response in responses]
 
 	for response in responses:
