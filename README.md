@@ -11,7 +11,7 @@ Current AI systems are fast but not 100% reliable in terms of accuracy, on the o
 We also want to provide “Custom Quizzes” made for the user according to their interests and experience level generated using AI. 
 On our platform experts will also be able to share their knowledge using Blogs and Articles, which can help the community learn from each other's experiences.
 
---
+---
 
 To view the live project visit [quick minds website](https://quick-minds-4czszj4sdq-el.a.run.app).
 
@@ -41,7 +41,7 @@ To view the live project visit [quick minds website](https://quick-minds-4czszj4
 
 `python app.py`
 
--- 
+---
 
 # Evolution of Features across Versions
 
