@@ -987,36 +987,55 @@ def vote_unvote(
 	else:
 		return handle_response_vote(user_id, response_id, up_or_down_vote)
 
-
 def question_search(
+	user_id: int,
 	search_query: str,
 	limit: int,
 	offset: int
-):
+):	
+	print("recieved request for search")
+	print(f"search_query: {search_query}")
+	print(f"limit: {limit}")
+	print(f"offset: {offset}")
+
 	conn = get_db_connection()
 	cur = conn.cursor()
 
 	query = """
 		SELECT
-			question_id, question_title, question_text,
-			vote_counter, response_counter, created_time, tags,
-			ts_rank_cd(document_vectors, query) as rank 
-		FROM question, websearch_to_tsquery(%s) query 
+			Question.question_id, Question.question_title,
+			Question.vote_counter, Question.response_counter, Question.created_time, Question.tags,
+			App_user.user_id, App_user.name,
+			CASE WHEN f.followed_user_id IS NULL THEN false ELSE true END AS following,
+			ts_rank_cd(document_vectors, query) as rank
+		FROM Question
+		INNER JOIN App_user
+		        	ON Question.user_id = App_user.user_id
+		LEFT JOIN Follow f
+		    	ON Question.user_id = f.followed_user_id AND f.follower_user_id = %s
+		, websearch_to_tsquery(%s) query
 		WHERE document_vectors @@ query 
 		ORDER BY rank DESC
 		LIMIT %s OFFSET %s;
 	"""
 
-	cur.execute(query, (search_query, limit, offset))
+	cur.execute(query, (user_id, search_query, limit, offset))
 	search_results = cur.fetchall()
 
 	cur.close()
 	conn.close()
 	
+	print("search_results")
+	print(search_results)
+
 	if search_results is None:
 		search_results = []
+	
+	search_result_keys = (
+						"question_id", "question_title", "vote_counter", "response_counter", 
+						"created_time", "tags", "user_id", "user_name", "following", "rank"
+					)
 
-	search_result_keys = ["question_id", "question_title", "question_text",	"vote_counter", "response_counter", "created_time", "tags",	"rank"]
-	search_results = [dict(search_result_keys, search_result) for search_result in search_results]
+	search_results = [dict(zip(search_result_keys, search_result)) for search_result in search_results]
 
 	return search_results

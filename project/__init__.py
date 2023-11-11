@@ -44,6 +44,26 @@ def index():
 	else:
 		return redirect(url_for('login'))
 
+
+#ADD / INSERT or UPDATE DATA 
+@app.route('/add_response', methods = ['POST'])
+def add_response():
+	
+	response_text = request.form.get('response_text')
+	question_id = request.form.get('question_id')
+
+	if not response_text:
+		flash("Please enter response text")
+		return redirect(request.referrer)
+
+	response, question_response_counter = utils.add_response(user_id = session['user_id'], question_id = question_id, response_text = response_text)
+
+	if response == -1:
+		flash("An error occured")
+		return redirect(request.referrer)
+
+	return jsonify({'response' : response, 'question_response_counter' : question_response_counter})
+
 @app.route('/ask_question', methods = ('GET', 'POST'))
 def ask_question():
 	if session.get('user_id'):
@@ -76,55 +96,6 @@ def ask_question():
 	else:
 		return redirect(url_for('login'))
 
-#MAIN SECTION
-@app.route('/load_more_questions', methods = ['POST'])
-def load_more_questions():
-	# Get the number of transactions to load and offset from the request
-	num_to_load = int(request.form.get('num_to_load', 10))
-	offset = int(request.form.get('offset', 0))
-
-	questions = utils.load_more_questions(
-					user_id = session['user_id'], 
-					num_to_load = num_to_load, offset = offset
-				)
-
-	return jsonify({'questions': questions})
-
-@app.route('/question_detail/<int:question_id>/', methods = ('GET', 'POST'))
-def question_detail(question_id):
-	if session.get('user_id'):
-		question = utils.get_question(user_id = session['user_id'], question_id = question_id)
-
-		if question == -1:
-			flash("An error while fetching the question")
-			return redirect(request.referrer)
-
-		return render_template('question_detail.html', question = question,
-			user_id = session['user_id'], 
-			user_name = session['user_name'], 
-			user_picture_url = session['user_picture_url']
-		)
-	else:
-		return redirect(url_for('login'))
-
-@app.route('/add_response', methods = ['POST'])
-def add_response():
-	
-	response_text = request.form.get('response_text')
-	question_id = request.form.get('question_id')
-
-	if not response_text:
-		flash("Please enter response text")
-		return redirect(request.referrer)
-
-	response, question_response_counter = utils.add_response(user_id = session['user_id'], question_id = question_id, response_text = response_text)
-
-	if response == -1:
-		flash("An error occured")
-		return redirect(request.referrer)
-
-	return jsonify({'response' : response, 'question_response_counter' : question_response_counter})
-
 @app.route('/follow_unfollow', methods = ['POST'])
 def follow_unfollow():
 	followed_user_id = request.form.get('followed_user_id')
@@ -132,27 +103,6 @@ def follow_unfollow():
 	status = utils.follow_unfollow(follower_user_id = session['user_id'], followed_user_id = followed_user_id)
 
 	return jsonify({'status' : status})
-
-@app.route('/vote_unvote', methods = ['POST'])
-def vote_unvote():
-	question_id = int(request.form.get('question_id', -1))
-	response_id = int(request.form.get('response_id', -1))
-	post_type = request.form.get('post_type', 'question')
-	up_or_down_vote = request.form.get('up_or_down_vote', 'up')
-
-	print(question_id, response_id, post_type, up_or_down_vote)
-
-	vote_count, my_vote = utils.vote_unvote(user_id = session['user_id'], 
-											question_id = question_id, 
-											response_id = response_id, 
-											post_type = post_type,
-											up_or_down_vote = up_or_down_vote)
-
-	return jsonify({'vote_count' : vote_count, 'my_vote' : my_vote})
-
-@app.route('/test_markdown')
-def test_markdown():
-	return render_template('test_markdown.html')
 
 @app.route('/upload_image', methods = ['POST'])
 def upload_image():
@@ -193,6 +143,38 @@ def upload_image():
 		# Return the URL of the saved image
 		return jsonify({'url': image_url})
 
+@app.route('/vote_unvote', methods = ['POST'])
+def vote_unvote():
+	question_id = int(request.form.get('question_id', -1))
+	response_id = int(request.form.get('response_id', -1))
+	post_type = request.form.get('post_type', 'question')
+	up_or_down_vote = request.form.get('up_or_down_vote', 'up')
+
+	print(question_id, response_id, post_type, up_or_down_vote)
+
+	vote_count, my_vote = utils.vote_unvote(user_id = session['user_id'], 
+											question_id = question_id, 
+											response_id = response_id, 
+											post_type = post_type,
+											up_or_down_vote = up_or_down_vote)
+
+	return jsonify({'vote_count' : vote_count, 'my_vote' : my_vote})
+
+
+#GET DATA
+@app.route('/load_more_questions', methods = ['POST'])
+def load_more_questions():
+	# Get the number of transactions to load and offset from the request
+	num_to_load = int(request.form.get('num_to_load', 10))
+	offset = int(request.form.get('offset', 0))
+
+	questions = utils.load_more_questions(
+					user_id = session['user_id'], 
+					num_to_load = num_to_load, offset = offset
+				)
+
+	return jsonify({'questions': questions})
+
 @app.route('/load_more_responses', methods = ['POST'])
 def load_more_responses():
 	question_id = request.form.get('question_id')
@@ -226,6 +208,49 @@ def load_more_video_results():
 
 	return jsonify({'video_results' : video_results})
 
+@app.route('/question_detail/<int:question_id>/', methods = ('GET', 'POST'))
+def question_detail(question_id):
+	if session.get('user_id'):
+		question = utils.get_question(user_id = session['user_id'], question_id = question_id)
+
+		if question == -1:
+			flash("An error while fetching the question")
+			return redirect(request.referrer)
+
+		return render_template('question_detail.html', question = question,
+			user_id = session['user_id'], 
+			user_name = session['user_name'], 
+			user_picture_url = session['user_picture_url']
+		)
+	else:
+		return redirect(url_for('login'))
+
+@app.route('/search', methods = ('GET', 'POST'))
+def search():
+	if session.get('user_id'):
+
+		if request.method == 'POST':
+			search_query = request.form.get('search_query', '')
+			limit = int(request.form.get('num_to_load', 10))
+			offset = int(request.form.get('offset', 0))
+		
+			search_results = utils.question_search(user_id = session['user_id'], search_query = search_query, limit = limit, offset = offset)
+
+			return jsonify({'search_results' : search_results})
+		else:
+			search_query = request.args.get('search_query', '')
+			
+			return render_template('search_results.html', 
+				search_query = search_query, 
+				user_id = session['user_id'], 
+				user_name = session['user_name'], 
+				user_picture_url = session['user_picture_url']
+			)
+	else:
+		return redirect(url_for('login'))
+
+
+#AUTH
 #MAIN AUTHENTICATION SECTION (login, logout, sign_up)
 @app.route('/login')
 def login():
