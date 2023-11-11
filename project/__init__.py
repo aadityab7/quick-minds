@@ -241,7 +241,7 @@ def search():
 			search_query = request.args.get('search_query', '')
 			
 			return render_template('search_results.html', 
-				search_query = search_query, 
+				search_query = search_query,
 				user_id = session['user_id'], 
 				user_name = session['user_name'], 
 				user_picture_url = session['user_picture_url']

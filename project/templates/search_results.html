@@ -57,6 +57,8 @@
 	    var offset = {{ search_results|length }}; 
 	    const user_id = {{user_id}};
 
+	    const search_query  = '{{search_query}}';
+
 	    var numToLoad = 10;  // Adjust the number of questions to load at a time
 	    var isLoading = false;  // Flag to track whether an AJAX request is in progress
 	    var loadComplete = false; // All "For You" questions already loaded
@@ -88,10 +90,6 @@
 	        // Determine the current section and its respective offset
 	        var currentOffset = offset;
 
-	        var search_query = toString({{search_query}});
-
-	        console.log(search_query, 0, offset);
-
 	        // Send an AJAX request to fetch more questions
 	        $.ajax({
 	            type: 'POST',
@@ -113,7 +111,7 @@
                         clone.querySelector("a").setAttribute("href", question_url);
                         clone.querySelector("#user_name").textContent = question.user_name;
                         clone.querySelector("#response_counter").textContent = question.response_counter + ' response';
-                        clone.querySelector("#question_title").textContent = question.question_title;
+                        clone.querySelector("#question_title").innerHTML = question.question_title;
                         clone.querySelector("#created_time").textContent = question.created_time;
                         clone.querySelector("#vote_counter").textContent = question.vote_counter + ' vote';
 
@@ -121,10 +119,7 @@
 
                         var tag_html_content = "";
 
-                        console.log(question.tags);
-
                         for (tag in question.tags) {
-                        	console.log(tag);
                         	tag_html_content += ("<p class = 'rounded-md py-1 px-2 bg-indigo-400 text-white text-sm'>" + question.tags[tag] + "</p>");
                         }
 
