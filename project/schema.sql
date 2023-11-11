@@ -49,12 +49,15 @@ CREATE TABLE IF NOT EXISTS Question  (
     question_id serial PRIMARY KEY,
     question_title text NOT NULL,
     question_text text NOT NULL,
-    tags text[5]
+    tags text[5],
+    document_vectors tsvector
 ) INHERITS (Post);
+
+CREATE INDEX idx_question_doc_vec ON Question USING gin(document_vectors);
 
 CREATE TABLE IF NOT EXISTS Response  (
     response_id serial PRIMARY KEY,
-    question_id integer NOT NULL, 
+    question_id integer NOT NULL,
     response_text text NOT NULL,
     chat_id integer DEFAULT -1, --default chat id = -1, AI chat not available
 
@@ -249,4 +252,7 @@ CREATE TABLE IF NOT EXISTS Question_Tag  (
     PRIMARY KEY (tag_name, question_id)
 );
 
-INSERT INTO App_user (user_id, username, name, about) VALUES (0, 'google_vertex_ai', 'Google Vertex AI', 'Generative AI chat bot by Google which provides quick first response to user questions.');
+INSERT INTO App_user 
+    (user_id, username, name, about) 
+VALUES 
+    (0, 'google_vertex_ai', 'Google Vertex AI', 'Generative AI chat bot by Google which provides quick first response to user questions.');

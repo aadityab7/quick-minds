@@ -61,18 +61,23 @@ def add_question(
 	question_tags: str
 ):
 	
-	question_query = question_title + " " + question_text + " " + question_tags
 	
 	question_tags = [tag.strip() for tag in question_tags.split(',')]
 	question_tags = str(set(question_tags))
 	question_tags = re.sub(r"[']", "", question_tags)
 
+	question_query = question_title + " " + question_text + " " + question_tags
+
+	#we have to remove images from this query to perform search 
+	question_query = re.sub(r'[!][[].*[\]][(].*[)]', "", question_query)
+	question_query = re.sub(r"[#!*:]", "", question_query)
+
 	conn = get_db_connection()
 	cur = conn.cursor()
 
-	query = "INSERT INTO Question (user_id, question_title, question_text, tags) VALUES (%s, %s, %s, %s)"
+	query = "INSERT INTO Question (user_id, question_title, question_text, tags, document_vectors) VALUES (%s, %s, %s, %s, to_tsvector(%s))"
 
-	cur.execute(query, (user_id, question_title, question_text, question_tags))
+	cur.execute(query, (user_id, question_title, question_text, question_tags, question_query))
 	conn.commit()
 
 	query = "SELECT \
@@ -94,13 +99,8 @@ def add_question(
 
 	#keep track of all the images seperatly as well
 	#images = re.findall(r'[!][[].*[\]][(].*[)]', question_text)
-		
-	#we have to remove images from this query to perform search 
-	question_query = re.sub(r'[!][[].*[\]][(].*[)]', "", question_query)
-	question_query = re.sub(r'[!]', "", question_query)
 	
 	#before returning the question find and add related resources and responses
-
 	generate_and_add_ai_response_question(question_id = question_id, question_query = question_query)
 	add_related_search_results_to_question(question_id = question_id, question_query = question_query)
 	add_related_youtube_videos_to_question(question_id = question_id, question_query = question_query)
@@ -986,3 +986,37 @@ def vote_unvote(
 		return handle_question_vote(user_id, question_id, up_or_down_vote)
 	else:
 		return handle_response_vote(user_id, response_id, up_or_down_vote)
+
+
+def question_search(
+	search_query: str,
+	limit: int,
+	offset: int
+):
+	conn = get_db_connection()
+	cur = conn.cursor()
+
+	query = """
+		SELECT
+			question_id, question_title, question_text,
+			vote_counter, response_counter, created_time, tags,
+			ts_rank_cd(document_vectors, query) as rank 
+		FROM question, websearch_to_tsquery(%s) query 
+		WHERE document_vectors @@ query 
+		ORDER BY rank DESC
+		LIMIT %s OFFSET %s;
+	"""
+
+	cur.execute(query, (search_query, limit, offset))
+	search_results = cur.fetchall()
+
+	cur.close()
+	conn.close()
+	
+	if search_results is None:
+		search_results = []
+
+	search_result_keys = ["question_id", "question_title", "question_text",	"vote_counter", "response_counter", "created_time", "tags",	"rank"]
+	search_results = [dict(search_result_keys, search_result) for search_result in search_results]
+
+	return search_results
