@@ -1,3 +1,8 @@
+# To deploy the latest version of app from local environment to cloud
+
+1. `gcloud run deploy --source .`
+2. Select the default service name **quick-minds** by pressing enter
+
 # To initialize database from cloud shell:	
 
 1. Create a Cloud SQL instance with PostgreSQL and in that create a database `quickminds`
@@ -7,11 +12,6 @@
 5. Enter DB_PASSWORD
 6. copy and paste all the drop table commands
 7. copy and paste all the create table commands
-
-# To deploy the latest version of app from local environment to cloud
-
-1. `gcloud run deploy --source .`
-2. Select the default service name **quick-minds** by pressing enter
 
 # Steps to create google cloud storage (bucket):
 

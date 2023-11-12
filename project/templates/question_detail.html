@@ -573,11 +573,6 @@
 
 	        var currentOffset = videoOffset;
 
-	        console.log('everything good till now')
-	        console.log(videoIsLoading)
-	        console.log(videoLoadComplete)
-	        console.log(videoOffset)
-
 	        $.ajax({
 	            type: 'POST',
 	            url: '/load_more_video_results',
@@ -591,8 +586,6 @@
 	                    var template = document.getElementById("video-result-template");
 	                    var clone = document.importNode(template.content, true);
 	                	
-	                	console.log(video_result)
-
 	                	clone.querySelector("#video-result-player").innerHTML = video_result.player_embed_html;
 	                    clone.querySelector("#video-result-title").innerHTML = video_result.title;
 	                    clone.querySelector("#video-result-channel-title").innerHTML = video_result.channel_title;

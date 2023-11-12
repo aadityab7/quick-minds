@@ -70,7 +70,7 @@ def add_question(
 
 	#we have to remove images from this query to perform search 
 	question_query = re.sub(r'[!][[].*[\]][(].*[)]', "", question_query)
-	question_query = re.sub(r"[#!*:]", "", question_query)
+	question_query = re.sub(r"[#!*:{}\n]", "", question_query)
 
 	conn = get_db_connection()
 	cur = conn.cursor()
@@ -469,8 +469,6 @@ def generate_and_add_ai_response_question(
 	question_query: str
 ):
 	response = generate_ai_response(question_query)
-
-	print("result to be stored", response)
 
 	add_response(user_id =  0, question_id = question_id, response_text = response)
 
@@ -895,7 +893,8 @@ def make_youtube_video_search_request(
 		'key' : os.environ.get('API_KEY'),
 		'q': search_query,
 		'part': 'snippet',
-		'maxResults': num
+		'maxResults': num,
+		'type' : 'video'
 	}
 
 	response = requests.get('https://www.googleapis.com/youtube/v3/search', params=search_params)
@@ -909,7 +908,6 @@ def make_youtube_video_search_request(
 	video_ids = []
 
 	for response_item in response['items']:
-
 		video_results[response_item['id']['videoId']] = {
 			"title": response_item["snippet"]["title"],
 			"description": response_item["snippet"]["description"],
@@ -990,9 +988,6 @@ def question_search(
 
 	cur.close()
 	conn.close()
-	
-	print("search_results")
-	print(search_results)
 
 	if search_results is None:
 		search_results = []
