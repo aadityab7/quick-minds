@@ -21,7 +21,6 @@
               </a>
             </div>
             
-            
             <div
               id = "right-hand-side-buttons"
               class="flex flex-1 items-center justify-end gap-4 sm:gap-4"
@@ -194,6 +193,7 @@
   {%endif%}
 
   <div>
+    <div id = "actual-contents-div">
 
       {% for message in get_flashed_messages() %}
         <div class="mx-auto max-w-screen-xl">
@@ -244,70 +244,69 @@
       {% endfor %}
 
       {% block content %} {% endblock %}
-
     </div>
+  </div>
 
-    <script>
-      // Get references to the button and dropdown menu
-      const menuButton = document.getElementById('menuButton');
-      const dropdownMenu = document.getElementById('dropdownMenu');
+  <script>
+    // Get references to the button and dropdown menu
+    const menuButton = document.getElementById('menuButton');
+    const dropdownMenu = document.getElementById('dropdownMenu');
 
-      // Add a click event listener to the button
-      menuButton.addEventListener('click', function (event) {
-        // Toggle the 'hidden' class to show/hide the dropdown menu
-        dropdownMenu.classList.toggle('hidden');
-        
-        // Prevent the click event from propagating to the document
-        event.stopPropagation();
-      });
+    // Add a click event listener to the button
+    menuButton.addEventListener('click', function (event) {
+      // Toggle the 'hidden' class to show/hide the dropdown menu
+      dropdownMenu.classList.toggle('hidden');
+      
+      // Prevent the click event from propagating to the document
+      event.stopPropagation();
+    });
 
-      // Add a click event listener to the document to close the dropdown when clicking anywhere else
-      document.addEventListener('click', function (event) {
-        if (event.target !== menuButton && !dropdownMenu.contains(event.target)) {
-          dropdownMenu.classList.add('hidden');
-        }
-      });
-    </script>
-
-
-    <script>
-      function dismissAlert(button) {
-        const alert = button.closest('div[role="alert"]');
-        if (alert) {
-          alert.style.display = 'none';
-        }
+    // Add a click event listener to the document to close the dropdown when clicking anywhere else
+    document.addEventListener('click', function (event) {
+      if (event.target !== menuButton && !dropdownMenu.contains(event.target)) {
+        dropdownMenu.classList.add('hidden');
       }
-    </script>
+    });
+  </script>
 
-    <script>
-      // Get references to the button and dropdown menu
-      const searchButton = document.getElementById('searchButton');
-      const searchBar = document.getElementById('searchBar');
-      const app_title = document.getElementById("app_title");
+  <script>
+    function dismissAlert(button) {
+      const alert = button.closest('div[role="alert"]');
+      if (alert) {
+        alert.style.display = 'none';
+      }
+    }
+  </script>
 
-      // Add a click event listener to the button
-      searchButton.addEventListener('click', function (event) {
-        // Toggle the 'hidden' class to show/hide the dropdown menu
-        searchBar.classList.toggle('hidden');
-        app_title.classList.toggle('hidden');
-        searchButton.classList.toggle('ring');
-        searchButton.classList.toggle('bg-white');
-        searchButton.classList.toggle('bg-gray-100');
-        
-        // Prevent the click event from propagating to the document
-        event.stopPropagation();
-      });
+  <script>
+    // Get references to the button and dropdown menu
+    const searchButton = document.getElementById('searchButton');
+    const searchBar = document.getElementById('searchBar');
+    const app_title = document.getElementById("app_title");
 
-      // Add a click event listener to the document to close the dropdown when clicking anywhere else
-      document.addEventListener('click', function (event) {
-        if (event.target !== searchButton && !searchBar.contains(event.target)) {
-          searchBar.classList.add('hidden');
-          app_title.classList.remove('hidden');
-          searchButton.classList.remove('ring');
-          searchButton.classList.add('bg-white');
-          searchButton.classList.remove('bg-gray-100');
-        }
-      });
-    </script>
+    // Add a click event listener to the button
+    searchButton.addEventListener('click', function (event) {
+      // Toggle the 'hidden' class to show/hide the dropdown menu
+      searchBar.classList.toggle('hidden');
+      app_title.classList.toggle('hidden');
+      searchButton.classList.toggle('ring');
+      searchButton.classList.toggle('bg-white');
+      searchButton.classList.toggle('bg-gray-100');
+      
+      // Prevent the click event from propagating to the document
+      event.stopPropagation();
+    });
+
+    // Add a click event listener to the document to close the dropdown when clicking anywhere else
+    document.addEventListener('click', function (event) {
+      if (event.target !== searchButton && !searchBar.contains(event.target)) {
+        searchBar.classList.add('hidden');
+        app_title.classList.remove('hidden');
+        searchButton.classList.remove('ring');
+        searchButton.classList.add('bg-white');
+        searchButton.classList.remove('bg-gray-100');
+      }
+    });
+  </script>
 </body>
 </html>

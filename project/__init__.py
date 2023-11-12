@@ -36,7 +36,6 @@ def too_large(e):
 @app.route('/home', methods = ('GET', 'POST'))
 def index():
 	if session.get('user_id') and session.get('user_id') != -1: 
-		print("rendering index page now!!")
 		return render_template('index.html', 
 			user_id = session['user_id'], 
 			user_name = session['user_name'], 
