@@ -5,6 +5,7 @@ import requests
 import re
 import vertexai
 from vertexai.language_models import TextGenerationModel
+import ast
 
 model = TextGenerationModel.from_pretrained("text-bison@001")
 
@@ -471,6 +472,55 @@ def generate_and_add_ai_response_question(
 	response = generate_ai_response(question_query)
 
 	add_response(user_id =  0, question_id = question_id, response_text = response)
+
+def generate_quiz_questions(
+	topic_level_pairs,
+	temperature: float = 0.2,
+	max_output_tokens: int = 1000,
+	top_p: float = 0.8,
+	top_k: int = 40
+):	
+	"""
+	topic-level pairs should be in format 
+	{
+		'topic1' : 'topic1_level',
+		'topic2' : 'topic2_level',
+		'topic3' : 'topic3_level',
+		'topic4' : 'topic4_level',
+		'topic5' : 'topic5_level'
+	}
+	"""
+
+	parameters = {
+					"temperature": temperature, 
+					"max_output_tokens": max_output_tokens,
+					"top_p": top_p,
+					"top_k": top_k
+	}
+
+	quiz_questions_format = "{questions : [question_number, question_text, list_of_options, correct_option_number]}"
+
+	prompt = f"Generate 3 quiz questions for the following topics level pairs = {topic_level_pairs}, here question from topic should be of specified level of difficulty. \
+	Respond using JSON format = {quiz_questions_format}. Return only the JSON such that I can covert your answer to usable form with json.loads(your_answer) function in python."
+
+	print("Prompt to generate quiz")
+	print(prompt)
+
+	response = model.predict(prompt, **parameters,)
+
+	response_text = response.text
+	response_text = re.sub(r"[`\n]", "", response_text)
+	response_text = response_text[4:]
+
+	print("response of quiz generation request")
+	print(response_text)
+
+	quiz_question_dict = ast.literal_eval(response_text)
+	print(quiz_question_dict)
+
+	#add these questions to a quiz database and then return the quiz_id (which can be used to fetch the quiz questions)
+	
+	return -1
 
 def get_question(
 	user_id: int,
