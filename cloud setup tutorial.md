@@ -1,7 +1,9 @@
 # To deploy the latest version of app from local environment to cloud
 
-1. `gcloud run deploy --source .`
-2. Select the default service name **quick-minds** by pressing enter
+1. `gcloud run deploy quick-minds --source .`
+
+**NOTE**: here `quick-minds` is the name of my service
+
 
 # To initialize database from cloud shell:	
 

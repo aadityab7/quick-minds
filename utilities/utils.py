@@ -1304,6 +1304,7 @@ def load_more_articles(
 	limit: int,
 	offset: int
 ):
+	pass
 
 def load_more_article_responses(
 	user_id: int,
