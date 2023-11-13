@@ -258,7 +258,6 @@ VALUES
     (0, 'google_vertex_ai', 'Google Vertex AI', 'Generative AI chat bot by Google which provides quick first response to user questions.');
 
 
-
 CREATE TABLE Quiz (
     quiz_id serial PRIMARY KEY,
     user_id integer NOT NULL,
@@ -289,8 +288,7 @@ CREATE TABLE Quiz_Question (
 CREATE TABLE Quiz_Question_User_Response (
     quiz_question_id integer,
     user_id integer,
-    user_response integer, 
-    correct_or_not integer,
+    user_response integer,
 
     CONSTRAINT fk_quiz_question_user_response_quiz_question
         FOREIGN KEY(quiz_question_id) 

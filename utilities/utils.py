@@ -616,6 +616,154 @@ def get_question(
 
 	return question
 
+def get_quiz_questions(
+	quiz_id: int,
+	limit: int,
+	offset: int
+):
+	conn = get_db_connection()
+	cur = conn.cursor()
+
+	query = """
+		SELECT 
+			quiz_question_id, question_text, option_1, option_2, option_3, option_4, correct_answer
+		FROM Quiz_Question
+		WHERE quiz_id = %s
+		ORDER BY quiz_question_id 
+		LIMIT %s OFFSET %s
+	"""
+
+	cur.execute(query, (quiz_id, limit, offset))
+	quiz_questions = cur.fetchall()
+
+	cur.close()
+	conn.close()
+
+	if quiz_questions is None:
+		quiz_questions = []
+
+	quiz_question_keys = ["quiz_question_id", "question_text", "option_1", "option_2", "option_3", "option_4", "correct_answer"]
+	quiz_questions = [dict(zip(quiz_question_keys, quiz_question)) for quiz_question in quiz_questions]
+
+	return quiz_questions
+
+def get_quiz_results(
+	user_id: int, 
+	quiz_id: int
+):
+	score = -1
+	quiz_results = []
+
+	conn = get_db_connection()
+	cur = conn.cursor()
+
+	query = "SELECT score FROM Quiz_Score_Card WHERE quiz_id = %s AND user_id = %s"
+	cur.execute(query, (quiz_id, user_id))
+	score = cur.fetchone()
+
+	if score is None:
+		score = -1
+	else:
+		score = score[0]
+
+		query = """
+			SELECT
+				Quiz_Question.quiz_question_id, Quiz_Question.question_text, 
+				Quiz_Question.option_1, Quiz_Question.option_2, Quiz_Question.option_3, Quiz_Question.option_4, 
+				Quiz_Question.correct_answer, Quiz_Question_User_Response.user_response
+			FROM Quiz_Question
+			LEFT JOIN Quiz_Question_User_Response
+			ON Quiz_Question.quiz_question_id = Quiz_Question_User_Response.quiz_question_id
+			WHERE Quiz_Question.quiz_id = %s AND Quiz_Question_User_Response.user_id = %s
+			ORDER BY Quiz_Question.quiz_question_id
+		"""
+		cur.execute(query, (quiz_id, user_id))
+		quiz_results = cur.fetchall()
+
+		if quiz_results is None:
+			quiz_results = []
+
+	cur.close()
+	conn.close()
+
+	quiz_result_keys = ["quiz_question_id", "question_text", "option_1", "option_2", "option_3", "option_4", "correct_answer", "user_response"]
+	quiz_results = [dict(zip(quiz_result_keys, quiz_result)) for quiz_result in quiz_results]
+
+	return score, quiz_results
+
+def record_user_quiz_response(
+	user_id: int,
+	quiz_question_id: int,
+	user_response: int
+):
+	conn = get_db_connection()
+	cur = conn.cursor()
+
+	query = """
+		SELECT 1 FROM Quiz_Question_User_Response
+		WHERE quiz_question_id = %s AND user_id = %s
+	"""
+
+	cur.execute(query, (quiz_question_id, user_id))
+	response = cur.fetchone()
+
+	if response is None:
+		query = """
+			INSERT INTO Quiz_Question_User_Response
+				(quiz_question_id, user_id, user_response)
+			VALUES
+				(%s, %s, %s, %s)
+		"""
+
+		cur.execute(query, (quiz_question_id, user_id, user_response))
+		conn.commit()
+	else:
+		query = """
+			UPDATE Quiz_Question_User_Response SET user_response = %s WHERE quiz_question_id = %s AND user_id = %s
+		"""
+
+		cur.execute(query, (user_response, quiz_question_id, user_id))
+		conn.commit()		
+
+	cur.close()
+	conn.close()
+
+	return "OK"
+
+def score_user_quiz(
+	user_id: int, 
+	quiz_id: int
+):
+	conn = get_db_connection()
+	cur = conn.cursor()
+
+	query = """
+		SELECT
+			SUM(CASE WHEN Quiz_Question.correct_answer = Quiz_Question_User_Response.user_response THEN 1 ELSE 0 END) AS score
+		FROM Quiz_Question
+		LEFT JOIN Quiz_Question_User_Response
+		ON Quiz_Question.quiz_question_id = Quiz_Question_User_Response.quiz_question_id 
+		WHERE Quiz_Question.quiz_id = %s AND Quiz_Question_User_Response.user_id = %s
+	"""
+
+	cur.execute(query, (quiz_id, user_id))
+	score = cur.fetchone()
+
+	if score is None:
+		score = 0
+	else:
+		score = score[0]
+
+	query = "INSERT INTO Quiz_Score_Card (quiz_id, user_id, score) VALUES (%s, %s, %s)"
+
+	cur.execute(query, (quiz_id, user_id, score))
+	conn.commit()
+
+	cur.close()
+	conn.close()
+
+	return score
+
 def handle_question_vote(
 	user_id,
 	question_id,

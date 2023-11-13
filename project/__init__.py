@@ -103,6 +103,34 @@ def follow_unfollow():
 
 	return jsonify({'status' : status})
 
+@app.route('/generate_quiz', methods = ['POST'])
+def generate_quiz():
+	user_id = request.form.get('user_id', 1)
+	topic_level_pairs = request.form.get('topic_level_pairs')
+	
+	result = utils.generate_quiz_questions(user_id, topic_level_pairs)
+
+	return jsonify({'result' : result})
+
+@app.route('/record_user_quiz_response', methods = ['POST'])
+def record_user_quiz_response():
+	user_id = int(request.form.get('user_id'))
+	quiz_question_id = int(request.form.get('quiz_question_id'))
+	user_response = int(request.form.get('user_response'))
+
+	response = utils.record_user_quiz_response(user_id = user_id, quiz_question_id = quiz_question_id, user_response = user_response)
+
+	return jsonify({'response' : response})
+
+@app.route('/score_user_quiz', methods = ['POST'])
+def score_user_quiz():
+	user_id = int(request.form.get('user_id'))
+	quiz_id = int(request.form.get('quiz_id'))
+
+	score = utils.score_user_quiz(user_id = user_id, quiz_id = quiz_id)
+
+	return jsonify({"score" : score})
+
 @app.route('/upload_image', methods = ['POST'])
 def upload_image():
 	
@@ -159,16 +187,27 @@ def vote_unvote():
 
 	return jsonify({'vote_count' : vote_count, 'my_vote' : my_vote})
 
-@app.route('/generate_quiz', methods = ['POST'])
-def generate_quiz():
-	user_id = request.form.get('user_id', 1)
-	topic_level_pairs = request.form.get('topic_level_pairs')
-	
-	result = utils.generate_quiz_questions(user_id, topic_level_pairs)
-
-	return jsonify({'result' : result})
 
 #GET DATA
+@app.route('/get_quiz_questions', methods = ['POST'])
+def get_quiz_questions():
+	quiz_id = int(request.form.get('quiz_id'))
+	limit = int(request.form.get('num_to_load', 10))
+	offset = int(request.form.get('offset', 0))
+
+	quiz_questions = utils.get_quiz_questions(quiz_id = quiz_id, limit = limit, offset = offset)
+
+	return jsonify({'quiz_questions' : quiz_questions})
+
+@app.route('/get_quiz_results', methods = ['POST'])
+def get_quiz_results():
+	user_id = int(request.form.get('user_id'))
+	quiz_id = int(request.form.get('quiz_id'))
+
+	score, quiz_results = utils.get_quiz_results(user_id = user_id, quiz_id = quiz_id)
+	
+	return jsonify({'score' : score, 'quiz_results' : quiz_results})
+
 @app.route('/load_more_questions', methods = ['POST'])
 def load_more_questions():
 	# Get the number of transactions to load and offset from the request
