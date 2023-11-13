@@ -9,241 +9,357 @@
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 </head>
 <body>
-  {%if user_id%}
-    <header id = "header" class="bg-gray-50">
-      <div class="mx-auto max-w-screen-xl px-4 py-8 sm:px-6 lg:px-8">
-          <div id = "headerContent" class="flex items-center justify-between sm:gap-8">
-            <div id = "app_title">
-              <a href="{{ url_for('index') }}">
+
+  <div id = "everything" class="flex">    
+    {%if user_id%}
+    <div class="min-h-screen bg-white border-r">
+        <div class="sticky top-0 flex flex-col top-0 left-0 w-64 ">
+          <div class="flex items-center justify-center py-8 border-b">
+            <div id = "app_title" class="h-10 flex flex-col justify-center items-center">
+              
                 <h1 class="text-xl text-gray-900 sm:text-xl">
-                  QUICK MINDS
+                  <a href="{{ url_for('index') }}">
+                    QUICK MINDS
+                  </a>
                 </h1> 
-              </a>
+              
             </div>
-            
-            <div
-              id = "right-hand-side-buttons"
-              class="flex flex-1 items-center justify-end gap-4 sm:gap-4"
-            >
-                <form method="GET" action="/search" class="flex grow">
-                    <div id="searchBar" class="relative hidden sm:flex grow">
-                        <label class="sr-only" for="search"> Search </label>
+          </div>
+          <div class="overflow-y-auto overflow-x-hidden flex-grow">
+            <ul class="flex flex-col py-4 space-y-1">
+              <li class="px-5">
+                <div class="flex flex-row items-center h-8">
+                  <div class="text-sm font-light tracking-wide text-gray-500">Menu</div>
+                </div>
+              </li>
+              <li>
+                <a href="{{ url_for('index') }}" class="relative flex flex-row items-center h-11 focus:outline-none hover:bg-gray-50 text-gray-600 hover:text-gray-800 border-l-4 border-transparent hover:border-indigo-500 pr-6">
+                  <span class="inline-flex justify-center items-center ml-4">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
+                  </span>
+                  <span class="ml-2 text-sm tracking-wide truncate">Home</span>
+                </a>
+              </li>
+              
+              <li>
+                <a href="{{ url_for('index') }}" class="relative flex flex-row items-center h-11 focus:outline-none hover:bg-gray-50 text-gray-600 hover:text-gray-800 border-l-4 border-transparent hover:border-indigo-500 pr-6">
+                  
+                  <span class="inline-flex justify-center items-center ml-4">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"></path></svg>
+                  </span>
+                  <span class="ml-2 text-sm tracking-wide truncate">Questions</span>
+                </a>
+              </li>
+              <li>
+                <a href="#" class="relative flex flex-row items-center h-11 focus:outline-none hover:bg-gray-50 text-gray-600 hover:text-gray-800 border-l-4 border-transparent hover:border-indigo-500 pr-6">
+                  <span class="inline-flex justify-center items-center ml-4">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path></svg>
+                  </span>
+                  <span class="ml-2 text-sm tracking-wide truncate">Articles</span>
+                  <span class="px-2 py-0.5 ml-auto text-xs font-medium tracking-wide text-indigo-500 bg-indigo-50 rounded-full">New</span>
+                </a>
+              </li>
+              <li>
+                <a href="#" class="relative flex flex-row items-center h-11 focus:outline-none hover:bg-gray-50 text-gray-600 hover:text-gray-800 border-l-4 border-transparent hover:border-indigo-500 pr-6">
+                  
+                  <span class="inline-flex justify-center items-center ml-4">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path></svg>
+                  </span>
+                  <span class="ml-2 text-sm tracking-wide truncate">Quiz</span>
+                </a>
+              </li>
+              <li>
+                <a href="#" class="relative flex flex-row items-center h-11 focus:outline-none hover:bg-gray-50 text-gray-600 hover:text-gray-800 border-l-4 border-transparent hover:border-indigo-500 pr-6">
+                  <span class="inline-flex justify-center items-center ml-4">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
+                  </span>
+                  <span class="ml-2 text-sm tracking-wide truncate">Notifications</span>
+                  <span class="px-2 py-0.5 ml-auto text-xs font-medium tracking-wide text-red-500 bg-red-50 rounded-full">1.2k</span>
+                </a>
+              </li>
 
-                        <input
-                          class="h-10 w-full rounded-full border-none bg-white pe-10 ps-4 text-sm shadow-sm"
-                          id="search"
-                          type="search"
-                          placeholder="Search website..."
-                          name = "search_query"
-                        />
+              <li class="px-5">
+                <div class="flex flex-row items-center h-8">
+                  <div class="text-sm font-light tracking-wide text-gray-500">Actions</div>
+                </div>
+              </li>
+              <li>
+                <a href="{{url_for('ask_question')}}" class="relative flex flex-row items-center h-11 focus:outline-none hover:bg-gray-50 text-indigo-500 hover:text-indigo-400 border-l-4 border-transparent hover:border-indigo-500 pr-6">
+                  <button class="ml-4 text-sm font-semibold tracking-wide truncate">Ask Question</button>
+                </a>
+              </li>
 
-                        <button
-                          type="submit"
-                          class="absolute end-1 top-1/2 -translate-y-1/2 rounded-full bg-gray-50 p-2 text-gray-600 transition hover:text-gray-700"
+              <li class="px-5">
+                <div class="flex flex-row items-center h-8">
+                  <div class="text-sm font-light tracking-wide text-gray-500">Settings</div>
+                </div>
+              </li>
+              <li>
+                <a href="#" class="relative flex flex-row items-center h-11 focus:outline-none hover:bg-gray-50 text-gray-600 hover:text-gray-800 border-l-4 border-transparent hover:border-indigo-500 pr-6">
+                  <span class="inline-flex justify-center items-center ml-4">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+                  </span>
+                  <span class="ml-2 text-sm tracking-wide truncate">Profile</span>
+                </a>
+              </li>
+
+              <li>
+                <a href="#" class="relative flex flex-row items-center h-11 focus:outline-none hover:bg-gray-50 text-gray-600 hover:text-gray-800 border-l-4 border-transparent hover:border-indigo-500 pr-6">
+                  <span class="inline-flex justify-center items-center ml-4">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                    </svg>
+                  </span>
+                  <span class="ml-2 text-sm tracking-wide truncate">Settings</span>
+                </a>
+              </li>
+              <li>
+                <a href="{{ url_for('logout') }}" class="relative flex flex-row items-center h-11 focus:outline-none hover:bg-red-50 text-gray-600 hover:text-gray-800 border-l-4 border-transparent hover:border-red-500 pr-6">
+                  <span class="inline-flex justify-center items-center ml-4">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+                  </span>
+                  <span class="ml-2 text-sm tracking-wide truncate">Logout</span>
+                </a>
+              </li>
+            </ul>
+          </div>
+        </div>
+    </div>
+    {%endif%}
+      
+    <div id = "center-components-div" class="flex-end flex-grow flex flex-col">
+      {%if user_id%}
+        <div id = "header-component-div" class="w-full sticky top-0 border-b">
+          <div>
+            <header id = "header" class="bg-gray-50">
+              <div class="mx-auto px-4 py-8 sm:px-6 lg:px-8">
+                  <div id = "headerContent" class="flex items-center justify-between sm:gap-8">
+                    
+                    <div
+                      id = "right-hand-side-buttons"
+                      class="flex flex-1 items-center justify-end gap-4 sm:gap-4"
+                    >
+                        <form method="GET" action="/search" class="flex grow">
+                            <div id="searchBar" class="relative hidden sm:flex grow">
+                                <label class="sr-only" for="search"> Search </label>
+
+                                <input
+                                  class="h-10 w-full rounded-full border-none bg-white pe-10 ps-4 text-sm shadow-sm"
+                                  id="search"
+                                  type="search"
+                                  placeholder="Search website..."
+                                  name = "search_query"
+                                />
+
+                                <button
+                                  type="submit"
+                                  class="absolute end-1 top-1/2 -translate-y-1/2 rounded-full bg-gray-50 p-2 text-gray-600 transition hover:text-gray-700"
+                                >
+                                  <span class="sr-only">Search</span>
+                                  <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    class="h-4 w-4"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke="currentColor"
+                                    stroke-width="2"
+                                  >
+                                    <path
+                                      stroke-linecap="round"
+                                      stroke-linejoin="round"
+                                      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                                    />
+                                  </svg>
+                                </button>
+                              </div>
+                        </form>
+                      
+                      <button
+                        id="searchButton"
+                        type="button"
+                        class="block shrink-0 rounded-lg bg-white p-2 text-gray-600 shadow-sm hover:text-gray-700 sm:hidden"
+                        onclick="displaySearchBar()"
+                      >
+                        <span class="sr-only">Search</span>
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          class="h-5 w-5"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                          stroke-width="2"
                         >
-                          <span class="sr-only">Search</span>
+                          <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                          />
+                        </svg>
+                      </button>
+
+                      <span
+                        aria-hidden="true"
+                        class="hidden sm:block h-6 w-px rounded-full bg-gray-200"
+                      ></span>  
+
+                      <div id="user_info" class="relative {% if user_id%} block {% else %} hidden {% endif %}">
+                        <button
+                          id="menuButton"
+                          type="button"
+                          class="group flex shrink-0 items-center rounded-lg transition"
+                        >
+                          <span class="sr-only">Menu</span>
+                          <div class="block shrink-0">
+                              <img
+                                alt="profile_picture"
+                                src={{user_picture_url}}
+                                class="h-10 w-10 rounded-full object-cover"
+                              />
+                          </div>
+                          
+
+                          <p class="ms-2 hidden text-left text-xs sm:block">
+                            <strong class="block font-medium">{{user_name}}</strong>
+
+                            <span class="text-gray-500">{{user_email}}</span>
+                          </p>
+
                           <svg
                             xmlns="http://www.w3.org/2000/svg"
-                            class="h-4 w-4"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                            stroke-width="2"
+                            class="ms-4 hidden h-5 w-5 text-gray-500 transition group-hover:text-gray-700 sm:block"
+                            viewBox="0 0 20 20"
+                            fill="currentColor"
                           >
                             <path
-                              stroke-linecap="round"
-                              stroke-linejoin="round"
-                              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                              fill-rule="evenodd"
+                              d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                              clip-rule="evenodd"
                             />
                           </svg>
                         </button>
+
+                        <div
+                          id="dropdownMenu"
+                          class="hidden absolute end-0 z-10 mt-2 w-56 rounded-md border border-gray-100 bg-white shadow-lg"
+                          role="menu"
+                        >
+                          <div class="px-2 pt-2">
+                            <form method="POST" action="/view_profile">
+                              <button
+                                type="submit"
+                                class="flex w-full items-center gap-2 rounded-lg px-4 py-2 text-sm hover:bg-indigo-100"
+                                role="menuitem"
+                              >
+                                View Profile
+                              </button>
+                            </form>
+                          </div>
+
+                          <div class="p-2">
+                            <form method="POST" action="/logout">
+                              <button
+                                type="submit"
+                                class="flex w-full items-center gap-2 rounded-lg px-4 py-2 text-sm text-red-700 hover:bg-red-50"
+                                role="menuitem"
+                              >
+                                Logout
+                              </button>
+                            </form>
+                          </div>
+
+                          
+
+                        </div>
                       </div>
-                </form>
-              
-              <button
-                id="searchButton"
-                type="button"
-                class="block shrink-0 rounded-lg bg-white p-2 text-gray-600 shadow-sm hover:text-gray-700 sm:hidden"
-                onclick="displaySearchBar()"
-              >
-                <span class="sr-only">Search</span>
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  class="h-5 w-5"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  stroke-width="2"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                  />
-                </svg>
-              </button>
 
-              <span
-                aria-hidden="true"
-                class="hidden sm:block h-6 w-px rounded-full bg-gray-200"
-              ></span>  
+                      <a
+                        id = "login_button"
+                        href = "{{url_for('login')}}"
+                        class="{% if user_id%} hidden {% else %} block {% endif %} inline-block shrink-0 rounded-md bg-indigo-600 px-12 py-3 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+                      >
+                        Log In
+                      </a>
 
-              <div id="user_info" class="relative {% if user_id%} block {% else %} hidden {% endif %}">
-                <button
-                  id="menuButton"
-                  type="button"
-                  class="group flex shrink-0 items-center rounded-lg transition"
-                >
-                  <span class="sr-only">Menu</span>
-                  <div class="block shrink-0">
-                      <img
-                        alt="profile_picture"
-                        src={{user_picture_url}}
-                        class="h-10 w-10 rounded-full object-cover"
-                      />
+                      <a
+                        id = "sign_up_button"
+                        href = "{{url_for('sign_up')}}"
+                        class="hidden {% if user_id%} sm:hidden {% else %} sm:inline-block {% endif %} shrink-0 rounded-md bg-indigo-600 px-12 py-3 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+                      >
+                        Sign Up
+                      </a>
+                      
+                    </div>
                   </div>
-                  
+              </div>
+            </header>
+          </div>
+        </div>
+      {%endif%}
 
-                  <p class="ms-2 hidden text-left text-xs sm:block">
-                    <strong class="block font-medium">{{user_name}}</strong>
+      <div id = "actual-contents-div">
+        {% for message in get_flashed_messages() %}
+          <div class="mx-auto max-w-screen-xl">
+            <div role="alert" class="rounded-xl border border-gray-100 bg-white p-4 mx-4 my-8 sm:mx-6 lg:mx-8">
+              <div class="flex items-start gap-4">
+                <span class="text-red-600">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke-width="1.5"
+                    stroke="currentColor"
+                    class="h-6 w-6"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
+                  </svg>
+                </span>
 
-                    <span class="text-gray-500">{{user_email}}</span>
-                  </p>
+                <div class="flex-1">
+                  <strong class="block font-medium text-gray-900">{{ message }}</strong>
+                </div>
+
+                <button class="text-gray-500 transition hover:text-gray-600" onclick="dismissAlert(this)">
+                  <span class="sr-only">Dismiss popup</span>
 
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
-                    class="ms-4 hidden h-5 w-5 text-gray-500 transition group-hover:text-gray-700 sm:block"
-                    viewBox="0 0 20 20"
-                    fill="currentColor"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke-width="1.5"
+                    stroke="currentColor"
+                    class="h-6 w-6"
                   >
                     <path
-                      fill-rule="evenodd"
-                      d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
-                      clip-rule="evenodd"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      d="M6 18L18 6M6 6l12 12"
                     />
                   </svg>
                 </button>
-
-                <div
-                  id="dropdownMenu"
-                  class="hidden absolute end-0 z-10 mt-2 w-56 rounded-md border border-gray-100 bg-white shadow-lg"
-                  role="menu"
-                >
-                  <div class="px-2 pt-2">
-                    <form method="POST" action="/view_profile">
-                      <button
-                        type="submit"
-                        class="flex w-full items-center gap-2 rounded-lg px-4 py-2 text-sm hover:bg-indigo-100"
-                        role="menuitem"
-                      >
-                        View Profile
-                      </button>
-                    </form>
-                  </div>
-
-                  <div class="p-2">
-                    <form method="POST" action="/logout">
-                      <button
-                        type="submit"
-                        class="flex w-full items-center gap-2 rounded-lg px-4 py-2 text-sm text-red-700 hover:bg-red-50"
-                        role="menuitem"
-                      >
-                        Logout
-                      </button>
-                    </form>
-                  </div>
-
-                  
-
-                </div>
               </div>
-
-              <a
-                id = "login_button"
-                href = "{{url_for('login')}}"
-                class="{% if user_id%} hidden {% else %} block {% endif %} inline-block shrink-0 rounded-md bg-indigo-600 px-12 py-3 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
-              >
-                Log In
-              </a>
-
-              <a
-                id = "sign_up_button"
-                href = "{{url_for('sign_up')}}"
-                class="hidden {% if user_id%} sm:hidden {% else %} sm:inline-block {% endif %} shrink-0 rounded-md bg-indigo-600 px-12 py-3 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
-              >
-                Sign Up
-              </a>
-              
             </div>
           </div>
+        {% endfor %}
+
+        {% block content %} {% endblock %}
       </div>
-    </header>
-  {%else%}
-    <header id = "header" class="bg-gray-50">
-      <div class="mx-auto max-w-screen-xl px-4 py-4 sm:px-6 lg:px-8">
-        <div id = "app_title">
-          <a href="{{ url_for('index') }}">
-            <h1 class="text-xl text-gray-900 sm:text-xl">
-              QUICK MINDS
-            </h1> 
-          </a>
-        </div>
-      </div>
-    </header>
-  {%endif%}
+    </div>
+  </div>
 
-  <div>
-    <div id = "actual-contents-div">
+  
 
-      {% for message in get_flashed_messages() %}
-        <div class="mx-auto max-w-screen-xl">
-          <div role="alert" class="rounded-xl border border-gray-100 bg-white p-4 mx-4 my-8 sm:mx-6 lg:mx-8">
-            <div class="flex items-start gap-4">
-              <span class="text-red-600">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke-width="1.5"
-                  stroke="currentColor"
-                  class="h-6 w-6"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                  />
-                </svg>
-              </span>
-
-              <div class="flex-1">
-                <strong class="block font-medium text-gray-900">{{ message }}</strong>
-              </div>
-
-              <button class="text-gray-500 transition hover:text-gray-600" onclick="dismissAlert(this)">
-                <span class="sr-only">Dismiss popup</span>
-
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke-width="1.5"
-                  stroke="currentColor"
-                  class="h-6 w-6"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    d="M6 18L18 6M6 6l12 12"
-                  />
-                </svg>
-              </button>
-            </div>
-          </div>
-        </div>
-      {% endfor %}
-
-      {% block content %} {% endblock %}
+  <div class="hidden flex">
+    <div id = "sidebar-component" class="flex-start">
+      <p>sidebar else oh my god there is so much content here</p>
+    </div>
+    <div id = "others" class="flex-end flex-grow justify-center align-center flex">
+      
+      <p>everything else oh my god there is so much content here</p>
     </div>
   </div>
 
