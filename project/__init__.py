@@ -161,14 +161,10 @@ def vote_unvote():
 
 @app.route('/generate_quiz', methods = ['POST'])
 def generate_quiz():
-	print("Quiz generation request recived")
+	user_id = request.form.get('user_id', 1)
 	topic_level_pairs = request.form.get('topic_level_pairs')
-	print("topic_level_pairs", topic_level_pairs)
 	
-	result = utils.generate_quiz_questions(topic_level_pairs)
-
-	print('result quiz : ')
-	print(result)
+	result = utils.generate_quiz_questions(user_id, topic_level_pairs)
 
 	return jsonify({'result' : result})
 

@@ -474,6 +474,7 @@ def generate_and_add_ai_response_question(
 	add_response(user_id =  0, question_id = question_id, response_text = response)
 
 def generate_quiz_questions(
+	user_id: int,
 	topic_level_pairs,
 	temperature: float = 0.2,
 	max_output_tokens: int = 1000,
@@ -482,6 +483,8 @@ def generate_quiz_questions(
 ):	
 	"""
 	topic-level pairs should be in format 
+	('topic_name' : difficulty level number from 1 to 5)
+
 	{
 		'topic1' : 'topic1_level',
 		'topic2' : 'topic2_level',
@@ -498,29 +501,55 @@ def generate_quiz_questions(
 					"top_k": top_k
 	}
 
-	quiz_questions_format = "{questions : [question_number, question_text, list_of_options, correct_option_number]}"
+	quiz_questions_format = "{questions : [question_text, list_of_4_options, correct_option_number]}"
+	number_of_questions = 3
 
-	prompt = f"Generate 3 quiz questions for the following topics level pairs = {topic_level_pairs}, here question from topic should be of specified level of difficulty. \
-	Respond using JSON format = {quiz_questions_format}. Return only the JSON such that I can covert your answer to usable form with json.loads(your_answer) function in python."
-
-	print("Prompt to generate quiz")
-	print(prompt)
+	prompt = f"Generate {number_of_questions} quiz questions for the following topics with associated difficulty level = {topic_level_pairs}. Respond using JSON = {quiz_questions_format}. Return only the JSON and nothing else."
 
 	response = model.predict(prompt, **parameters,)
 
 	response_text = response.text
-	response_text = re.sub(r"[`\n]", "", response_text)
-	response_text = response_text[4:]
 
 	print("response of quiz generation request")
 	print(response_text)
 
-	quiz_question_dict = ast.literal_eval(response_text)
-	print(quiz_question_dict)
+	response_text = re.sub(r"[`\n]", "", response_text)
+	if response_text[:4] == "json":
+		response_text = response_text[4:]
+	
+	quiz_ai_response = ast.literal_eval(response_text)
 
 	#add these questions to a quiz database and then return the quiz_id (which can be used to fetch the quiz questions)
-	
-	return -1
+	return add_quiz_to_db(user_id, quiz_ai_response)
+
+def add_quiz_to_db(
+	user_id: int,
+	quiz_ai_response: dict
+):
+	conn = get_db_connection()
+	cur = conn.cursor()
+
+	query = "INSERT INTO Quiz (user_id) VALUES (%s)"
+	cur.execute(query, (user_id,))
+	conn.commit()
+
+	query = "SELECT quiz_id FROM Quiz WHERE user_id = %s ORDER BY created_time DESC LIMIT 1"
+	cur.execute(query, (user_id,))
+	quiz_id = cur.fetchone()
+
+	query = "INSERT INTO Quiz_Question (quiz_id, question_text, option_1, option_2, option_3, option_4, correct_answer) VALUES (%s, %s, %s, %s, %s, %s, %s)"
+
+	for question in quiz_ai_response['questions']:
+		
+		options = question['options']
+			 
+		cur.execute(query, (quiz_id, question['question_text'], options[0], options[1], options[2], options[3], question['correct_option_number']))
+		conn.commit()
+
+	cur.close()
+	conn.close()
+
+	return quiz_id
 
 def get_question(
 	user_id: int,

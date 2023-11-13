@@ -256,3 +256,69 @@ INSERT INTO App_user
     (user_id, username, name, about) 
 VALUES 
     (0, 'google_vertex_ai', 'Google Vertex AI', 'Generative AI chat bot by Google which provides quick first response to user questions.');
+
+
+
+CREATE TABLE Quiz (
+    quiz_id serial PRIMARY KEY,
+    user_id integer NOT NULL,
+    created_time timestamp DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT fk_quiz_app_user
+        FOREIGN KEY(user_id) 
+        REFERENCES App_user(user_id)
+        ON DELETE CASCADE
+);
+
+CREATE TABLE Quiz_Question (
+    quiz_question_id serial PRIMARY KEY, 
+    quiz_id integer,
+    question_text text,
+    option_1 text,
+    option_2 text,
+    option_3 text,
+    option_4 text,
+    correct_answer integer,
+
+    CONSTRAINT fk_quiz_question_quiz
+        FOREIGN KEY(quiz_id) 
+        REFERENCES Quiz(quiz_id)
+        ON DELETE CASCADE
+);
+
+CREATE TABLE Quiz_Question_User_Response (
+    quiz_question_id integer,
+    user_id integer,
+    user_response integer, 
+    correct_or_not integer,
+
+    CONSTRAINT fk_quiz_question_user_response_quiz_question
+        FOREIGN KEY(quiz_question_id) 
+        REFERENCES Quiz_Question(quiz_question_id)
+        ON DELETE CASCADE,
+
+    CONSTRAINT fk_quiz_question_user_response_app_user
+        FOREIGN KEY(user_id) 
+        REFERENCES App_user(user_id)
+        ON DELETE CASCADE,
+
+    PRIMARY KEY (quiz_question_id, user_id)
+);
+
+CREATE TABLE Quiz_Score_Card (
+    quiz_id integer, 
+    user_id integer, 
+    score integer,
+
+    CONSTRAINT fk_quiz_score_card_quiz
+        FOREIGN KEY(quiz_id) 
+        REFERENCES Quiz(quiz_id)
+        ON DELETE CASCADE,
+
+    CONSTRAINT fk_quiz_score_card_app_user
+        FOREIGN KEY(user_id) 
+        REFERENCES App_user(user_id)
+        ON DELETE CASCADE,
+
+    PRIMARY KEY (quiz_id, user_id)  
+);
