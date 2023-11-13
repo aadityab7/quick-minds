@@ -765,9 +765,9 @@ def score_user_quiz(
 	return score
 
 def handle_question_vote(
-	user_id,
-	question_id,
-	up_or_down_vote
+	user_id: int,
+	question_id: int,
+	up_or_down_vote: str
 ):
 	conn = get_db_connection()
 	cur = conn.cursor()
@@ -840,9 +840,9 @@ def handle_question_vote(
 	return vote_count, my_vote
 
 def handle_response_vote(
-	user_id,
-	response_id,
-	up_or_down_vote
+	user_id: int,
+	response_id: int,
+	up_or_down_vote: str
 ):
 	conn = get_db_connection()
 	cur = conn.cursor()
@@ -1275,3 +1275,93 @@ def vote_unvote(
 		return handle_question_vote(user_id, question_id, up_or_down_vote)
 	else:
 		return handle_response_vote(user_id, response_id, up_or_down_vote)
+
+
+#functions to implement for articles
+def add_article(
+	user_id: int,
+	title: str,
+	contents: str,
+	tags: str,
+	thumbnail_url: str
+):
+	pass
+
+def get_article(
+	user_id: int,
+	article_id: int
+):
+	pass
+
+def add_article_response(
+	user_id: int,
+	contents: str
+):
+	pass
+
+def load_more_articles(
+	user_id: int,
+	limit: int,
+	offset: int
+):
+
+def load_more_article_responses(
+	user_id: int,
+	article_id: int,
+	limit: int,
+	offset: int
+):
+	pass
+
+def handle_article_vote(
+	user_id: int,
+	article_id: int,
+	up_or_down_vote: str
+):
+	pass
+
+def handle_article_response_vote(
+	user_id: int,
+	article_response_id: int,
+	up_or_down_vote: str
+):
+	pass
+
+def article_search(
+	user_id: int,
+	search_query: str,
+	limit: int,
+	offset: int
+):
+	pass
+
+def add_article_response_comment(
+	user_id: int, 
+	article_response_id: int,
+	contents: str,
+):
+	pass
+
+def load_more_article_response_comments(
+	user_id: int, 
+	article_response_id: int,
+	limit: int,
+	offset: int
+):
+	pass
+
+#COMMENT functions to be implemented
+def add_comment(
+	user_id: int,
+	response_id: int,
+	contents: str
+):
+	pass
+
+def load_more_comments(
+	user_id: int,
+	response_id: int,
+	limit: int,
+	offset: int
+):
+	pass
