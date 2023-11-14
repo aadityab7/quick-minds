@@ -189,6 +189,17 @@ def vote_unvote():
 
 
 #GET DATA
+@app.route('/create_custom_quiz')
+def create_custom_quiz():
+	if session.get('user_id'):
+		return render_template('create_custom_quiz.html', question = question,
+			user_id = session['user_id'], 
+			user_name = session['user_name'], 
+			user_picture_url = session['user_picture_url']
+		)
+	else:
+		return redirect(url_for('login'))
+
 @app.route('/get_quiz_questions', methods = ['POST'])
 def get_quiz_questions():
 	quiz_id = int(request.form.get('quiz_id'))
@@ -204,9 +215,9 @@ def get_quiz_results():
 	user_id = int(request.form.get('user_id'))
 	quiz_id = int(request.form.get('quiz_id'))
 
-	score, quiz_results = utils.get_quiz_results(user_id = user_id, quiz_id = quiz_id)
+	quiz_details, quiz_questions_results = utils.get_quiz_results(user_id = user_id, quiz_id = quiz_id)
 	
-	return jsonify({'score' : score, 'quiz_results' : quiz_results})
+	return jsonify({'quiz_details' : quiz_details, 'quiz_results' : quiz_questions_results})
 
 @app.route('/load_more_questions', methods = ['POST'])
 def load_more_questions():
@@ -220,6 +231,16 @@ def load_more_questions():
 				)
 
 	return jsonify({'questions': questions})
+
+@app.route('/load_more_quizzes', methods = ['POST'])
+def load_more_quizzes():
+		user_id = int(request.form.get('user_id'))
+		limit = int(request.form.get('num_to_load', 10))
+		offset = int(request.form.get('offset', 0))
+
+		quizzes = utils.load_more_quizzes(user_id = user_id, limit = limit, offset = offset)
+
+		return jsonify({'quizzes' : quizzes})
 
 @app.route('/load_more_responses', methods = ['POST'])
 def load_more_responses():
@@ -270,6 +291,17 @@ def question_detail(question_id):
 		)
 	else:
 		return redirect(url_for('login'))
+
+@app.route('/quiz')
+def quiz():
+	if session.get('user_id') and session.get('user_id') != -1: 
+		return render_template('quiz.html', 
+			user_id = session['user_id'], 
+			user_name = session['user_name'], 
+			user_picture_url = session['user_picture_url'])
+	else:
+		return render_template('quiz.html')
+
 
 @app.route('/search', methods = ('GET', 'POST'))
 def search():

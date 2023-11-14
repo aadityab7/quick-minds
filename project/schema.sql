@@ -221,6 +221,7 @@ CREATE TABLE IF NOT EXISTS Post_Vote (
 CREATE TABLE Quiz (
     quiz_id serial PRIMARY KEY,
     user_id integer NOT NULL,
+    title text NOT NULL,
     created_time timestamp DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT fk_quiz_app_user
@@ -264,9 +265,12 @@ CREATE TABLE Quiz_Question_User_Response (
 );
 
 CREATE TABLE Quiz_Score_Card (
-    quiz_id integer, 
-    user_id integer, 
-    score integer,
+    quiz_id integer NOT NULL,
+    user_id integer NOT NULL,
+    total_quiz_questions integer DEFAULT 0,
+    attempted integer DEFAULT 0,
+    correct integer DEFAULT 0,
+    wrong integer DEFAULT 0,
 
     CONSTRAINT fk_quiz_score_card_quiz
         FOREIGN KEY(quiz_id) 

@@ -108,6 +108,45 @@ def add_question(
 
 	return question_id
 
+def add_quiz_to_db(
+	user_id: int,
+	quiz_ai_response: dict,
+	topic_level_pairs: str
+):
+	conn = get_db_connection()
+	cur = conn.cursor()
+
+	title =  (', ').join(ast.literal_eval(topic_level_pairs).keys()) + " Quiz"
+
+	query = "INSERT INTO Quiz (user_id, title) VALUES (%s, %s)"
+	cur.execute(query, (user_id, title))
+	conn.commit()
+
+	query = "SELECT quiz_id FROM Quiz WHERE user_id = %s ORDER BY created_time DESC LIMIT 1"
+	cur.execute(query, (user_id,))
+	quiz_id = cur.fetchone()
+
+	query = "INSERT INTO Quiz_Question (quiz_id, question_text, option_1, option_2, option_3, option_4, correct_answer) VALUES (%s, %s, %s, %s, %s, %s, %s)"
+
+	for question in quiz_ai_response['questions']:
+		
+		options = question['options']
+			 
+		cur.execute(query, (quiz_id, question['question_text'], options[0], options[1], options[2], options[3], question['correct_option_number']))
+		conn.commit()
+
+	#store initially unattempted quiz score
+	total_quiz_questions = len(quiz_ai_response['questions'])
+	query = "INSERT INTO Quiz_Score_Card (quiz_id, user_id, total_quiz_questions, attempted, correct, wrong) VALUES (%s, %s, %s, %s, %s, %s)"
+
+	cur.execute(query, (quiz_id, user_id, total_quiz_questions, 0, 0, 0))
+	conn.commit()
+
+	cur.close()
+	conn.close()
+
+	return quiz_id
+
 def add_related_search_results_to_question(
 	question_id: int,
 	question_query: str
@@ -475,7 +514,7 @@ def generate_and_add_ai_response_question(
 
 def generate_quiz_questions(
 	user_id: int,
-	topic_level_pairs,
+	topic_level_pairs: str,
 	temperature: float = 0.2,
 	max_output_tokens: int = 1000,
 	top_p: float = 0.8,
@@ -520,36 +559,7 @@ def generate_quiz_questions(
 	quiz_ai_response = ast.literal_eval(response_text)
 
 	#add these questions to a quiz database and then return the quiz_id (which can be used to fetch the quiz questions)
-	return add_quiz_to_db(user_id, quiz_ai_response)
-
-def add_quiz_to_db(
-	user_id: int,
-	quiz_ai_response: dict
-):
-	conn = get_db_connection()
-	cur = conn.cursor()
-
-	query = "INSERT INTO Quiz (user_id) VALUES (%s)"
-	cur.execute(query, (user_id,))
-	conn.commit()
-
-	query = "SELECT quiz_id FROM Quiz WHERE user_id = %s ORDER BY created_time DESC LIMIT 1"
-	cur.execute(query, (user_id,))
-	quiz_id = cur.fetchone()
-
-	query = "INSERT INTO Quiz_Question (quiz_id, question_text, option_1, option_2, option_3, option_4, correct_answer) VALUES (%s, %s, %s, %s, %s, %s, %s)"
-
-	for question in quiz_ai_response['questions']:
-		
-		options = question['options']
-			 
-		cur.execute(query, (quiz_id, question['question_text'], options[0], options[1], options[2], options[3], question['correct_option_number']))
-		conn.commit()
-
-	cur.close()
-	conn.close()
-
-	return quiz_id
+	return add_quiz_to_db(user_id, quiz_ai_response, topic_level_pairs)
 
 def get_question(
 	user_id: int,
@@ -651,20 +661,27 @@ def get_quiz_results(
 	user_id: int, 
 	quiz_id: int
 ):
-	score = -1
-	quiz_results = []
 
 	conn = get_db_connection()
 	cur = conn.cursor()
 
-	query = "SELECT score FROM Quiz_Score_Card WHERE quiz_id = %s AND user_id = %s"
+	query = """
+		SELECT 
+			Quiz.quiz_id, Quiz.title, Quiz_Score_Card.user_id, Quiz_Score_Card.total_quiz_questions, Quiz_Score_Card.attempted, Quiz_Score_Card.correct, Quiz_Score_Card.wrong
+		FROM Quiz
+		LEFT JOIN Quiz_Score_Card
+		ON Quiz.quiz_id = Quiz_Score_Card.quiz_id
+		WHERE Quiz.quiz_id = %s AND Quiz_Score_Card.user_id = %s
+	"""
+	
 	cur.execute(query, (quiz_id, user_id))
-	score = cur.fetchone()
+	quiz_details = cur.fetchone()
 
-	if score is None:
-		score = -1
+	if quiz_details is None:
+		print("some error occured when fetching quiz results")
 	else:
-		score = score[0]
+		quiz_keys = ("quiz_id", "title", "user_id", "total_quiz_questions", "attempted", "correct", "wrong")
+		quiz_details = dict(zip(quiz_keys, quiz_details))
 
 		query = """
 			SELECT
@@ -677,19 +694,20 @@ def get_quiz_results(
 			WHERE Quiz_Question.quiz_id = %s AND Quiz_Question_User_Response.user_id = %s
 			ORDER BY Quiz_Question.quiz_question_id
 		"""
-		cur.execute(query, (quiz_id, user_id))
-		quiz_results = cur.fetchall()
 
-		if quiz_results is None:
-			quiz_results = []
+		cur.execute(query, (quiz_id, user_id))
+		quiz_questions_results = cur.fetchall()
+
+		if quiz_questions_results is None:
+			quiz_questions_results = []
 
 	cur.close()
 	conn.close()
 
 	quiz_result_keys = ["quiz_question_id", "question_text", "option_1", "option_2", "option_3", "option_4", "correct_answer", "user_response"]
-	quiz_results = [dict(zip(quiz_result_keys, quiz_result)) for quiz_result in quiz_results]
+	quiz_questions_results = [dict(zip(quiz_result_keys, quiz_questions_result)) for quiz_questions_result in quiz_questions_results]
 
-	return score, quiz_results
+	return quiz_details, quiz_questions_results
 
 def record_user_quiz_response(
 	user_id: int,
@@ -736,27 +754,37 @@ def score_user_quiz(
 ):
 	conn = get_db_connection()
 	cur = conn.cursor()
+	
+	total_quiz_questions = 10
+	attempted = 0
+	correct = 0
+	wrong = attempted - correct
 
 	query = """
 		SELECT
-			SUM(CASE WHEN Quiz_Question.correct_answer = Quiz_Question_User_Response.user_response THEN 1 ELSE 0 END) AS score
+			COUNT(1) as total_quiz_questions,
+			SUM(CASE WHEN Quiz_Question_User_Response.user_response IS NOT NULL THEN 1 ELSE 0 END) AS attempted,
+			SUM(CASE WHEN Quiz_Question.correct_answer = Quiz_Question_User_Response.user_response THEN 1 ELSE 0 END) AS correct
 		FROM Quiz_Question
 		LEFT JOIN Quiz_Question_User_Response
-		ON Quiz_Question.quiz_question_id = Quiz_Question_User_Response.quiz_question_id 
-		WHERE Quiz_Question.quiz_id = %s AND Quiz_Question_User_Response.user_id = %s
+		ON Quiz_Question.quiz_question_id = Quiz_Question_User_Response.quiz_question_id AND Quiz_Question_User_Response.user_id = %s
+		WHERE Quiz_Question.quiz_id = %s
 	"""
 
-	cur.execute(query, (quiz_id, user_id))
-	score = cur.fetchone()
+	cur.execute(query, (user_id, quiz_id))
+	result = cur.fetchone()
 
-	if score is None:
-		score = 0
+	if result is None:
+		print("error occured while scoring quiz")
 	else:
-		score = score[0]
+		total_quiz_questions = result[0]
+		attempted = result[1]
+		correct = result[2]
+		wrong = attempted - correct
 
-	query = "INSERT INTO Quiz_Score_Card (quiz_id, user_id, score) VALUES (%s, %s, %s)"
+	query = "INSERT INTO Quiz_Score_Card (quiz_id, user_id, total_quiz_questions, attempted, correct, wrong) VALUES (%s, %s, %s, %s, %s, %s)"
 
-	cur.execute(query, (quiz_id, user_id, score))
+	cur.execute(query, (quiz_id, user_id, total_quiz_questions, attempted, correct, wrong))
 	conn.commit()
 
 	cur.close()
@@ -969,6 +997,35 @@ def load_more_questions(
 	questions = [dict(zip(question_keys, question)) for question in questions]
 
 	return questions
+
+def load_more_quizzes(
+	user_id: int,
+	limit: int, 
+	offset: int
+):
+	conn = get_db_connection()
+	cur = conn.cursor()
+
+	query = """
+		SELECT 
+			Quiz.quiz_id, Quiz.title, Quiz_Score_Card.user_id, Quiz_Score_Card.total_quiz_questions, Quiz_Score_Card.attempted, Quiz_Score_Card.correct, Quiz_Score_Card.wrong
+		FROM Quiz
+		LEFT JOIN Quiz_Score_Card
+		ON Quiz.quiz_id = Quiz_Score_Card.quiz_id
+		WHERE Quiz_Score_Card.user_id = %s
+		LIMIT %s OFFSET %s
+	"""
+
+	cur.execute(query, (user_id, limit, offset))
+	quizzes = cur.fetchall()
+
+	cur.close()
+	conn.close()
+
+	quiz_keys = ("quiz_id", "title", "user_id", "total_quiz_questions", "attempted", "correct", "wrong")
+	quizzes = [dict(zip(quiz_keys, quiz)) for quiz in quizzes]
+
+	return quizzes
 
 def load_more_responses(
 	user_id: int,
