@@ -114,11 +114,21 @@ def generate_quiz():
 
 @app.route('/record_user_quiz_response', methods = ['POST'])
 def record_user_quiz_response():
-	user_id = int(request.form.get('user_id'))
-	quiz_question_id = int(request.form.get('quiz_question_id'))
-	user_response = int(request.form.get('user_response'))
 
-	response = utils.record_user_quiz_response(user_id = user_id, quiz_question_id = quiz_question_id, user_response = user_response)
+	quiz_id = request.form.get('quiz_id');
+	quiz_question_ids = request.form.keys() - ['quiz_id'];
+
+	for quiz_question_id in quiz_question_ids:
+		utils.record_user_quiz_response(user_id = session['user_id'], quiz_question_id = quiz_question_id, user_response = int(request.form.get(quiz_question_id)))
+
+	utils.score_user_quiz(user_id = session['user_id'], quiz_id = quiz_id)
+
+	return redirect(url_for('quiz'))
+	#user_id = int(request.form.get('user_id'))
+	#quiz_question_id = int(request.form.get('quiz_question_id'))
+	#user_response = int(request.form.get('user_response'))
+
+	#response = utils.record_user_quiz_response(user_id = user_id, quiz_question_id = quiz_question_id, user_response = user_response)
 
 	return jsonify({'response' : response})
 
@@ -192,13 +202,11 @@ def vote_unvote():
 @app.route('/attempt_quiz/<int:quiz_id>/')
 def attempt_quiz(quiz_id):
 	if session.get('user_id'):
-
 		return render_template('attempt_quiz.html', quiz_id = quiz_id,
 			user_id = session['user_id'], 
 			user_name = session['user_name'], 
 			user_picture_url = session['user_picture_url']
 		)
-
 	else:
 		return redirect(url_for('login'))
 
@@ -223,7 +231,7 @@ def create_custom_quiz():
 
 			quiz_id = utils.generate_quiz_questions(user_id = session['user_id'], topic_level_pairs = topic_level_pairs)
 
-			return redirect(url_for('quiz'))
+			return redirect(url_for('attempt_quiz', quiz_id = quiz_id))
 	else:
 		return redirect(url_for('login'))
 
@@ -233,9 +241,9 @@ def get_quiz_questions():
 	limit = int(request.form.get('num_to_load', 10))
 	offset = int(request.form.get('offset', 0))
 
-	quiz_questions = utils.get_quiz_questions(quiz_id = quiz_id, limit = limit, offset = offset)
+	quiz_details, quiz_questions = utils.get_quiz_questions(quiz_id = quiz_id, limit = limit, offset = offset)
 
-	return jsonify({'quiz_questions' : quiz_questions})
+	return jsonify({'quiz_details' : quiz_details, 'quiz_questions' : quiz_questions})
 
 @app.route('/get_quiz_results', methods = ['POST'])
 def get_quiz_results():

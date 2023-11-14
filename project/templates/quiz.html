@@ -71,6 +71,16 @@
 		var isLoading = false;  // Flag to track whether an AJAX request is in progress
 	    var loadComplete = false; // All "For You" quizzes already loaded
 
+	    // Function to check if the user has scrolled to the bottom of the page
+	    function isScrolledToBottom() {
+	        var scrollTop = $(window).scrollTop();
+	        var windowHeight = $(window).height();
+	        var documentHeight = $(document).height();
+
+	        // Check if the user is close to the bottom (e.g., within 100 pixels)
+	        return (documentHeight - (scrollTop + windowHeight) < 100);
+	    }
+
 	    // Function to load more quizzes
 	    function loadMoreQuizzes() {
 	        if (loadComplete) {
@@ -132,6 +142,12 @@
 
 	    loadMoreQuizzes();
 
+	    // Load more questions when scrolling to the bottom
+	    $(window).scroll(function () {
+	        if (isScrolledToBottom()) {
+	            loadMoreQuizzes();	        
+	        }
+	    });
 	</script>
 
 {% endblock %}

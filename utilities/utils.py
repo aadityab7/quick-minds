@@ -637,6 +637,13 @@ def get_quiz_questions(
 	conn = get_db_connection()
 	cur = conn.cursor()
 
+	query = "SELECT Quiz.quiz_id, Quiz.title FROM Quiz WHERE quiz_id = %s"
+	cur.execute(query, (quiz_id,))
+	quiz_details = cur.fetchone()
+
+	quiz_detail_keys = ("quiz_id", "title")
+	quiz_details = dict(zip(quiz_detail_keys, quiz_details))
+
 	query = """
 		SELECT 
 			quiz_question_id, question_text, option_1, option_2, option_3, option_4, correct_answer
@@ -658,7 +665,7 @@ def get_quiz_questions(
 	quiz_question_keys = ["quiz_question_id", "question_text", "option_1", "option_2", "option_3", "option_4", "correct_answer"]
 	quiz_questions = [dict(zip(quiz_question_keys, quiz_question)) for quiz_question in quiz_questions]
 
-	return quiz_questions
+	return quiz_details, quiz_questions
 
 def get_quiz_results(
 	user_id: int, 
@@ -733,7 +740,7 @@ def record_user_quiz_response(
 			INSERT INTO Quiz_Question_User_Response
 				(quiz_question_id, user_id, user_response)
 			VALUES
-				(%s, %s, %s, %s)
+				(%s, %s, %s)
 		"""
 
 		cur.execute(query, (quiz_question_id, user_id, user_response))
@@ -785,15 +792,25 @@ def score_user_quiz(
 		correct = result[2]
 		wrong = attempted - correct
 
-	query = "INSERT INTO Quiz_Score_Card (quiz_id, user_id, total_quiz_questions, attempted, correct, wrong) VALUES (%s, %s, %s, %s, %s, %s)"
+	query = "SELECT 1 FROM Quiz_Score_Card WHERE quiz_id = %s AND user_id = %s"
+	cur.execute(query, (quiz_id, user_id))
+	result = cur.fetchone()
 
-	cur.execute(query, (quiz_id, user_id, total_quiz_questions, attempted, correct, wrong))
-	conn.commit()
+	if result is None:
+		query = "INSERT INTO Quiz_Score_Card (quiz_id, user_id, total_quiz_questions, attempted, correct, wrong) VALUES (%s, %s, %s, %s, %s, %s)"
+
+		cur.execute(query, (quiz_id, user_id, total_quiz_questions, attempted, correct, wrong))
+		conn.commit()
+	else:
+		query = "UPDATE Quiz_Score_Card SET total_quiz_questions = %s, attempted = %s, correct = %s, wrong = %s WHERE quiz_id = %s AND user_id = %s"
+
+		cur.execute(query, (total_quiz_questions, attempted, correct, wrong, quiz_id, user_id))
+		conn.commit()
 
 	cur.close()
 	conn.close()
 
-	return score
+	return "OK"
 
 def handle_question_vote(
 	user_id: int,
