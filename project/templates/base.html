@@ -17,7 +17,7 @@
           <div class="flex items-center justify-center py-8 border-b">
             <div id = "app_title">
               <a href="{{ url_for('index') }}" class="flex justify-center items-center">
-                <img src="./static/images/temp_quick_minds_logo.png" class="h-10">
+                <img src="{{url_for('static', filename='/images/temp_quick_minds_logo.png')}}" class="h-10">
                     <h1 class="hidden lg:block text-xl text-gray-900 sm:text-xl">  
                       QUICK MINDS
                     </h1>

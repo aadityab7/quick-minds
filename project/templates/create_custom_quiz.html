@@ -1,0 +1,90 @@
+{% extends 'base.html' %}
+
+{% block title %}ASK QUESTION{% endblock %}
+
+{% block content %}
+
+	<div class="mx-auto max-w-screen-xl px-4 py-8 sm:px-6 lg:px-8">
+		<form method="post" enctype = "multipart/form-data">
+		  
+		  <div class="space-y-12">
+		    <div class="border-b border-gray-900/10 pb-12">
+		      <h1 class="text-xl font-bold">Create a Custom Quiz</h1>
+		      <p class="mt-1 text-sm leading-6 text-gray-600">Enter the topics for which you want to generate the quiz and select level of difficulty for each topic.</p>
+
+		      	<div id = "topics_page" class="mt-10 grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6">
+		        
+			        <template id="topic-template">
+				        <div class="sm:col-span-4">
+				          <label for="topic_name" class="block text-l font-medium leading-6 text-gray-900">Topic Name</label>
+				          <div>
+				            <div class="flex rounded-md shadow-sm ring-1 ring-inset ring-gray-300 focus-within:ring-2 focus-within:ring-inset focus-within:ring-indigo-600">
+				              <input type="text" id="topic_name" name="topic_name" class="block flex-1 border-0 bg-transparent py-1.5 pl-2 text-gray-900 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6" placeholder="e.g. Physics" required>
+				            </div>
+				          </div>
+				        </div>
+
+				        <div id = "difficulty_level_div" class="sm:col-span-2">
+				          <label for="difficulty_level" class="block text-sm font-medium leading-6 text-gray-900">Difficulty Level</label>
+				          <div>
+				            <select id="difficulty_level" name="difficulty_level" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:max-w-xs sm:text-sm sm:leading-6">
+				              <option>Basic</option>
+				              <option selected>Intermediate</option>
+				              <option>Advance</option>
+				            </select>
+				          </div>
+				        </div>
+				    </template>
+
+		      	</div>
+
+		    	<button id = "add_topic_button" type="button" class="mt-6 rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">Add Topic</button>
+		    </div>
+		  </div>
+
+		  <div id = "buttons" class="mt-6 flex items-center justify-end gap-x-6">
+			    <button type="button" class="text-sm font-semibold leading-6 text-gray-900" onclick="goBack()">Cancel</button>
+			    <button id = "quiz-submission-button" type="submit" class="rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">Generate Quiz</button>
+		  </div>
+
+		</form>
+	</div>
+
+	<script>
+		var topic_number = 0;
+		var max_topics = 5;
+
+		function add_topic_input() {
+			topic_number = topic_number + 1;
+
+			var template = document.getElementById("topic-template");
+            var clone = document.importNode(template.content, true);
+
+            const difficulty_level_id = "difficulty_level_" + topic_number;
+            const topic_name_id = "topic_name_" + topic_number;
+
+            clone.querySelector("#difficulty_level").setAttribute("name", difficulty_level_id);
+            clone.querySelector("#topic_name").setAttribute("name", topic_name_id);
+
+            // Append the populated template to the appropriate container
+            document.getElementById('topics_page').appendChild(clone);
+
+            if (topic_number == max_topics){
+            	document.getElementById('add_topic_button').classList.add('hidden');
+            }
+		}
+
+		add_topic_input();
+
+		document.addEventListener('click', function(event) {
+		    if (event.target.id === 'add_topic_button') {
+		        add_topic_input();
+		    }
+		});
+
+        function goBack() {
+            window.history.back();
+        }
+    </script>
+
+{% endblock %}

@@ -108,9 +108,9 @@ def generate_quiz():
 	user_id = request.form.get('user_id', 1)
 	topic_level_pairs = request.form.get('topic_level_pairs')
 	
-	result = utils.generate_quiz_questions(user_id, topic_level_pairs)
+	quiz_id = utils.generate_quiz_questions(user_id = user_id, topic_level_pairs = topic_level_pairs)
 
-	return jsonify({'result' : result})
+	return jsonify({'quiz_id' : quiz_id})
 
 @app.route('/record_user_quiz_response', methods = ['POST'])
 def record_user_quiz_response():
@@ -189,14 +189,41 @@ def vote_unvote():
 
 
 #GET DATA
-@app.route('/create_custom_quiz')
-def create_custom_quiz():
+@app.route('/attempt_quiz/<int:quiz_id>/')
+def attempt_quiz(quiz_id):
 	if session.get('user_id'):
-		return render_template('create_custom_quiz.html', question = question,
+
+		return render_template('attempt_quiz.html', quiz_id = quiz_id,
 			user_id = session['user_id'], 
 			user_name = session['user_name'], 
 			user_picture_url = session['user_picture_url']
 		)
+
+	else:
+		return redirect(url_for('login'))
+
+@app.route('/create_custom_quiz', methods = ('GET', 'POST'))
+def create_custom_quiz():
+	if session.get('user_id'):
+		if request.method == 'GET':
+			return render_template('create_custom_quiz.html',
+				user_id = session['user_id'], 
+				user_name = session['user_name'], 
+				user_picture_url = session['user_picture_url']
+			)
+		else:
+			number_of_topics = len(request.form) // 2
+			topic_level_pairs = dict()
+
+			for i in range(1, number_of_topics + 1):
+				topic_name = request.form.get(f"topic_name_{i}")
+				difficulty_level = request.form.get(f"difficulty_level_{i}")
+
+				topic_level_pairs[topic_name] = difficulty_level
+
+			quiz_id = utils.generate_quiz_questions(user_id = session['user_id'], topic_level_pairs = topic_level_pairs)
+
+			return redirect(url_for('quiz'))
 	else:
 		return redirect(url_for('login'))
 
@@ -301,7 +328,6 @@ def quiz():
 			user_picture_url = session['user_picture_url'])
 	else:
 		return render_template('quiz.html')
-
 
 @app.route('/search', methods = ('GET', 'POST'))
 def search():

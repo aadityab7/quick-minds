@@ -111,12 +111,12 @@ def add_question(
 def add_quiz_to_db(
 	user_id: int,
 	quiz_ai_response: dict,
-	topic_level_pairs: str
+	topic_level_pairs: dict
 ):
 	conn = get_db_connection()
 	cur = conn.cursor()
 
-	title =  (', ').join(ast.literal_eval(topic_level_pairs).keys()) + " Quiz"
+	title = (', ').join(topic_level_pairs.keys()) + " Quiz"
 
 	query = "INSERT INTO Quiz (user_id, title) VALUES (%s, %s)"
 	cur.execute(query, (user_id, title))
@@ -124,14 +124,17 @@ def add_quiz_to_db(
 
 	query = "SELECT quiz_id FROM Quiz WHERE user_id = %s ORDER BY created_time DESC LIMIT 1"
 	cur.execute(query, (user_id,))
-	quiz_id = cur.fetchone()
+	quiz_id = cur.fetchone()[0]
 
 	query = "INSERT INTO Quiz_Question (quiz_id, question_text, option_1, option_2, option_3, option_4, correct_answer) VALUES (%s, %s, %s, %s, %s, %s, %s)"
 
 	for question in quiz_ai_response['questions']:
 		
-		options = question['options']
-			 
+		if 'options' in question.keys():
+			options = question.get('options')
+		else:
+			options = question.get('list_of_4_options')
+
 		cur.execute(query, (quiz_id, question['question_text'], options[0], options[1], options[2], options[3], question['correct_option_number']))
 		conn.commit()
 
@@ -514,7 +517,8 @@ def generate_and_add_ai_response_question(
 
 def generate_quiz_questions(
 	user_id: int,
-	topic_level_pairs: str,
+	topic_level_pairs: dict,
+	number_of_questions: int = 3,
 	temperature: float = 0.2,
 	max_output_tokens: int = 1000,
 	top_p: float = 0.8,
@@ -541,7 +545,6 @@ def generate_quiz_questions(
 	}
 
 	quiz_questions_format = "{questions : [question_text, list_of_4_options, correct_option_number]}"
-	number_of_questions = 3
 
 	prompt = f"Generate {number_of_questions} quiz questions for the following topics with associated difficulty level = {topic_level_pairs}. Respond using JSON = {quiz_questions_format}. Return only the JSON and nothing else."
 
@@ -1008,11 +1011,16 @@ def load_more_quizzes(
 
 	query = """
 		SELECT 
-			Quiz.quiz_id, Quiz.title, Quiz_Score_Card.user_id, Quiz_Score_Card.total_quiz_questions, Quiz_Score_Card.attempted, Quiz_Score_Card.correct, Quiz_Score_Card.wrong
+			Quiz.quiz_id, Quiz.title, Quiz.created_time, 
+			Quiz_Score_Card.user_id, Quiz_Score_Card.total_quiz_questions, Quiz_Score_Card.attempted, Quiz_Score_Card.correct, Quiz_Score_Card.wrong,
+			App_user.name
 		FROM Quiz
 		LEFT JOIN Quiz_Score_Card
 		ON Quiz.quiz_id = Quiz_Score_Card.quiz_id
+		LEFT JOIN App_user
+		ON Quiz.user_id = App_user.user_id
 		WHERE Quiz_Score_Card.user_id = %s
+		ORDER BY Quiz.created_time
 		LIMIT %s OFFSET %s
 	"""
 
@@ -1022,7 +1030,7 @@ def load_more_quizzes(
 	cur.close()
 	conn.close()
 
-	quiz_keys = ("quiz_id", "title", "user_id", "total_quiz_questions", "attempted", "correct", "wrong")
+	quiz_keys = ("quiz_id", "title", "created_time", "user_id", "total_quiz_questions", "attempted", "correct", "wrong", "user_name")
 	quizzes = [dict(zip(quiz_keys, quiz)) for quiz in quizzes]
 
 	return quizzes
