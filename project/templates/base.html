@@ -15,7 +15,7 @@
     <div class="min-h-screen bg-white border-r">
         <div class="sticky top-0 flex-col top-0 left-0 hidden sm:flex sm:w-16 lg:w-64">
           <div class="flex items-center justify-center py-8 border-b">
-            <div id = "app_title">
+            <div id = "app_title_sidebar">
               <a href="{{ url_for('index') }}" class="flex justify-center items-center">
                 <img src="{{url_for('static', filename='/images/temp_quick_minds_logo.png')}}" class="h-10">
                     <h1 class="hidden lg:block text-xl text-gray-900 sm:text-xl">  
@@ -135,7 +135,15 @@
             <header id = "header" class="bg-gray-50">
               <div class="mx-auto px-4 py-8 sm:px-6 lg:px-8">
                   <div id = "headerContent" class="flex items-center justify-between sm:gap-8">
-                    
+                    <div id = "app_title" class="sm:hidden">
+                      <a href="{{ url_for('index') }}" class="flex justify-center items-center">
+                        <img src="{{url_for('static', filename='/images/temp_quick_minds_logo.png')}}" class="h-10">
+                            <h1 class="text-xl text-gray-900 sm:text-xl">  
+                              QUICK MINDS
+                            </h1>
+                        </a>
+                    </div>
+
                     <div
                       id = "right-hand-side-buttons"
                       class="flex flex-1 items-center justify-end gap-4 sm:gap-4"
@@ -175,6 +183,8 @@
                               </div>
                         </form>
                       
+                      
+
                       <button
                         id="searchButton"
                         type="button"
@@ -182,7 +192,7 @@
                         onclick="displaySearchBar()"
                       >
                         <span class="sr-only">Search</span>
-                        <svg
+                        <svg id = "search_logo"
                           xmlns="http://www.w3.org/2000/svg"
                           class="h-5 w-5"
                           fill="none"
@@ -196,6 +206,22 @@
                             d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
                           />
                         </svg>
+                        
+                        <svg id = "search_close_logo" 
+                          xmlns="http://www.w3.org/2000/svg" 
+                          class="hidden w-4 h-4" 
+                          fill="none" 
+                          viewBox="0 0 14 14"
+                          stroke="currentColor"
+                          stroke-width="1"
+                        >
+                          <path 
+                            stroke-linecap="round" 
+                            stroke-linejoin="round" 
+                            d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"
+                          />
+                        </svg>
+
                       </button>
 
                       <span
@@ -221,8 +247,6 @@
 
                           <p class="ms-2 hidden text-left text-xs sm:block">
                             <strong class="block font-medium">{{user_name}}</strong>
-
-                            <span class="text-gray-500">{{user_email}}</span>
                           </p>
 
                           <svg
@@ -399,16 +423,22 @@
     const searchButton = document.getElementById('searchButton');
     const searchBar = document.getElementById('searchBar');
     const app_title = document.getElementById("app_title");
+    const user_info = document.getElementById("user_info");
+    const search_close_logo = document.getElementById("search_close_logo");
+    const search_logo = document.getElementById("search_logo");
 
     // Add a click event listener to the button
     searchButton.addEventListener('click', function (event) {
       // Toggle the 'hidden' class to show/hide the dropdown menu
       searchBar.classList.toggle('hidden');
       app_title.classList.toggle('hidden');
+      user_info.classList.toggle('hidden');
       searchButton.classList.toggle('ring');
       searchButton.classList.toggle('bg-white');
       searchButton.classList.toggle('bg-gray-100');
-      
+      search_logo.classList.toggle('hidden');
+      search_close_logo.classList.toggle('hidden');
+
       // Prevent the click event from propagating to the document
       event.stopPropagation();
     });
@@ -418,9 +448,12 @@
       if (event.target !== searchButton && !searchBar.contains(event.target)) {
         searchBar.classList.add('hidden');
         app_title.classList.remove('hidden');
+        user_info.classList.remove('hidden');
         searchButton.classList.remove('ring');
         searchButton.classList.add('bg-white');
         searchButton.classList.remove('bg-gray-100');
+        search_logo.classList.remove('hidden');
+        search_close_logo.classList.add('add');
       }
     });
   </script>
