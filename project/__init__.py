@@ -203,6 +203,7 @@ def vote_unvote():
 def attempt_quiz(quiz_id):
 	if session.get('user_id'):
 		return render_template('attempt_quiz.html', quiz_id = quiz_id,
+			start_quiz = "true",
 			user_id = session['user_id'], 
 			user_name = session['user_name'], 
 			user_picture_url = session['user_picture_url']

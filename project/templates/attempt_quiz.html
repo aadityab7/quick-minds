@@ -11,7 +11,14 @@
 			<input type="hidden" id="quiz_id" name="quiz_id" value="">
 
 			<div id="lower" class="grow py-3 px-3 rounded-t-lg">
-				<h1 id = "quiz_title" class="text-xl font-bold"></h1>
+				<div class="flex items-center justify-between">	
+					<h1 id = "quiz_title" class="text-xl font-bold">Quiz</h1>
+
+					<button id = "start_quiz_button" type="button" class="rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
+						Start Quiz
+					</button>
+					
+				</div>
 
 			    <div id="quiz_questions_page" class="mt-8">
 
@@ -51,7 +58,7 @@
 			    </div>
 		    </div>
 
-		    <div id = "buttons" class="mt-6 flex items-center justify-end gap-x-6">
+		    <div id = "buttons" class="hidden mt-6 flex items-center justify-end gap-x-6">
 			    <button type="button" class="text-sm font-semibold leading-6 text-gray-900" onclick="goBack()">Cancel</button>
 			    <button id = "quiz-submission-button" type="submit" class="rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">Submit</button>
 		  	</div>
@@ -67,6 +74,10 @@
 		const quiz_id = {{quiz_id}};
 		var isLoading = false;  // Flag to track whether an AJAX request is in progress
 	    var loadComplete = false; // All "For You" quizzes already loaded
+	    var startQuiz = {{ start_quiz|default("false") | tojson | safe }};
+	    
+	    console.log("startQuiz");
+	    console.log(startQuiz);
 
 	    // Function to load more quizzes
 	    function getQuizQuestions() {
@@ -92,6 +103,9 @@
 	            url: '/get_quiz_questions',
 	            data: { quiz_id: quiz_id, num_to_load: numToLoad, offset: currentOffset},
 	            success: function (data) {
+
+	            	document.getElementById('start_quiz_button').classList.add('hidden');
+	            	document.getElementById('buttons').classList.remove('hidden');
 
 	            	document.getElementById('quiz_title').innerText = data.quiz_details.title;
 	            	document.getElementById("quiz_id").setAttribute("value", quiz_id);
@@ -132,7 +146,13 @@
 	        
 	    }
 
-	    getQuizQuestions();
+	    document.getElementById("start_quiz_button").addEventListener('click', function(){
+	    	getQuizQuestions();
+	    });
+
+	    if (startQuiz === "true"){
+	    	getQuizQuestions();
+	    }
 
 	    function goBack() {
             window.history.back();
