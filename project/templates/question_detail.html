@@ -163,7 +163,8 @@
 						            <input id="file-upload" name="file-upload" type="file" class="sr-only" accept=".png, .jpg, .jpeg, .gif">
 					            </label>
 					          </div>
-					          <p class="mt-3 text-sm leading-6 text-gray-600">Images are useful in a post, but make sure the post is still clear without them. If you post images of code or error messages, copy and paste or type the actual code or message into the post directly. <b>PNG, JPG, GIF up to 2MB</b></p>
+
+					          <p id = "image-instruction-text" class="hidden mt-3 text-sm leading-6 text-gray-600">Images are useful in a post, but make sure the post is still clear without them. If you post images of code or error messages, copy and paste or type the actual code or message into the post directly. <b>PNG, JPG, GIF up to 2MB</b></p>
 					          
 				        </div>
 					</div>
@@ -173,9 +174,9 @@
 			<button id = "response-button" type="button" class="rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">Post your response</button>
 		</form>
 
-		<hr class="my-4">
+		<div id = "main-related-web-search-div" class="hidden">
+			<hr class="my-4">
 
-		<div id = "main-related-web-search-div">
 			<h1 id = "related_web_searchs_heading" class="text-xl font-bold text-gray-500">
 				Related web search results
 			</h1>
@@ -199,9 +200,9 @@
 			</div>
 		</div>
 
-		<hr class="my-4">
+		<div id = "main-related-video-div" class="hidden">
+			<hr class="my-4">
 
-		<div id = "main-related-video-div">
 			<h1 id = "related_videos_heading" class="text-xl font-bold text-gray-500">
 				Related videos
 			</h1>
@@ -229,6 +230,34 @@
 				<button id = "load-more-video-button" class="hidden mt-4 rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">Load more Videos</button>
 			</div>
 		</div>
+
+		<div id = "main-similar-question-div" class="hidden">
+			<hr class="my-4">
+			
+			<h1 id = "similar_questions_heading" class="text-xl font-bold text-gray-500">
+				Similar questions
+			</h1>
+
+			<div id = "similar-question-list">
+				<template id="similar-question-template">
+					<div id = "similar-question-block" class="p-4 sm:flex gap-4">
+						<div id = 'similar-question-details' class="mt-2 sm:mt-0">
+							<a id = 'similar-question-redirect' href="">
+								<div id = "similar-question-title" class="text-gray-700 text-sm"> </div>
+							</a>
+						</div>
+						
+					</div>
+					
+					<hr>
+				</template>
+			</div>
+
+			<div id = "more-similar-questions-div">
+				<button id = "load-more-similar-question-button" class="hidden mt-4 rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">Load more Similar Questions</button>
+			</div>
+		</div>
+
 	</div>
 
 	<script>
@@ -237,6 +266,7 @@
 	    var offset = {{ responses|length }};
 	    var webSearchOffset = {{ web_search_results|length }};
 	    var videoOffset = {{ video_results|length }};
+		var similarQuestionOffset = {{ similar_questions|length }};
 
 	    var isLoading = false;
 	    var loadComplete = false;
@@ -246,6 +276,9 @@
 
 	    var videoLoadComplete = false;
 	    var videoIsLoading = false;
+	    
+	    var similarQuestionLoadComplete = false;
+		var similarQuestionIsLoading = false;
 
 	    const question_id = {{question.question_id}};
 	    const user_id = {{user_id}};
@@ -511,6 +544,8 @@
 	    }
 
 	    function loadWebSearchResults() {
+	    	document.getElementById('main-related-web-search-div').classList.remove('main-related-web-search-div');
+
 	    	if (webSearchLoadComplete) {
 	            return;
 	        }
@@ -558,7 +593,9 @@
 	        });
 	    }
 
-	    function loadMoreVideoResults(){
+	    function loadMoreVideoResults() {
+	    	document.getElementById('main-related-video-div').classList.remove('main-related-video-div');
+
 	    	if (videoLoadComplete) {
 	            return;
 	        }
@@ -609,6 +646,60 @@
 	        });
 	    }
 
+		function loadMoreSimilarQuestions() {
+			document.getElementById('main-similar-question-div').classList.remove('hidden');
+
+			if (similarQuestionLoadComplete) {
+	            return;
+	        }
+
+	        if (similarQuestionIsLoading) {
+	            return;
+	        }
+
+	        document.getElementById('load-more-similar-question-button').classList.add('hidden');
+
+	        similarQuestionIsLoading = true;
+
+	        var currentOffset = similarQuestionOffset;
+
+	        $.ajax({
+	            type: 'POST',
+	            url: '/load_more_related_questions',
+	            data: { question_id: question_id, num_to_load: numToLoad, offset: currentOffset },
+	            success: function (data) {
+	            	
+
+	                if (data.similar_questions.length < numToLoad) {
+	                    similarQuestionLoadComplete = true;
+	                }
+
+	                data.similar_questions.forEach(function (similar_question) {
+
+	                    var template = document.getElementById("similar-question-template");
+	                    var clone = document.importNode(template.content, true);
+
+	                    var similar_question_link = "/question_detail/" + similar_question.question_id + '/';
+	                	
+	                    clone.querySelector("#similar-question-title").innerHTML = similar_question.question_title;
+
+	                    clone.querySelector("#similar-question-redirect").setAttribute('href', similar_question_link);
+
+	                    document.getElementById('similar-question-list').appendChild(clone);
+	                    
+	                });
+
+	                similarQuestionOffset += numToLoad;
+	                similarQuestionIsLoading = false;
+
+			        if (similarQuestionLoadComplete === false){
+			    	    document.getElementById('load-more-similar-question-button').classList.remove('hidden');
+			        }
+			        
+	            }
+	        });
+		}
+
 		// Add an event listener to handle the up-vote button click
 		document.addEventListener('click', function(event) {
 		    if (event.target.id === 'response_upvote_button') {
@@ -647,10 +738,17 @@
 		    if (event.target.id === 'load-more-video-button') {
 		    	loadMoreVideoResults();
 		    }
+
+		    if (event.target.id === 'load-more-similar-question-button') {
+		    	loadMoreSimilarQuestions();
+		    }
 		});
 
 		fileInput.addEventListener('change', function () {
             const file = fileInput.files[0];
+            
+            document.getElementById("image-instruction-text").classList.remove('hidden');
+
             if (file) {
                 const reader = new FileReader();
                 reader.onload = function (e) {
@@ -701,6 +799,8 @@
 	    loadWebSearchResults();
 
 	    loadMoreVideoResults();
+
+	    loadMoreSimilarQuestions();
 	</script>
 
 {% endblock %}

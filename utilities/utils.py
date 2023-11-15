@@ -61,8 +61,6 @@ def add_question(
 	question_text:str,
 	question_tags: str
 ):
-	
-	
 	question_tags = [tag.strip() for tag in question_tags.split(',')]
 	question_tags = str(set(question_tags))
 	question_tags = re.sub(r"[']", "", question_tags)
@@ -103,6 +101,7 @@ def add_question(
 	
 	#before returning the question find and add related resources and responses
 	generate_and_add_ai_response_question(question_id = question_id, question_query = question_query)
+	add_similar_questions_to_this_question(question_id = question_id, question_query = question_query)
 	add_related_search_results_to_question(question_id = question_id, question_query = question_query)
 	add_related_youtube_videos_to_question(question_id = question_id, question_query = question_query)
 
@@ -259,6 +258,39 @@ def add_response(
 	response['response_text'] = markdown.markdown(response['response_text'])
 
 	return response, question_response_counter
+
+def add_similar_questions_to_this_question(
+	question_id: int,
+	question_query: str
+):
+	#do this before adding question to the table
+	conn = get_db_connection()
+	cur = conn.cursor()
+	
+	query = """
+		SELECT
+			question_id, 
+			strict_word_similarity(%s, question_title || ' ' || question_text || ' ' || coalesce(array_to_string(tags, ', '), ' ')) as similarity
+		FROM Question
+		ORDER BY similarity 
+		DESC LIMIT 10
+	"""
+
+	cur.execute(query, (question_query,))
+	similar_questions = cur.fetchall()
+
+	if similar_questions is None:
+		similar_questions = []
+
+	query = "INSERT INTO Related_question (question_id, similar_question_id, similarity_score) VALUES (%s, %s, %s)"
+	
+	#add this to the similarity table
+	for similar_question in similar_questions:
+		cur.execute(query, (question_id, similar_question[0], similar_question[1]))
+		conn.commit()
+
+	cur.close()
+	conn.close()
 
 def check_database_user_authentication(
 		facebook_id:str = "", 
@@ -1142,7 +1174,7 @@ def load_more_web_search_results(
 	conn.close()
 
 	if web_search_results is None:
-		return []
+		web_search_results = []
 
 	web_search_results_keys = ("title", "description", "link")
 	web_search_results = [dict(zip(web_search_results_keys, web_search_result)) for web_search_result in web_search_results]
@@ -1170,12 +1202,42 @@ def load_more_video_results(
 	conn.close()
 
 	if video_results is None:
-		return []
+		video_results = []
 
 	video_results_keys = ("title", "description", "video_url", "thumbnail_url", "channel_title", "player_embed_html")
 	video_results = [dict(zip(video_results_keys, video_result)) for video_result in video_results]
 
 	return video_results
+
+def load_more_related_questions(
+	question_id: int,
+	limit: int,
+	offset: int
+):
+	conn = get_db_connection()
+	cur = conn.cursor()
+
+	query = "SELECT \
+				Question.question_id, Question.question_title \
+			FROM Related_question \
+			LEFT JOIN Question \
+			ON Related_question.similar_question_id = Question.question_id\
+			WHERE Related_question.question_id = %s \
+			LIMIT %s OFFSET %s"
+
+	cur.execute(query, (question_id, limit, offset))
+	similar_questions = cur.fetchall()
+
+	cur.close()
+	conn.close()
+
+	if similar_questions is None:
+		return []
+
+	similar_question_keys = ("question_id", "question_title")
+	similar_questions = [dict(zip(similar_question_keys, similar_question)) for similar_question in similar_questions]
+
+	return similar_questions
 
 def make_web_search_request(
 	search_query: str,
@@ -1448,3 +1510,4 @@ def load_more_comments(
 	offset: int
 ):
 	pass
+

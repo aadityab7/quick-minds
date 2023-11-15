@@ -278,7 +278,7 @@ def load_more_quizzes():
 
 		return jsonify({'quizzes' : quizzes})
 
-@app.route('/load_more_responses', methods = ['POST'])
+@app.route('/load_more_responses', methods=['POST'])
 def load_more_responses():
 	question_id = request.form.get('question_id')
 	limit = int(request.form.get('num_to_load', 10))
@@ -291,7 +291,7 @@ def load_more_responses():
 
 	return jsonify({'responses' : responses})
 
-@app.route('/load_more_web_search_results', methods = ['POST'])
+@app.route('/load_more_web_search_results', methods=['POST'])
 def load_more_web_search_results():
 	question_id = request.form.get('question_id')
 	limit = int(request.form.get('num_to_load', 10))
@@ -303,13 +303,23 @@ def load_more_web_search_results():
 
 @app.route('/load_more_video_results', methods=['POST'])
 def load_more_video_results():
-	question_id = request.form.get('question_id')
+	question_id = int(request.form.get('question_id'))
 	limit = int(request.form.get('num_to_load', 10))
 	offset = int(request.form.get('offset', 0))
 
 	video_results = utils.load_more_video_results(question_id = question_id, limit = limit, offset = offset)
 
 	return jsonify({'video_results' : video_results})
+
+@app.route('/load_more_related_questions', methods=['POST'])
+def load_more_related_questions():
+	question_id = int(request.form.get('question_id'))
+	limit = int(request.form.get('num_to_load', 10))
+	offset = int(request.form.get('offset', 0))
+
+	similar_questions = utils.load_more_related_questions(question_id = question_id, limit = limit, offset = offset)
+
+	return jsonify({'similar_questions' : similar_questions})
 
 @app.route('/question_detail/<int:question_id>/', methods = ('GET', 'POST'))
 def question_detail(question_id):
@@ -361,7 +371,6 @@ def search():
 			)
 	else:
 		return redirect(url_for('login'))
-
 
 #AUTH
 #MAIN AUTHENTICATION SECTION (login, logout, sign_up)

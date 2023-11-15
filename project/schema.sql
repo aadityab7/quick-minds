@@ -163,6 +163,7 @@ CREATE TABLE IF NOT EXISTS Related_web_search_result  (
 
 CREATE TABLE IF NOT EXISTS Related_question  (
     similar_question_id integer NOT NULL,
+    similarity_score float NOT NULL,
 
     CONSTRAINT fk_similar_question_question
         FOREIGN KEY(similar_question_id) 
