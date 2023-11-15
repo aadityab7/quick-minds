@@ -544,7 +544,7 @@
 	    }
 
 	    function loadWebSearchResults() {
-	    	document.getElementById('main-related-web-search-div').classList.remove('main-related-web-search-div');
+	    	document.getElementById('main-related-web-search-div').classList.remove('hidden');
 
 	    	if (webSearchLoadComplete) {
 	            return;
@@ -594,7 +594,7 @@
 	    }
 
 	    function loadMoreVideoResults() {
-	    	document.getElementById('main-related-video-div').classList.remove('main-related-video-div');
+	    	document.getElementById('main-related-video-div').classList.remove('hidden');
 
 	    	if (videoLoadComplete) {
 	            return;

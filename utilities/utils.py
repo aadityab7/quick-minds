@@ -1024,17 +1024,20 @@ def load_more_questions(
 	LIMIT %s OFFSET %s
 	"""
 
-	query = "SELECT \
-				Question.question_id, Question.question_title, Question.vote_counter, Question.response_counter, \
-				Question.created_time, Question.tags, \
-				App_user.user_id, App_user.name, \
-				CASE WHEN Follow.followed_user_id IS NULL THEN false ELSE true END AS following	\
-			FROM Question \
-			INNER JOIN App_user\
-				ON Question.user_id = App_user.user_id\
-			LEFT JOIN Follow \
-				on App_user.user_id = Follow.followed_user_id and Follow.follower_user_id = %s \
-			LIMIT %s OFFSET %s;"
+	query = """
+		SELECT 
+			Question.question_id, Question.question_title, Question.vote_counter, Question.response_counter, 
+			Question.created_time, Question.tags, 
+			App_user.user_id, App_user.name, 
+			CASE WHEN Follow.followed_user_id IS NULL THEN false ELSE true END AS following	
+		FROM Question 
+		INNER JOIN App_user
+			ON Question.user_id = App_user.user_id
+		LEFT JOIN Follow 
+			on App_user.user_id = Follow.followed_user_id and Follow.follower_user_id = %s 
+		ORDER BY Question.created_time DESC
+		LIMIT %s OFFSET %s;
+	"""
 
 	cur.execute(query, (user_id, num_to_load, offset))
 	questions = cur.fetchall()
