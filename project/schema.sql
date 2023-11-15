@@ -1,27 +1,27 @@
-DROP TABLE IF EXISTS App_user CASCADE;
-DROP TABLE IF EXISTS Post CASCADE;
-DROP TABLE IF EXISTS Question CASCADE;
-DROP TABLE IF EXISTS Response CASCADE;
-DROP TABLE IF EXISTS AI_chat CASCADE;
-DROP TABLE IF EXISTS Chat_message CASCADE;
-DROP TABLE IF EXISTS Comment CASCADE;
-DROP TABLE IF EXISTS Image CASCADE;
-DROP TABLE IF EXISTS Tag CASCADE;
-DROP TABLE IF EXISTS Related_content CASCADE;
-DROP TABLE IF EXISTS Related_web_search_results CASCADE;
-DROP TABLE IF EXISTS Related_question CASCADE;
-DROP TABLE IF EXISTS Related_video CASCADE;
-DROP TABLE IF EXISTS Follow CASCADE;
-DROP TABLE IF EXISTS Post_Vote CASCADE;
-DROP TABLE IF EXISTS Quiz;
-DROP TABLE IF EXISTS Quiz_Question;
-DROP TABLE IF EXISTS Quiz_Question_User_Response;
-DROP TABLE IF EXISTS Quiz_Score_Card;
-DROP TABLE IF EXISTS Article;
-DROP TABLE IF EXISTS Article_Response;
-DROP TABLE IF EXISTS Article_Vote;
-DROP TABLE IF EXISTS Article_Response_Vote;
-DROP TABLE IF EXISTS Article_Response_Comment;
+DROP TABLE IF EXISTS ai_chat CASCADE;                     
+DROP TABLE IF EXISTS app_user CASCADE;                    
+DROP TABLE IF EXISTS article CASCADE;                     
+DROP TABLE IF EXISTS article_response CASCADE;            
+DROP TABLE IF EXISTS article_response_comment CASCADE;    
+DROP TABLE IF EXISTS article_response_vote CASCADE;       
+DROP TABLE IF EXISTS article_vote CASCADE;                
+DROP TABLE IF EXISTS chat_message CASCADE;                
+DROP TABLE IF EXISTS comment CASCADE;                     
+DROP TABLE IF EXISTS follow CASCADE;                      
+DROP TABLE IF EXISTS image CASCADE;                       
+DROP TABLE IF EXISTS post CASCADE;                        
+DROP TABLE IF EXISTS post_vote CASCADE;                   
+DROP TABLE IF EXISTS question CASCADE;                    
+DROP TABLE IF EXISTS quiz CASCADE;                        
+DROP TABLE IF EXISTS quiz_question CASCADE;               
+DROP TABLE IF EXISTS quiz_question_user_response CASCADE; 
+DROP TABLE IF EXISTS quiz_score_card CASCADE;             
+DROP TABLE IF EXISTS related_content CASCADE;             
+DROP TABLE IF EXISTS related_question CASCADE;            
+DROP TABLE IF EXISTS related_video CASCADE;               
+DROP TABLE IF EXISTS related_web_search_result CASCADE;   
+DROP TABLE IF EXISTS response CASCADE;                    
+DROP TABLE IF EXISTS tag CASCADE;
 
 CREATE TABLE IF NOT EXISTS App_user  ( 
     user_id serial PRIMARY KEY,
@@ -379,3 +379,5 @@ INSERT INTO App_user
     (user_id, username, name, about) 
 VALUES 
     (0, 'google_vertex_ai', 'Google Vertex AI', 'Generative AI chat bot by Google which provides quick first response to user questions.');
+
+CREATE EXTENSION pg_trgm;
