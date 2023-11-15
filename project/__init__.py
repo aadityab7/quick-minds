@@ -119,7 +119,9 @@ def delete_response(response_id):
 		if response_status == "OK":
 			flash("Response deleted successfully!")
 
-		redirect(request.referrer)
+		print(response_status)
+
+		return redirect(request.referrer)
 	else:
 		return redirect(url_for('login'))
 

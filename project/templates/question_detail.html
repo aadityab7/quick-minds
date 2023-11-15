@@ -69,7 +69,7 @@
 
 					{%if question['user_id'] == user_id%}
 						<a id="delete_question" href="/delete_question/{{question['question_id']}}">
-							<button class="mt-4 border rounded-lg px-4 py-2 text-sm text-red-700 hover:bg-red-50">delete Question</button>
+							<button class="mt-4 border rounded-lg px-4 py-2 text-sm text-red-700 hover:bg-red-50">Delete Question</button>
 						</a>
 					{%endif%}
 				</div>
@@ -125,6 +125,10 @@
 							</div>
 		            			              		
 		              		<div id = "response_text" class="sm:text-xl"> </div>
+
+		              		<a id = "delete_response" href="" class="hidden">
+		              			<button class="mt-4 border rounded-lg px-4 py-2 text-sm text-red-700 hover:bg-red-50">Delete Response</button>
+		              		</a>
 			              	
 			              	<div id = "response-comment-div" class="hidden flex items-center justify-between mt-2">
 			              		<div class="flex items-start gap-4 mt-2">
@@ -329,6 +333,8 @@
             }
             else{
             	clone.querySelector("#follow").classList.add('hidden');
+            	clone.querySelector("#delete_response").classList.remove('hidden');
+			    clone.querySelector("#delete_response").setAttribute("href", '/delete_response/' + response.response_id + '/');
             }
 
             if (response.vote_counter > 0) {
@@ -509,6 +515,7 @@
 	                    clone.querySelector("#created_time").textContent = response.created_time;
 	                    clone.querySelector("#response_vote_counter").textContent = response.vote_counter;
 	                    clone.querySelector("#follow").setAttribute('data-user-id', response.user_id);
+	                    
 
 	                    if(response.my_vote === 1) {
 							clone.querySelector("#response_upvote_button").classList.add('bg-indigo-500');
@@ -527,6 +534,8 @@
 			            }
 			            else{
 			            	clone.querySelector("#follow").classList.add('hidden');
+			            	clone.querySelector("#delete_response").classList.remove('hidden');
+			            	clone.querySelector("#delete_response").setAttribute("href", '/delete_response/' + response.response_id + '/');
 			            }
 
 	                    if (response.vote_counter > 0) {
