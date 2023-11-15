@@ -482,6 +482,66 @@ def check_database_user_authentication(
 
 	return message, user_id, user_name, user_picture_url
 
+def delete_question(
+	user_id: int,
+	question_id: int
+):
+	response_status = "OK"
+
+	conn = get_db_connection()
+	cur = conn.cursor()
+
+	query = "SELECT user_id FROM Question WHERE question_id = %s"
+	cur.execute(query, (question_id,))
+	author_user_id = cur.fetchone()
+
+	if author_user_id is None:
+		response_status = "an error occured when deleting question"
+	else:
+		author_user_id = author_user_id[0]
+
+		if author_user_id == user_id:
+			query = "DELETE FROM Question WHERE question_id = %s"
+			cur.execute(query, (question_id,))
+			conn.commit()
+		else:
+			response_status = "not author"
+
+	cur.close()
+	conn.close()
+
+	return response_status
+
+def delete_response(
+	user_id: int,
+	response_id: int
+):
+	response_status = "OK"
+
+	conn = get_db_connection()
+	cur = conn.cursor()
+
+	query = "SELECT user_id FROM Response WHERE response_id = %s"
+	cur.execute(query, (response_id,))
+	author_user_id = cur.fetchone()
+
+	if author_user_id is None:
+		response_status = "an error occured when deleting response"
+	else:
+		author_user_id = author_user_id[0]
+
+		if author_user_id == user_id:
+			query = "DELETE FROM Response WHERE response_id = %s"
+			cur.execute(query, (response_id,))
+			conn.commit()
+		else:
+			response_status = "not author"
+
+	cur.close()
+	conn.close()
+
+	return response_status
+
 def follow_unfollow(
 	follower_user_id: int,
 	followed_user_id: int

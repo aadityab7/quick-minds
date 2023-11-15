@@ -7,6 +7,7 @@
 	<div class="mx-auto max-w-screen-xl px-4 py-8 sm:px-6 lg:px-8">
 		
 		<div id = "main-question-div"> 
+			
 			<div id = "question-head-div" class="flex items-center justify-between mb-3 gap-4">	
 				<h1 class="text-xl font-bold">{{question["question_title"]}}</h1>
 
@@ -65,10 +66,18 @@
 							{% endfor %}
 						{%endif%}
 					</div>
+
+					{%if question['user_id'] == user_id%}
+						<a id="delete_question" href="/delete_question/{{question['question_id']}}">
+							<button class="mt-4 border rounded-lg px-4 py-2 text-sm text-red-700 hover:bg-red-50">delete Question</button>
+						</a>
+					{%endif%}
 				</div>
 
 
 			</div>
+
+			
 		</div>	
 		
 		<hr class="my-4">

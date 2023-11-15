@@ -95,6 +95,34 @@ def ask_question():
 	else:
 		return redirect(url_for('login'))
 
+@app.route('/delete_question/<int:question_id>/', methods = ('GET', 'POST'))
+def delete_question(question_id):
+	if session.get('user_id'):
+		#GET user_id and question_id
+		
+		response_status = utils.delete_question(user_id = session['user_id'], question_id = question_id)
+
+		if response_status == "OK":
+			flash("Question deleted successfully!")
+
+		return redirect(url_for('index'))
+	else:
+		return redirect(url_for('login'))
+
+@app.route('/delete_response/<int:response_id>/', methods = ('GET', 'POST'))
+def delete_response(response_id):
+	if session.get('user_id'):
+		#GET user_id and response_id
+		
+		response_status = utils.delete_response(user_id = session['user_id'], response_id = response_id)
+
+		if response_status == "OK":
+			flash("Response deleted successfully!")
+
+		redirect(request.referrer)
+	else:
+		return redirect(url_for('login'))
+
 @app.route('/follow_unfollow', methods = ['POST'])
 def follow_unfollow():
 	followed_user_id = request.form.get('followed_user_id')
