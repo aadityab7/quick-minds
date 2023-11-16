@@ -67,3 +67,9 @@ To view the live project visit [quick minds website](https://quick-minds-4czszj4
 8. Search the YouTube platform to find the videos that might help answer the question or provide additional context.
 
 9. Use Generative AI to generate quick first response instantly when the question is asked.
+
+10. Find Similar Questions that have been asked on the platform.
+
+11. Feature to create custom AI generated Quiz.
+
+12. Added search functionality to the Web App.
