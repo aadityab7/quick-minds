@@ -32,12 +32,12 @@ oauth = OAuth(app)
 @app.route('/articles')
 def articles():
 	if session.get('user_id'):
-		return render_template('articles.html')
-	else:
 		return render_template('articles.html',
 			user_id = session['user_id'],
 			user_name = session['user_name'], 
 			user_picture_url = session['user_picture_url'])
+	else:
+		return render_template('articles.html')
 
 @app.route('/article_preview')
 def article_preview():
@@ -83,7 +83,7 @@ def get_article():
 	user_id = int(request.form.get('user_id'))
 	article_id = int(request.form.get('article_id'))
 
-	article = utils.get_article(user_id = user_id, article_id)
+	article = utils.get_article(user_id = user_id, article_id = article_id)	
 
 	return jsonify({'article' : article})
 
