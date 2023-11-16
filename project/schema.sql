@@ -373,6 +373,18 @@ CREATE TABLE Article_Response_Comment (
         ON DELETE CASCADE
 );
 
+CREATE TABLE Notification (
+    notification_id serial PRIMARY KEY,
+    user_id integer NOT NULL,
+    message text NOT NULL,
+    created_time timestamp DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT fk_notification_app_user
+        FOREIGN KEY(user_id) 
+        REFERENCES App_user(user_id)
+        ON DELETE CASCADE
+);
+
 CREATE INDEX idx_question_doc_vec ON Question USING gin(document_vectors);
 
 INSERT INTO App_user 

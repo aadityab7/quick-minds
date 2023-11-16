@@ -23,10 +23,163 @@ app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get("SECRET_KEY", os.urandom(12))
 app.config["SESSION_PERMANENT"] = False
 app.config["SESSION_TYPE"] = "filesystem"
-app.config['MAX_CONTENT_LENGTH'] = 10 * 1024 * 1024  # 10 MB
 
 Session(app)
 oauth = OAuth(app)
+
+
+#TO BE IMPLEMENTED
+@app.route('/articles')
+def articles():
+	if session.get('user_id'):
+		return render_template('articles.html')
+	else:
+		return render_template('articles.html',
+			user_id = session['user_id'],
+			user_name = session['user_name'], 
+			user_picture_url = session['user_picture_url'])
+
+@app.route('/article_preview')
+def article_preview():
+	if session.get('user_id'):
+		return render_template('article_preview.html',
+			user_id = session['user_id'],
+			user_name = session['user_name'], 
+			user_picture_url = session['user_picture_url'])
+	else:
+		return redirect(url_for('login'))
+
+@app.route('/write_article')
+def write_article():
+	if session.get('user_id'):
+		return render_template('write_article.html',
+			user_id = session['user_id'],
+			user_name = session['user_name'], 
+			user_picture_url = session['user_picture_url'])
+	else:
+		return redirect(url_for('login'))
+
+@app.route('/get_article_preview', methods = ['POST'])
+def get_article_preview():
+	article_id = int(request.form.get('article_id'))
+
+	preview = utils.get_article_preview(user_id = session['user_id'], article_id = article_id)
+
+	return jsonify({'preview' : preview})
+
+@app.route('/add_article', methods = ['POST'])
+def add_article():
+	title = request.form.get('title')
+	contents = request.form.get('contents')
+	tags = request.form.get('tags')
+
+	article_id = utils.add_article(user_id = session['user_id'], title = title, contents = contents, tags = tags)
+
+	return jsonify({'article_id' : article_id})
+
+@app.route('/get_article', methods = ['POST'])	
+def get_article():
+
+	user_id = int(request.form.get('user_id'))
+	article_id = int(request.form.get('article_id'))
+
+	article = utils.get_article(user_id = user_id, article_id)
+
+	return jsonify({'article' : article})
+
+@app.route('/add_article_response', methods = ['POST'])	
+def add_article_response():
+	contents = request.form.get('contents')
+
+	response = utils.add_article_response(user_id = session['user_id'], contents = contents)
+
+	return({'response' : response})
+
+@app.route('/load_more_articles', methods = ['POST'])	
+def load_more_articles():
+	user_id = int(request.form.get('user_id'))
+	limit = int(request.form.get('num_to_load'))
+	offset = int(request.form.get('offset'))
+
+	articles = utils.load_more_articles(user_id = user_id, limit = limit, offset = offset)
+
+	return jsonify({'articles' : articles})
+
+@app.route('/load_more_article_responses', methods = ['POST'])	
+def load_more_article_responses():
+	user_id = int(request.form.get('user_id'))
+	article_id = int(request.form.get('article_id'))
+	limit = int(request.form.get('limit'))
+	offset = int(request.form.get('offset'))
+
+	article_responses = utils.load_more_article_responses(user_id = user_id, article_id = article_id, limit = limit, offset = offset)
+
+	return ({'article_responses' : article_responses})
+
+@app.route('/handle_article_vote', methods = ['POST'])	
+def handle_article_vote():
+	article_id = int(request.form.get('article_id'))
+	up_or_down_vote = request.form.get('up_or_down_vote')
+
+	vote_count, my_vote = utils.handle_article_vote(user_id = session['user_id'], article_id = article_id, up_or_down_vote = up_or_down_vote)
+
+	return jsonify({'vote_count' : vote_count, 'my_vote' : my_vote})
+
+@app.route('/handle_article_response_vote', methods = ['POST'])	
+def handle_article_response_vote():
+	article_response_id = int(request.form.get('article_response_id'))
+	up_or_down_vote = request.form.get('up_or_down_vote')
+
+	vote_count, my_vote = utils.handle_article_response_vote(user_id = session['user_id'], article_response_id = article_response_id, up_or_down_vote = up_or_down_vote)
+
+	return jsonify({'vote_count' : vote_count, 'my_vote' : my_vote})
+
+@app.route('/add_article_response_comment', methods = ['POST'])
+def add_article_response_comment():
+	article_id = int(request.form.get('article_id'))
+	contents = request.form.get('contents')
+
+	response = utils.add_article_response_comment(user_id = session['user_id'], article_id = article_id, contents = contents)
+
+	return jsonify({'response': response})
+
+@app.route('/load_more_article_response_comments', methods = ['POST'])	
+def load_more_article_response_comments():
+	user_id = int(request.form.get('user_id'))
+	article_response_id = int(request.form.get('article_response_id'))
+	limit = int(request.form.get('limit'))
+	offset = int(request.form.get('offset'))
+
+	article_response_comments = utils.load_more_article_response_comments(user_id = user_id, article_response_id = article_response_id, limit = limit, offset = offset)
+
+	return jsonify({'article_response_comments' : article_response_comments})
+
+@app.route('/delete_article', methods = ['POST'])	
+def delete_article():
+	article_id = int(request.form.get('article_id'))
+
+	response_status = utils.delete_article(user_id = session['user_id'], article_id = article_id)
+
+	return jsonify({'response_status' : response_status})
+
+@app.route('/delete_article_response', methods = ['POST'])	
+def delete_article_response():
+	article_response_id = int(request.form.get('article_response_id'))
+
+	response_status = utils.delete_article_response(user_id = session['user_id'], article_response_id = article_response_id)
+
+	return jsonify({'response_status' : response_status})
+
+@app.route('/article_search', methods = ['POST'])	
+def article_search():
+	user_id =  int(request.form.get('user_id'))
+	search_query =  request.form.get('search_query')
+	limit =  int(request.form.get('num_to_load'))
+	offset =  int(request.form.get('offset'))
+
+	article_search_results = utils.article_search(user_id = user_id, search_query = search_query, limit = limit, offset = offset)
+
+	return jsonify({'article_search_results' : article_search_results})
 
 @app.errorhandler(413)
 def too_large(e):

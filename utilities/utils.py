@@ -1485,12 +1485,17 @@ def vote_unvote(
 
 
 #functions to implement for articles
+def get_article_preview(
+	user_id: int,
+	article_id: int
+):
+	pass
+
 def add_article(
 	user_id: int,
 	title: str,
 	contents: str,
-	tags: str,
-	thumbnail_url: str
+	tags: str
 ):
 	pass
 
@@ -1555,6 +1560,18 @@ def load_more_article_response_comments(
 	article_response_id: int,
 	limit: int,
 	offset: int
+):
+	pass
+
+def delete_article(
+	user_id: int,
+	article_id: int
+):
+	pass
+
+def delete_article_response(
+	user_id: int,
+	article_response_id: int
 ):
 	pass
 
