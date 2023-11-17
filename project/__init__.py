@@ -95,11 +95,12 @@ def article(article_id):
 
 @app.route('/add_article_response', methods = ['POST'])	
 def add_article_response():
+	article_id = int(request.form.get('article_id'))
 	contents = request.form.get('contents')
 
-	response = utils.add_article_response(user_id = session['user_id'], contents = contents)
+	article_response, article_response_counter = utils.add_article_response(user_id = session['user_id'], article_id = article_id, contents = contents)
 
-	return({'response' : response})
+	return({'article_response' : article_response, 'article_response_counter' : article_response_counter})
 
 @app.route('/load_more_articles', methods = ['POST'])	
 def load_more_articles():
@@ -159,21 +160,36 @@ def load_more_article_response_comments():
 
 	return jsonify({'article_response_comments' : article_response_comments})
 
-@app.route('/delete_article', methods = ['POST'])	
-def delete_article():
-	article_id = int(request.form.get('article_id'))
+@app.route('/delete_article/<int:article_id>/', methods = ('GET', 'POST'))	
+def delete_article(article_id):
+	if session.get('user_id'):
+		#GET user_id and question_id
+		
+		response_status = utils.delete_article(user_id = session['user_id'], article_id = article_id)
 
-	response_status = utils.delete_article(user_id = session['user_id'], article_id = article_id)
+		if response_status == "OK":
+			flash("Article deleted successfully!")
+		else:
+			flash("response_status")
 
-	return jsonify({'response_status' : response_status})
+		return redirect(url_for('articles'))
+	else:
+		return redirect(url_for('login'))
 
-@app.route('/delete_article_response', methods = ['POST'])	
-def delete_article_response():
-	article_response_id = int(request.form.get('article_response_id'))
+@app.route('/delete_article_response/<int:article_response_id>/', methods = ('GET', 'POST'))	
+def delete_article_response(article_response_id):
+	if session.get('user_id'):
+		#GET user_id and response_id
+		response_status = utils.delete_article_response(user_id = session['user_id'], article_response_id = article_response_id)
 
-	response_status = utils.delete_article_response(user_id = session['user_id'], article_response_id = article_response_id)
+		if response_status == "OK":
+			flash("Article Response deleted successfully!")
+		else:
+			flash(response_status)
 
-	return jsonify({'response_status' : response_status})
+		return redirect(request.referrer)
+	else:
+		return redirect(url_for('login'))
 
 @app.route('/article_search', methods = ['POST'])	
 def article_search():
@@ -262,7 +278,9 @@ def delete_question(question_id):
 
 		if response_status == "OK":
 			flash("Question deleted successfully!")
-
+		else:
+			flash(response_status)
+			
 		return redirect(url_for('index'))
 	else:
 		return redirect(url_for('login'))
@@ -276,8 +294,8 @@ def delete_response(response_id):
 
 		if response_status == "OK":
 			flash("Response deleted successfully!")
-
-		print(response_status)
+		else:
+			flash(response_status)
 
 		return redirect(request.referrer)
 	else:

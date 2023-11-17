@@ -1575,9 +1575,61 @@ def get_article(
 
 def add_article_response(
 	user_id: int,
+	article_id: int,
 	contents: str
 ):
-	pass
+	conn = get_db_connection()
+	cur = conn.cursor()
+
+	query = "INSERT INTO Article_Response (user_id, article_id, contents) VALUES (%s, %s, %s)"
+
+	cur.execute(query, (user_id, article_id, contents))
+	conn.commit()
+
+	query = "UPDATE Article SET response_counter = response_counter + 1 WHERE article_id = %s"
+	cur.execute(query, (article_id,))
+	conn.commit()
+
+	query = """
+		SELECT
+			Article_Response.article_response_id, Article_Response.contents,
+			Article_Response.vote_counter, Article_Response.response_counter, Article_Response.created_time, 
+			App_user.user_id, App_user.name
+		FROM Article_Response
+		INNER JOIN App_user
+			ON article_Response.user_id = App_user.user_id
+		WHERE Article_Response.user_id = %s
+		ORDER BY Article_Response.created_time DESC LIMIT 1
+	"""
+	
+	cur.execute(query, (user_id,))
+	article_response = cur.fetchone()
+
+	query = "SELECT response_counter FROM Article WHERE article_id = %s"
+	
+	cur.execute(query, (article_id,))
+	article_response_counter = cur.fetchone()
+
+	cur.close()
+	conn.close()
+
+	if article_response is None:
+		return -1, -1
+
+	if article_response_counter is None:
+		article_response_counter = 0
+	else:
+		article_response_counter = article_response_counter[0]
+
+	article_response_keys = ("article_response_id", "contents", "vote_counter", "response_counter", "created_time", "user_id", "user_name")
+	article_response = dict(zip(article_response_keys, article_response))
+
+	article_response['contents'] = markdown.markdown(article_response['contents'])
+
+	print("article_response")
+	print(article_response)
+
+	return article_response, article_response_counter
 
 def load_more_articles(
 	user_id: int,
@@ -1622,8 +1674,52 @@ def load_more_article_responses(
 	limit: int,
 	offset: int
 ):
-	pass
+	conn = get_db_connection()
+	cur = conn.cursor()
 
+	query = """
+		WITH ResponseUser AS (
+		    SELECT
+		        Response.response_id as Response_id, Response.response_text,
+				Response.vote_counter, Response.response_counter, Response.created_time,
+				App_user.user_id as Response_user_id, App_user.name
+		    FROM
+		        Response
+		        INNER JOIN App_user
+		        	ON Response.user_id = App_user.user_id
+		    WHERE
+		        Response.question_id = %s
+		)
+		SELECT
+		    ru.*, 
+		    CASE WHEN f.followed_user_id IS NULL THEN false ELSE true END AS following,
+		    CASE WHEN pv.val IS NULL THEN 0 WHEN pv.val = 1 THEN 1 ELSE -1 END AS my_vote
+		FROM
+		    ResponseUser ru
+		    LEFT JOIN Follow f
+		    	ON ru.Response_user_id = f.followed_user_id AND f.follower_user_id = %s
+		    LEFT JOIN Post_Vote as pv
+		    	ON ru.Response_id = pv.response_id AND pv.user_id = %s
+		LIMIT %s OFFSET %s
+	"""
+
+	cur.execute(query, (question_id, user_id, user_id, limit, offset))
+
+	responses = cur.fetchall()
+
+	cur.close()
+	conn.close()
+
+	if responses is None:
+		responses = []
+
+	response_keys = ("response_id", "response_text", "vote_counter", "response_counter", "created_time", "user_id", "user_name", "following", "my_vote")
+	responses = [dict(zip(response_keys, response)) for response in responses]
+
+	for response in responses:
+		response['response_text'] = markdown.markdown(response['response_text'])
+
+	return responses
 def handle_article_vote(
 	user_id: int,
 	article_id: int,
@@ -1665,13 +1761,67 @@ def delete_article(
 	user_id: int,
 	article_id: int
 ):
-	pass
+	response_status = "OK"
+
+	conn = get_db_connection()
+	cur = conn.cursor()
+
+	query = "SELECT user_id FROM Article WHERE article_id = %s"
+	cur.execute(query, (article_id,))
+	author_user_id = cur.fetchone()
+
+	if author_user_id is None:
+		response_status = "an error occured when deleting article"
+	else:
+		author_user_id = author_user_id[0]
+
+		if author_user_id == user_id:
+			query = "DELETE FROM Article WHERE article_id = %s"
+			cur.execute(query, (article_id,))
+			conn.commit()
+		else:
+			response_status = "not author"
+
+	cur.close()
+	conn.close()
+
+	return response_status
 
 def delete_article_response(
 	user_id: int,
 	article_response_id: int
 ):
-	pass
+	response_status = "OK"
+
+	conn = get_db_connection()
+	cur = conn.cursor()
+
+	query = "SELECT user_id FROM Article_Response WHERE article_response_id = %s"
+	cur.execute(query, (article_response_id,))
+	author_user_id = cur.fetchone()
+
+	if author_user_id is None:
+		response_status = "an error occured when deleting article response"
+	else:
+		author_user_id = author_user_id[0]
+
+		if author_user_id == user_id:
+			query = "DELETE FROM Article_Response WHERE article_response_id = %s"
+			cur.execute(query, (article_response_id,))
+			conn.commit()
+
+			"""
+			query = "UPDATE Article SET response_counter = response_counter - 1 WHERE article_id = %s"
+			cur.execute(query, (article_id,))
+			conn.commit()
+			"""
+		else:
+			response_status = "not author"
+
+	cur.close()
+	conn.close()
+
+	return response_status
 
 #COMMENT functions to be implemented
 def add_comment(

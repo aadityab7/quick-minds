@@ -68,7 +68,7 @@
 					</div>
 
 					{%if article['user_id'] == user_id%}
-						<a id="delete_article" href="/delete_article/{{article['article_id']}}">
+						<a id="delete_article" href="/delete_article/{{article['article_id']}}/">
 							<button class="mt-4 border rounded-lg px-4 py-2 text-sm text-red-700 hover:bg-red-50">Delete article</button>
 						</a>
 					{%endif%}
@@ -215,13 +215,13 @@
 			var template = document.getElementById("response-template");
             var clone = document.importNode(template.content, true);
             
-            clone.querySelector("#complete_repsonse_block").setAttribute("data-response-id", response.response_id);
-            clone.querySelector("#response_upvote_button").setAttribute("data-response-id", response.response_id);
-            clone.querySelector("#response_downvote_button").setAttribute("data-response-id", response.response_id);
+            clone.querySelector("#complete_repsonse_block").setAttribute("data-response-id", response.article_response_id);
+            clone.querySelector("#response_upvote_button").setAttribute("data-response-id", response.article_response_id);
+            clone.querySelector("#response_downvote_button").setAttribute("data-response-id", response.article_response_id);
 
             clone.querySelector("#user_name").textContent = response.user_name;
             clone.querySelector("#response_counter").textContent = response.response_counter + ' comments';
-            clone.querySelector("#response_text").innerHTML = response.response_text;
+            clone.querySelector("#response_text").innerHTML = response.contents;
             clone.querySelector("#created_time").textContent = response.created_time;
             clone.querySelector("#response_vote_counter").textContent = response.vote_counter;
             clone.querySelector("#follow").setAttribute('data-user-id', response.user_id);
@@ -245,7 +245,7 @@
             else{
             	clone.querySelector("#follow").classList.add('hidden');
             	clone.querySelector("#delete_response").classList.remove('hidden');
-			    clone.querySelector("#delete_response").setAttribute("href", '/delete_response/' + response.response_id + '/');
+			    clone.querySelector("#delete_response").setAttribute("href", '/delete_article_response/' + response.article_response_id + '/');
             }
 
             if (response.vote_counter > 0) {
@@ -325,10 +325,10 @@
 
         	$.ajax({
 	            type: 'POST',
-	            url: '/add_response',
-	            data: {article_id : article_id, response_text: response_text},
+	            url: '/add_article_response',
+	            data: {article_id : article_id, contents: response_text},
 	            success: function (data) {
-	            	add_response_to_list(data.response);
+	            	add_response_to_list(data.article_response);
 	            	response_text_element.value = '';
 	            	document.getElementById('article_response_counter').innerText = data.article_response_counter + ' response';
 	            },
@@ -474,8 +474,8 @@
 	    }
 
 	    function showHideResponses(){
-	    	document.getElementById('main-responses-div').classList.remove('hidden');
-	    	document.getElementById('add_response_form').classList.remove('hidden');
+	    	document.getElementById('main-responses-div').classList.toggle('hidden');
+	    	document.getElementById('add_response_form').classList.toggle('hidden');
 
 	    	if (document.getElementById('show-response-button').innerText === 'Show Responses') {
 	    		document.getElementById('show-response-button').innerText = 'Hide Responses';
