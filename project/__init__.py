@@ -49,13 +49,22 @@ def article_preview():
 	else:
 		return redirect(url_for('login'))
 
-@app.route('/write_article')
+@app.route('/write_article', methods = ('GET', 'POST'))
 def write_article():
 	if session.get('user_id'):
-		return render_template('write_article.html',
-			user_id = session['user_id'],
-			user_name = session['user_name'], 
-			user_picture_url = session['user_picture_url'])
+		if request.method == 'POST':
+			title = request.form.get('article-title')
+			contents = request.form.get('article-contents')
+			tags = request.form.get('article-tags')
+
+			article_id = utils.add_article(user_id = session['user_id'], title = title, contents = contents, tags = tags)
+
+			return redirect(url_for('article', article_id = article_id))
+		else:
+			return render_template('write_article.html',
+				user_id = session['user_id'],
+				user_name = session['user_name'], 
+				user_picture_url = session['user_picture_url'])
 	else:
 		return redirect(url_for('login'))
 
@@ -68,7 +77,7 @@ def get_article_preview():
 	return jsonify({'preview' : preview})
 
 @app.route('/article/<int:article_id>/', methods = ('GET', 'POST'))	
-def get_article(article_id):
+def article(article_id):
 	if session.get('user_id'):
 		article = utils.get_article(user_id = session['user_id'], article_id = article_id)	
 
@@ -83,18 +92,6 @@ def get_article(article_id):
 		)
 	else:
 		return redirect(url_for('login'))
-		
-@app.route('/add_article', methods = ['POST'])
-def add_article():
-	title = request.form.get('title')
-	contents = request.form.get('contents')
-	tags = request.form.get('tags')
-
-	article_id = utils.add_article(user_id = session['user_id'], title = title, contents = contents, tags = tags)
-
-	return jsonify({'article_id' : article_id})
-
-
 
 @app.route('/add_article_response', methods = ['POST'])	
 def add_article_response():

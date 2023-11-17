@@ -1500,7 +1500,33 @@ def add_article(
 	contents: str,
 	tags: str
 ):
-	pass
+	tags = [tag.strip() for tag in tags.split(',')]
+	tags = str(set(tags))
+	tags = re.sub(r"[']", "", tags)
+	
+	description = contents[:50]
+
+	conn = get_db_connection()
+	cur = conn.cursor()
+
+	query = "INSERT INTO Article (user_id, title, description, contents, tags) VALUES (%s, %s, %s, %s, %s)"
+
+	cur.execute(query, (user_id, title, description, contents, tags))
+	conn.commit()
+
+	query = "SELECT article_id FROM Article WHERE user_id = %s ORDER BY created_time DESC LIMIT 1"
+	cur.execute(query, (user_id,))
+	article_id = cur.fetchone()
+
+	if article_id is None:
+		article_id = -1
+	else:
+		article_id = article_id[0]
+
+	cur.close()
+	conn.close()
+
+	return article_id
 
 def get_article(
 	user_id: int,
