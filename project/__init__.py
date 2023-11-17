@@ -37,7 +37,7 @@ def articles():
 			user_name = session['user_name'], 
 			user_picture_url = session['user_picture_url'])
 	else:
-		return render_template('articles.html')
+		return redirect(url_for('login'))
 
 @app.route('/article_preview')
 def article_preview():
@@ -67,6 +67,23 @@ def get_article_preview():
 
 	return jsonify({'preview' : preview})
 
+@app.route('/article/<int:article_id>/', methods = ('GET', 'POST'))	
+def get_article(article_id):
+	if session.get('user_id'):
+		article = utils.get_article(user_id = session['user_id'], article_id = article_id)	
+
+		if article == -1:
+			flash("An error while fetching the article")
+			return redirect(request.referrer)
+
+		return render_template('article.html', article = article,
+			user_id = session['user_id'], 
+			user_name = session['user_name'], 
+			user_picture_url = session['user_picture_url']
+		)
+	else:
+		return redirect(url_for('login'))
+		
 @app.route('/add_article', methods = ['POST'])
 def add_article():
 	title = request.form.get('title')
@@ -77,15 +94,7 @@ def add_article():
 
 	return jsonify({'article_id' : article_id})
 
-@app.route('/get_article', methods = ['POST'])	
-def get_article():
 
-	user_id = int(request.form.get('user_id'))
-	article_id = int(request.form.get('article_id'))
-
-	article = utils.get_article(user_id = user_id, article_id = article_id)	
-
-	return jsonify({'article' : article})
 
 @app.route('/add_article_response', methods = ['POST'])	
 def add_article_response():
@@ -97,11 +106,10 @@ def add_article_response():
 
 @app.route('/load_more_articles', methods = ['POST'])	
 def load_more_articles():
-	user_id = int(request.form.get('user_id'))
 	limit = int(request.form.get('num_to_load'))
 	offset = int(request.form.get('offset'))
 
-	articles = utils.load_more_articles(user_id = user_id, limit = limit, offset = offset)
+	articles = utils.load_more_articles(user_id = session['user_id'], limit = limit, offset = offset)
 
 	return jsonify({'articles' : articles})
 
@@ -529,7 +537,7 @@ def quiz():
 			user_name = session['user_name'], 
 			user_picture_url = session['user_picture_url'])
 	else:
-		return render_template('quiz.html')
+		redirect(url_for('login'))
 
 @app.route('/search', methods = ('GET', 'POST'))
 def search():

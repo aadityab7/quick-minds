@@ -289,9 +289,10 @@ CREATE TABLE Quiz_Score_Card (
 CREATE TABLE Article (
     article_id serial PRIMARY KEY,
     title text NOT NULL,
+    description text NOT NULL,
     contents text NOT NULL,
-    tags text[5],
     thumbnail_url text,
+    tags text[5],
     vote_counter integer DEFAULT 0,
     response_counter integer DEFAULT 0,
     created_time timestamp DEFAULT CURRENT_TIMESTAMP,

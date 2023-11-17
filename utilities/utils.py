@@ -1,3 +1,6 @@
+
+#Note : we represent user not logged in as user_id = -1
+
 import os
 import psycopg2
 import markdown
@@ -1503,7 +1506,46 @@ def get_article(
 	user_id: int,
 	article_id: int
 ):
-	pass
+	conn = get_db_connection()
+	cur = conn.cursor()
+
+	query = """
+		WITH Article_User AS (
+		    SELECT 
+				Article.article_id as article_id, Article.title, Article.contents, Article.vote_counter, Article.response_counter, 
+				Article.created_time, Article.tags, 
+				App_user.user_id as author_user_id, App_user.name
+			FROM Article 
+			INNER JOIN App_user
+				ON Article.user_id = App_user.user_id
+		    WHERE
+		        Article.article_id = %s
+		)
+		SELECT
+		    au.*, 
+		    CASE WHEN f.followed_user_id IS NULL THEN false ELSE true END AS following,
+		    0 as my_vote
+		FROM Article_User au
+	    LEFT JOIN Follow f
+	    	ON au.author_user_id = f.followed_user_id AND f.follower_user_id = %s
+	"""
+
+	cur.execute(query, (article_id, user_id))
+
+	article = cur.fetchone()
+
+	if article is None:
+		return -1
+		
+	cur.close()
+	conn.close()
+
+	article_keys =	("article_id", "title", "contents", "vote_counter", "response_counter", "created_time", "tags", "user_id", "user_name", "following", "my_vote")
+	article = dict(zip(article_keys, article))
+
+	article["contents"] = markdown.markdown(article["contents"])
+
+	return article
 
 def add_article_response(
 	user_id: int,
@@ -1516,7 +1558,37 @@ def load_more_articles(
 	limit: int,
 	offset: int
 ):
-	pass
+	conn = get_db_connection()
+	cur = conn.cursor()
+
+	query = """
+		SELECT 
+			Article.article_id, Article.title, Article.description, Article.thumbnail_url, Article.vote_counter, Article.response_counter, 
+			Article.created_time, Article.tags, 
+			App_user.user_id, App_user.name, 
+			CASE WHEN Follow.followed_user_id IS NULL THEN false ELSE true END AS following	
+		FROM Article 
+		INNER JOIN App_user
+			ON Article.user_id = App_user.user_id
+		LEFT JOIN Follow 
+			on App_user.user_id = Follow.followed_user_id and Follow.follower_user_id = %s 
+		ORDER BY Article.created_time DESC
+		LIMIT %s OFFSET %s;
+	"""
+
+	cur.execute(query, (user_id, limit, offset))
+	articles = cur.fetchall()
+
+	cur.close()
+	conn.close()
+
+	if articles is None:
+		articles = []
+
+	article_keys = ("article_id", "title", "description", "thumbnail_url", "vote_counter", "response_counter", "created_time", "tags", "user_id", "user_name", "following")
+	articles = [dict(zip(article_keys, article)) for article in articles]
+
+	return articles
 
 def load_more_article_responses(
 	user_id: int,

@@ -1,7 +1,198 @@
 {% extends 'base.html' %}
 
-{% block title %}QUICK MINDS{% endblock %}
+{% block title %}QUICK MINDS ARTICLES{% endblock %}
 
 {% block content %}
+
+	<div class="mx-auto max-w-screen-xl px-4 py-8 sm:px-6 lg:px-8">
+		<div id="lower" class="grow py-3 px-3 rounded-t-lg">
+			<div class="flex items-center justify-between">	
+				<h1 class="text-xl font-bold">Articles</h1>
+
+				<a href="{{url_for('write_article')}}"> 
+					<button type="submit" class="rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">Write Article</button>
+				</a>
+			</div>
+
+			
+
+		    <div id="articles_page" class="mt-8">
+		        <template id="article-template">
+		        	<div class="p-4">
+		        		<div class="sm:flex items-start gap-4 items-center pb-2">
+		              		<p id = "user_name" class="text-gray-500 font-bold"></p>
+		              		<p class="hidden sm:block text-sm text-gray-500">|</p>
+		              		<button id = "follow" data-user-id = "" class="text-blue-500"></button>
+		              		<p class="hidden sm:block text-sm text-gray-500">|</p>
+			              	<p id = "created_time" class="text-sm text-gray-500"></p>
+		              	</div>
+
+			          	<a href="">
+			            	<div class="article-list-box">
+
+			            		<div class="sm:flex justify-between items-center">
+				            		<div>
+					              		<h1 id = "article_title" class="text-xl font-bold"> </h1>
+					              		<p id = "article_description" class="text-gray-500"></p>
+				            		</div>
+			            		
+			            			<img id = "article_thumbnail_image" src="">
+			            		</div>
+			              		
+			              		<div id = "article_tags" class="flex items-start gap-4 mt-4"> 
+
+			              		<div class="flex items-start gap-4 mt-2">
+			              			<p id = "vote_counter" class="text-gray-500 text-sm font-bold"></p>
+			              			<p id = "response_counter" class="text-gray-500 text-sm font-bold"></p>
+			              		</div>
+			              		
+			              		</div>
+			            	</div>
+			          	</a>
+		        	</div>
+		        	
+		          	<hr>
+		        </template>
+		    </div>
+	    </div>
+	</div>
+
+
+	<script>	  
+	    var articles_page = document.getElementById('articles_page');
+
+	    // Lazy loading and infinite scrolling
+	    // Adjust the initial offset based on what's already loaded for "For You"
+	    var offset = {{ articles|length }}; 
+	    const user_id = {{user_id}};
+
+	    var numToLoad = 10;  // Adjust the number of articles to load at a time
+	    var isLoading = false;  // Flag to track whether an AJAX request is in progress
+	    var loadComplete = false; // All articles already loaded
+	    
+	    // Function to check if the user has scrolled to the bottom of the page
+	    function isScrolledToBottom() {
+	        var scrollTop = $(window).scrollTop();
+	        var windowHeight = $(window).height();
+	        var documentHeight = $(document).height();
+
+	        // Check if the user is close to the bottom (e.g., within 100 pixels)
+	        return (documentHeight - (scrollTop + windowHeight) < 100);
+	    }
+
+	    // Function to load more articles
+	    function loadMoreArticles() {
+	        if (loadComplete) {
+	            return;
+	        } 
+
+	        // Check if an AJAX request is already in progress
+	        if (isLoading) {
+	            return;
+	        }
+
+	        // Set the isLoading flag to true
+	        isLoading = true;
+	        
+	        // Determine the current section and its respective offset
+	        var currentOffset = offset;
+
+	        // Send an AJAX request to fetch more articles
+	        $.ajax({
+	            type: 'POST',
+	            url: '/load_more_articles',
+	            data: { num_to_load: numToLoad, offset: currentOffset },
+	            success: function (data) {
+                    if (data.articles.length < numToLoad) {
+                        loadComplete = true;
+                    }
+
+                    data.articles.forEach(function (article) {
+                        // Clone the template and populate it with data
+                        var template = document.getElementById("article-template");
+                        var clone = document.importNode(template.content, true);
+                        
+                        // Create the URL with the article_id
+                        var article_url = "/article/" + article.article_id + "/";
+
+                        clone.querySelector("a").setAttribute("href", article_url);
+                        clone.querySelector("#user_name").textContent = article.user_name;
+                        clone.querySelector("#response_counter").textContent = article.response_counter + ' response';
+                        clone.querySelector("#article_title").textContent = article.title;
+                        clone.querySelector("#created_time").textContent = article.created_time;
+                        clone.querySelector("#vote_counter").textContent = article.vote_counter + ' vote';
+						clone.querySelector("#article_description").textContent = article.description;
+                        
+                        clone.querySelector("#article_thumbnail_image").setAttribute('src', article.thumbnail_url);
+                        clone.querySelector("#follow").setAttribute('data-user-id', article.user_id);
+
+                        var tag_html_content = "";
+
+                        for (tag in article.tags) {
+                        	tag_html_content += ("<p class = 'rounded-md py-1 px-2 bg-indigo-400 text-white text-sm'>" + article.tags[tag] + "</p>");
+                        }
+
+                        clone.querySelector("#article_tags").innerHTML = tag_html_content;
+                        
+                        if(article.user_id !== user_id){
+                        	if (article.following){
+	                        	clone.querySelector("#follow").textContent = 'following';
+	                        }
+	                        else{
+	                        	clone.querySelector("#follow").textContent = 'follow';
+	                        }
+                        }
+                        else{
+                        	clone.querySelector("#follow").classList.add('hidden');
+                        }
+                        
+
+                        if (article.vote_counter > 0) {
+                            clone.querySelector("#vote_counter").classList.add('text-green-600');
+                        } else if (article.vote_counter < 0) {
+                            clone.querySelector("#vote_counter").classList.add('text-red-600');
+                        }
+
+                        // Append the populated template to the appropriate container
+                        document.getElementById('articles_page').appendChild(clone);
+                    });
+
+                    // Update the offset for "For You"
+                    offset += numToLoad;
+                    isLoading = false;
+	               
+	            }
+	        });
+	    }
+
+	    // Load initial data for both sections when the page loads
+	    loadMoreArticles();
+
+	    // Load more articles when scrolling to the bottom
+	    $(window).scroll(function () {
+	        if (isScrolledToBottom()) {
+	            loadMoreArticles();	        
+	        }
+	    });
+
+	    function handleFollow(event) {
+	    	const followed_user_id = event.target.getAttribute('data-user-id');
+
+    		$.ajax({
+		        type: 'POST',
+		        url: '/follow_unfollow',
+		        data: { followed_user_id: followed_user_id },
+		        success: function (data) {
+		        	event.target.textContent = data.status;
+		        }
+		    });
+	    }
+
+	    document.addEventListener('click', function(event) {
+	    	if (event.target.id === 'follow') {
+	    		handleFollow(event);
+	    	}
+	    });
+	</script>
 
 {% endblock %}

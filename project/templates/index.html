@@ -93,7 +93,7 @@
 	            url: '/load_more_questions',
 	            data: { num_to_load: numToLoad, offset: currentOffset},
 	            success: function (data) {
-                    if (data.questions.length === 0) {
+                    if (data.questions.length < numToLoad) {
                         loadComplete = true;
                     }
 

@@ -1,0 +1,577 @@
+{% extends 'base.html' %}
+
+{% block title %}ARTICLE{% endblock %}
+
+{% block content %}
+	
+	<div class="mx-auto max-w-screen-xl px-4 py-8 sm:px-6 lg:px-8">
+		
+		<div id = "main-article-div"> 
+			
+			<div id = "article-head-div" class="flex items-center justify-between mb-3 gap-4">	
+				<h1 class="text-xl font-bold">{{article["title"]}}</h1>
+
+				<a href="{{url_for('write_article')}}"> 
+					<button type="submit" class="rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">Write article</button>
+				</a>
+			</div>
+
+			<div id = "article-and-user-metadata-div">
+				<div class="flex items-start gap-4 mb-2 items-center">
+		      		<p id = "user_name" class="text-gray-500 font-bold">{{article["user_name"]}}</p>
+				    <button id = "follow" data-user-id = {{article.user_id}} class="text-blue-500 {% if (article['user_id'] == user_id) %} hidden {% endif %}">
+			    		{% if (article['following'] == true) %} following {%else%} follow {%endif%}
+					</button>
+		      	</div>
+
+		      	<p id = "created_time" class="text-gray-500">{{article["created_time"]}}</p>
+			</div>
+			
+			<div id = "article-details-div" class="mt-8 grid grid-cols-12 items-start gap-2 sm:gap-0">
+				<div id = "article_votes" class="col-span-1 align-center justify-center">
+					<div class="flex mb-2 align-center justify-center">
+						<button >
+							<img id = "article_upvote_button" 
+								data-article-id = {{article.article_id}} 
+								class = "w-6 hover:bg-indigo-500 rounded-full {%if (article['my_vote'] == 1)%} bg-indigo-500 {%endif%}" 
+								src="https://img.icons8.com/ios/50/circled-chevron-up.png">
+						</button>
+					</div>
+					
+					<div class="flex align-center justify-center">
+						<p id = "article_vote_counter" class="text-l font-bold {% if (article['vote_counter'] > 0) %} text-green-600 {% elif (article['vote_counter'] < 0) %} text-red-600 {% endif %}
+						">
+							{{article["vote_counter"]}}
+						</p>
+					</div>
+	  				
+					<div class="flex mt-2 align-center justify-center">
+						<button>
+							<img id = "article_downvote_button" 
+								data-article-id = {{article.article_id}} 
+								class="w-6 hover:bg-indigo-500 rounded-full {%if (article['my_vote'] == -1)%} bg-indigo-500 {%endif%}" 
+								src="https://img.icons8.com/ios/50/circled-chevron-down.png">
+						</button>	
+					</div>
+					
+				</div>
+
+				<div id = 'article_details' class="col-span-11">
+					{{ article['contents'] |safe }}
+
+					<div id = "article_tags" class="flex items-start gap-4 mt-4">
+						{%if article['tags']%}
+							{% for tag in article['tags'] %}
+								<p class = 'rounded-md py-1 px-2 bg-indigo-400 text-white text-sm'> {{tag}} </p>
+							{% endfor %}
+						{%endif%}
+					</div>
+
+					{%if article['user_id'] == user_id%}
+						<a id="delete_article" href="/delete_article/{{article['article_id']}}">
+							<button class="mt-4 border rounded-lg px-4 py-2 text-sm text-red-700 hover:bg-red-50">Delete article</button>
+						</a>
+					{%endif%}
+				</div>
+
+
+			</div>
+
+			
+		</div>	
+		
+		<hr class="my-4">
+
+		<button id = "show-response-button" type="button" class="rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
+			Show Responses
+		</button>
+
+		<div id = "main-responses-div" class="hidden"> 
+			<hr class="my-4">
+	
+			<h1 id = "article_response_counter" class="text-xl font-bold text-gray-500">{{article["response_counter"]}} Response</h1>
+
+			<div id = "response-list">
+				
+				<template id="response-template">
+					<div id = "complete_repsonse_block" class="grid grid-cols-12 items-start gap-2 sm:gap-0" data-response-id = "">
+						
+						<div id = 'response-votes' class="py-4 col-span-1 align-center justify-center">
+							<div class="flex mb-2 align-center justify-center">
+								<button>
+									<img id="response_upvote_button" 
+										data-response-id = "" 
+										class = 'w-6 hover:bg-indigo-500 rounded-full' 
+										src="https://img.icons8.com/ios/50/circled-chevron-up.png">
+								</button>
+							</div>
+							
+							<div class="flex align-center justify-center">
+								<p id = "response_vote_counter" class="text-l font-bold"></p>
+							</div>
+			  				
+							<div class="flex mt-2 align-center justify-center">
+								<button>
+									<img id="response_downvote_button" 
+									data-response-id = "" 
+									class="w-6 hover:bg-indigo-500 rounded-full" 
+									src="https://img.icons8.com/ios/50/circled-chevron-down.png">
+								</button>	
+							</div>
+						</div>
+
+						<div id = 'response-details' class="col-span-11 p-4">
+							<div id = "response-and-user-metadata-div">
+								<div id = "response-user-data" class="flex items-start gap-4 mb-2 items-center">
+				              		<p id = "user_name" class="text-gray-500 font-bold"></p>
+			              			<button id = "follow" data-user-id = "" class="text-blue-500"></button>
+				              	</div>
+
+				              	<p id = "created_time" class="text-sm text-gray-500 mb-3"></p>	
+							</div>
+		            			              		
+		              		<div id = "response_text" class="sm:text-xl"> </div>
+
+		              		<a id = "delete_response" href="" class="hidden">
+		              			<button class="mt-4 border rounded-lg px-4 py-2 text-sm text-red-700 hover:bg-red-50">Delete Response</button>
+		              		</a>
+			              	
+			              	<div id = "response-comment-div" class="hidden flex items-center justify-between mt-2">
+			              		<div class="flex items-start gap-4 mt-2">
+			              			<p id = "response_counter" class="text-gray-500 text-sm font-bold"></p>
+			              		</div>
+			              		<div class="flex items-end gap-4 mt-2">
+			              			<button id = 'view_comment' class="text-gray-500 text-sm font-semibold">View comments</button>
+			              			<button id = 'add_comment' class="text-gray-500 text-sm font-semibold">Add comment</button>
+			              		</div>
+			              	</div>
+						</div>
+					</div>
+
+		          	<hr>
+					
+		        </template>
+
+			</div>
+
+			<div id = "more-response-div">
+				<button id = "load-more-button" class="hidden mt-4 rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">Load more responses</button>
+
+	        	<p id = "no-more-responses" class="hidden mt-4 text-sm font-semibold">No more responses available</p>
+			</div>
+		</div>
+		
+
+        <form id = "add_response_form" method="post" enctype = "multipart/form-data" class="hidden">
+        	<hr class="my-4">
+			
+			<div>
+				<div class="pb-4">
+					<div class="grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6">
+						<div class="col-span-full">
+					          <h1 class="text-xl font-bold text-gray-500">Share your Response</h1>
+
+					          <div class="mt-2">
+					            <textarea id="response-text" name="response-text" rows="2" class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"></textarea>
+					          </div>
+					          <div class="flex items-center gap-2 mt-2">
+					          	<svg class="h-5 w-5 text-gray-300" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+						            <path fill-rule="evenodd" d="M1.5 6a2.25 2.25 0 012.25-2.25h16.5A2.25 2.25 0 0122.5 6v12a2.25 2.25 0 01-2.25 2.25H3.75A2.25 2.25 0 011.5 18V6zM3 16.06V18c0 .414.336.75.75.75h16.5A.75.75 0 0021 18v-1.94l-2.69-2.689a1.5 1.5 0 00-2.12 0l-.88.879.97.97a.75.75 0 11-1.06 1.06l-5.16-5.159a1.5 1.5 0 00-2.12 0L3 16.061zm10.125-7.81a1.125 1.125 0 112.25 0 1.125 1.125 0 01-2.25 0z" clip-rule="evenodd" />
+						        </svg>
+						        <label for="file-upload" class="cursor-pointer rounded-md bg-white font-semibold text-indigo-600 focus-within:outline-none focus-within:ring-2 focus-within:ring-indigo-600 focus-within:ring-offset-2 hover:text-indigo-500">
+						            <span id = "add-image-text">Add Image</span>
+						            <input id="file-upload" name="file-upload" type="file" class="sr-only" accept=".png, .jpg, .jpeg, .gif">
+					            </label>
+					          </div>
+
+					          <p id = "image-instruction-text" class="hidden mt-3 text-sm leading-6 text-gray-600">Images are useful in a post, but make sure the post is still clear without them. If you post images of code or error messages, copy and paste or type the actual code or message into the post directly. <b>PNG, JPG, GIF up to 2MB</b></p>
+					          
+				        </div>
+					</div>
+				</div>
+			</div>
+
+			<button id = "response-button" type="button" class="rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">Post your response</button>
+		</form>
+
+	</div>
+
+	<script>
+	    var numToLoad = 4;
+	    
+	    var offset = {{ responses|length }};
+	    
+	    var isLoading = false;
+	    var loadComplete = false;
+
+	    const article_id = {{article.article_id}};
+	    const user_id = {{user_id}};
+
+	    const add_response_form = document.getElementById('add_response_form');
+	    const responses = document.getElementById('response-list');
+	    const fileInput = document.getElementById('file-upload');
+
+	    function add_response_to_list(response) {
+			var template = document.getElementById("response-template");
+            var clone = document.importNode(template.content, true);
+            
+            clone.querySelector("#complete_repsonse_block").setAttribute("data-response-id", response.response_id);
+            clone.querySelector("#response_upvote_button").setAttribute("data-response-id", response.response_id);
+            clone.querySelector("#response_downvote_button").setAttribute("data-response-id", response.response_id);
+
+            clone.querySelector("#user_name").textContent = response.user_name;
+            clone.querySelector("#response_counter").textContent = response.response_counter + ' comments';
+            clone.querySelector("#response_text").innerHTML = response.response_text;
+            clone.querySelector("#created_time").textContent = response.created_time;
+            clone.querySelector("#response_vote_counter").textContent = response.vote_counter;
+            clone.querySelector("#follow").setAttribute('data-user-id', response.user_id);
+
+            
+            if(response.my_vote === 1) {
+				clone.querySelector("#response_upvote_button").classList.add('bg-indigo-500');
+            }
+            else if(response.my_vote === -1){
+				clone.querySelector("#response_downvote_button").classList.add('bg-indigo-500');
+            }
+
+            if(response.user_id !== user_id){
+            	if (response.following){
+                	clone.querySelector("#follow").textContent = 'following';
+                }
+                else{
+                	clone.querySelector("#follow").textContent = 'follow';
+                }
+            }
+            else{
+            	clone.querySelector("#follow").classList.add('hidden');
+            	clone.querySelector("#delete_response").classList.remove('hidden');
+			    clone.querySelector("#delete_response").setAttribute("href", '/delete_response/' + response.response_id + '/');
+            }
+
+            if (response.vote_counter > 0) {
+                clone.querySelector("#response_vote_counter").classList.add('text-green-600');
+            } else if (response.vote_counter < 0) {
+                clone.querySelector("#response_vote_counter").classList.add('text-red-600');
+            }
+
+            document.getElementById('response-list').appendChild(clone);
+        }
+
+        function handleFollow(event) {
+	    	const followed_user_id = event.target.getAttribute('data-user-id');
+
+    		$.ajax({
+		        type: 'POST',
+		        url: '/follow_unfollow',
+		        data: { followed_user_id: followed_user_id },
+		        success: function (data) {
+		        	event.target.textContent = data.status;
+		        }
+		    });
+	    }
+
+	    function handlearticleVoteClick(event, post_type, up_or_down_vote) {
+		    // Extract the response_id from the clicked button's data-response-id attribute
+		    var articleId = event.target.getAttribute("data-article-id");
+
+		    var voteCounter = document.querySelector("#article_vote_counter");
+		    var up_vote_button = document.querySelector("#article_upvote_button")
+		    var down_vote_button = document.querySelector("#article_downvote_button")
+		    // Make a POST request to up-vote the response with the responseId
+		    $.ajax({
+		        type: 'POST',
+		        url: '/vote_unvote',
+		        data: { article_id: articleId, post_type: post_type, up_or_down_vote : up_or_down_vote},
+		        success: function (data) {
+
+		        	voteCounter.innerText = data.vote_count;
+
+		        	const my_vote = data.my_vote;
+
+		        	if (my_vote === 0){
+		        		up_vote_button.classList.remove('bg-indigo-500');
+		        		down_vote_button.classList.remove('bg-indigo-500');
+		        	}
+		        	else if (my_vote === 1){
+		        		up_vote_button.classList.remove('bg-indigo-500');
+		        		down_vote_button.classList.remove('bg-indigo-500');
+		        		up_vote_button.classList.add('bg-indigo-500');
+		        	}
+		        	else{
+		        		up_vote_button.classList.remove('bg-indigo-500');
+		        		down_vote_button.classList.remove('bg-indigo-500');
+		        		down_vote_button.classList.add('bg-indigo-500');
+		        	}
+
+		        	if (data.vote_count > 0) {
+		        		voteCounter.classList.remove('text-red-600');
+		        		voteCounter.classList.add('text-green-600');
+		        	}
+		        	else if (data.vote_count < 0){
+		        		voteCounter.classList.add('text-red-600');
+		        		voteCounter.classList.remove('text-green-600');
+		        	}
+		        	else {
+		        		voteCounter.classList.remove('text-red-600');
+		        		voteCounter.classList.remove('text-green-600');
+		        	}
+		        }
+		    });  
+		}
+
+		function handleResponseFormSubmission() {
+	    	const response_text_element = document.getElementById('response-text');
+        	const response_text = response_text_element.value;
+
+        	$.ajax({
+	            type: 'POST',
+	            url: '/add_response',
+	            data: {article_id : article_id, response_text: response_text},
+	            success: function (data) {
+	            	add_response_to_list(data.response);
+	            	response_text_element.value = '';
+	            	document.getElementById('article_response_counter').innerText = data.article_response_counter + ' response';
+	            },
+	            error: function(xhr, status, error) {
+	                console.error('Error adding response:', error);
+	            }
+        	});
+	    }
+
+		function handleResponseVoteClick(event, post_type, up_or_down_vote) {
+		    // Extract the response_id from the clicked button's data-response-id attribute
+		    var responseId = event.target.getAttribute("data-response-id");
+
+		    var responseContainer = document.querySelector(`[data-response-id="${responseId}"]`);
+		    var voteCounter = responseContainer.querySelector("#response_vote_counter");
+		    var up_vote_button = responseContainer.querySelector("#response_upvote_button");
+		    var down_vote_button = responseContainer.querySelector("#response_downvote_button");
+
+		    // Make a POST request to up-vote the response with the responseId
+		    $.ajax({
+		        type: 'POST',
+		        url: '/vote_unvote',
+		        data: { response_id: responseId, post_type: post_type, up_or_down_vote : up_or_down_vote},
+		        success: function (data) {
+
+		        	voteCounter.innerText = data.vote_count;
+		        	const my_vote = data.my_vote;
+
+		        	if (my_vote === 0){
+		        		up_vote_button.classList.remove('bg-indigo-500');
+		        		down_vote_button.classList.remove('bg-indigo-500');
+		        	}
+		        	else if (my_vote === 1){
+		        		up_vote_button.classList.add('bg-indigo-500');
+		        		down_vote_button.classList.remove('bg-indigo-500');
+		        	}
+		        	else{
+						up_vote_button.classList.remove('bg-indigo-500');
+		        		down_vote_button.classList.add('bg-indigo-500');
+		        	}
+
+		        	if (data.vote_count > 0) {
+		        		voteCounter.classList.remove('text-red-600');
+		        		voteCounter.classList.add('text-green-600');
+		        	}
+		        	else if (data.vote_count < 0){
+		        		voteCounter.classList.add('text-red-600');
+		        		voteCounter.classList.remove('text-green-600');
+		        	}
+		        	else {
+		        		voteCounter.classList.remove('text-red-600');
+		        		voteCounter.classList.remove('text-green-600');
+		        	}
+		        }
+		    });   
+		}
+
+	    function loadMoreResponses() {
+
+	    	// Function to load more articles
+
+	        if (loadComplete) {
+	            return;
+	        }
+
+	        if (isLoading) {
+	            return;
+	        }
+
+	        document.getElementById('load-more-button').classList.add('hidden');
+
+	        isLoading = true;
+
+	        var currentOffset = offset;
+
+	        $.ajax({
+	            type: 'POST',
+	            url: '/load_more_responses',
+	            data: { article_id: article_id, num_to_load: numToLoad, offset: currentOffset },
+	            success: function (data) {
+	                if (data.responses.length < numToLoad) {
+	                    loadComplete = true;
+	                }
+
+	                data.responses.forEach(function (response) {
+	                    var template = document.getElementById("response-template");
+	                    var clone = document.importNode(template.content, true);
+	                    
+	                    clone.querySelector("#complete_repsonse_block").setAttribute("data-response-id", response.response_id);
+	                    clone.querySelector("#response_upvote_button").setAttribute("data-response-id", response.response_id);
+	                    clone.querySelector("#response_downvote_button").setAttribute("data-response-id", response.response_id);
+
+	                    clone.querySelector("#user_name").textContent = response.user_name;
+	                    clone.querySelector("#response_counter").textContent = response.response_counter + ' comments';
+	                    clone.querySelector("#response_text").innerHTML	= response.response_text;
+	                    clone.querySelector("#created_time").textContent = response.created_time;
+	                    clone.querySelector("#response_vote_counter").textContent = response.vote_counter;
+	                    clone.querySelector("#follow").setAttribute('data-user-id', response.user_id);
+	                    
+
+	                    if(response.my_vote === 1) {
+							clone.querySelector("#response_upvote_button").classList.add('bg-indigo-500');
+	                    }
+	                    else if(response.my_vote === -1){
+							clone.querySelector("#response_downvote_button").classList.add('bg-indigo-500');
+	                    }
+	                    
+			            if(response.user_id !== user_id){
+			            	if (response.following){
+			                	clone.querySelector("#follow").textContent = 'following';
+			                }
+			                else{
+			                	clone.querySelector("#follow").textContent = 'follow';
+			                }
+			            }
+			            else{
+			            	clone.querySelector("#follow").classList.add('hidden');
+			            	clone.querySelector("#delete_response").classList.remove('hidden');
+			            	clone.querySelector("#delete_response").setAttribute("href", '/delete_response/' + response.response_id + '/');
+			            }
+
+	                    if (response.vote_counter > 0) {
+	                        clone.querySelector("#response_vote_counter").classList.add('text-green-600');
+	                    } else if (response.vote_counter < 0) {
+	                        clone.querySelector("#response_vote_counter").classList.add('text-red-600');
+	                    }
+
+	                    document.getElementById('response-list').appendChild(clone);
+	                });
+
+	                offset += numToLoad;
+	                isLoading = false;
+
+			        if (loadComplete === false){
+			    	    document.getElementById('load-more-button').classList.remove('hidden');
+			        }
+			        else{
+			        	document.getElementById('no-more-responses').classList.remove('hidden');
+			        }
+
+	            }
+	        });
+	    }
+
+	    function showHideResponses(){
+	    	document.getElementById('main-responses-div').classList.remove('hidden');
+	    	document.getElementById('add_response_form').classList.remove('hidden');
+
+	    	if (document.getElementById('show-response-button').innerText === 'Show Responses') {
+	    		document.getElementById('show-response-button').innerText = 'Hide Responses';
+	    	}
+	    	else{
+	    		document.getElementById('show-response-button').innerText = 'Show Responses';
+	    	}
+	    }
+
+		// Add an event listener to handle the up-vote button click
+		document.addEventListener('click', function(event) {
+		    if (event.target.id === 'response_upvote_button') {
+		        handleResponseVoteClick(event, 'response', 'up');
+		    }
+
+		    if (event.target.id === 'response_downvote_button') {
+		        handleResponseVoteClick(event, 'response', 'down');
+		    }
+
+		    if (event.target.id === 'article_upvote_button'){
+		    	handlearticleVoteClick(event, 'article', 'up');
+		    }
+
+		    if (event.target.id === 'article_downvote_button'){
+		    	handlearticleVoteClick(event, 'article', 'down');
+		    }
+
+		    if (event.target.id === 'follow') {
+	    		handleFollow(event);
+	    	}
+
+		    if (event.target.id === 'response-button') {
+		    	handleResponseFormSubmission();
+		    }
+
+		    // Load more responses when the "Load More" button is clicked
+		    if (event.target.id === 'load-more-button') {
+		    	loadMoreResponses();
+		    }
+
+		    if (event.target.id === 'show-response-button') {
+		    	showHideResponses();
+		    }
+		});
+
+		fileInput.addEventListener('change', function () {
+            const file = fileInput.files[0];
+            
+            document.getElementById("image-instruction-text").classList.remove('hidden');
+
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                	
+                	const formData = new FormData();
+                	formData.append("image", fileInput.files[0]);
+                	
+                	//update the text of button to display adding image and make the button inactive
+                	document.getElementById('file-upload').disabled = true;
+                	document.getElementById('add-image-text').innerText = 'Adding image to response...';
+                	document.getElementById('response-button').disabled = true;
+                	document.getElementById('response-button').innerText = 'Uploading Image';
+
+                	// Make an AJAX request to the Flask server
+	                fetch('/upload_image', {
+	                    method: 'POST',
+	                    body: formData
+	                })
+	                .then(response => response.json())
+	                .then(data => {
+	                    const imageUrl = data.url;
+	                    const imageMarkdown = `![Alt Text](${imageUrl})`;
+	                    const markdownInput = document.getElementById("response-text");
+	                    markdownInput.value += imageMarkdown;
+
+	                    //on success revert back the text on "add image button" and make it active
+                		document.getElementById('file-upload').disabled = false;
+                		document.getElementById('add-image-text').innerText = 'Add Image';
+                		document.getElementById('response-button').disabled = false;
+                		document.getElementById('response-button').innerText = 'Post your response';
+	                })
+	                .catch(error => {
+	                    console.error('Error uploading image:', error);
+                		document.getElementById('file-upload').disabled = false;
+                		document.getElementById('add-image-text').innerText = 'Add Image';
+                		document.getElementById('response-button').disabled = false;
+                		document.getElementById('response-button').innerText = 'Post your response';
+	                });
+
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+		// Load initial data for both sections when the page loads
+	    loadMoreResponses();
+	</script>
+
+{% endblock %}
