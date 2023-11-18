@@ -1,3 +1,20 @@
+# Update the requirements.txt file
+
+1. `pip freeze > requirements.txt`
+
+# Build Tailwind CSS file
+
+Steps to follow for set up : [https://tailwindcss.com/docs/installation](https://tailwindcss.com/docs/installation)
+
+1. `npx tailwindcss -i ./project/static/CSS/input.css -o ./project/static/CSS/output.css`
+
+# Update GitHub Repository
+
+1. check status of changes made: `git status`
+2. stage changes: `git add .`
+3. `git commit -m "msg"`
+4. `git push origin main` 
+
 # To deploy the latest version of app from local environment to cloud
 
 1. `gcloud run deploy quick-minds --source .`
