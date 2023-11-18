@@ -39,13 +39,11 @@
 			            			</div>
 			            		</div>
 			              		
-			              		<div id = "article_tags" class="flex flex-wrap items-start gap-4 mt-4"> 
+			              		<div id = "article_tags" class="flex flex-wrap items-start gap-4 mt-4"> </div>
 
-			              		<div class="flex items-start gap-4 mt-2">
+			              		<div id = "votes_and_responses" class="flex items-start gap-4 mt-4">
 			              			<p id = "vote_counter" class="text-gray-500 text-sm font-bold"></p>
 			              			<p id = "response_counter" class="text-gray-500 text-sm font-bold"></p>
-			              		</div>
-			              		
 			              		</div>
 			            	</div>
 			          	</a>
@@ -146,10 +144,11 @@
                         	clone.querySelector("#follow").classList.add('hidden');
                         }
                         
-
                         if (article.vote_counter > 0) {
+                        	console.log(article.vote_counter);
                             clone.querySelector("#vote_counter").classList.add('text-green-600');
                         } else if (article.vote_counter < 0) {
+                        	console.log(article.vote_counter);
                             clone.querySelector("#vote_counter").classList.add('text-red-600');
                         }
 

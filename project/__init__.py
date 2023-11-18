@@ -39,16 +39,6 @@ def articles():
 	else:
 		return redirect(url_for('login'))
 
-@app.route('/article_preview')
-def article_preview():
-	if session.get('user_id'):
-		return render_template('article_preview.html',
-			user_id = session['user_id'],
-			user_name = session['user_name'], 
-			user_picture_url = session['user_picture_url'])
-	else:
-		return redirect(url_for('login'))
-
 @app.route('/write_article', methods = ('GET', 'POST'))
 def write_article():
 	if session.get('user_id'):
@@ -68,14 +58,6 @@ def write_article():
 				user_picture_url = session['user_picture_url'])
 	else:
 		return redirect(url_for('login'))
-
-@app.route('/get_article_preview', methods = ['POST'])
-def get_article_preview():
-	article_id = int(request.form.get('article_id'))
-
-	preview = utils.get_article_preview(user_id = session['user_id'], article_id = article_id)
-
-	return jsonify({'preview' : preview})
 
 @app.route('/article/<int:article_id>/', methods = ('GET', 'POST'))	
 def article(article_id):
@@ -119,10 +101,32 @@ def load_more_article_responses():
 	limit = int(request.form.get('num_to_load'))
 	offset = int(request.form.get('offset'))
 
-	article_responses = utils.load_more_article_responses(user_id = session['user_id'], 
-		article_id = article_id, limit = limit, offset = offset)
+	article_responses = utils.load_more_article_responses(
+		user_id = session['user_id'], 
+		article_id = article_id, 
+		limit = limit, 
+		offset = offset
+	)
 
 	return ({'article_responses' : article_responses})
+
+@app.route('/article_preview')
+def article_preview():
+	if session.get('user_id'):
+		return render_template('article_preview.html',
+			user_id = session['user_id'],
+			user_name = session['user_name'], 
+			user_picture_url = session['user_picture_url'])
+	else:
+		return redirect(url_for('login'))
+
+@app.route('/get_article_preview', methods = ['POST'])
+def get_article_preview():
+	article_id = int(request.form.get('article_id'))
+
+	preview = utils.get_article_preview(user_id = session['user_id'], article_id = article_id)
+
+	return jsonify({'preview' : preview})
 
 @app.route('/handle_article_vote', methods = ['POST'])	
 def handle_article_vote():

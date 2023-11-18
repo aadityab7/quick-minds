@@ -107,7 +107,7 @@
 						<div id = 'response-votes' class="py-4 col-span-1 align-center justify-center">
 							<div class="flex mb-2 align-center justify-center">
 								<button>
-									<svg id="response_upvote_button" data-response-id = "" class="w-4 h-4 sm:w-6 sm:h-6 text-gray-800 hover:text-indigo-500 {%if (article['my_vote'] == 1)%} text-indigo-500 {%endif%}" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 6">
+									<svg id="response_upvote_button" data-response-id = "" class="w-4 h-4 sm:w-6 sm:h-6 text-gray-800 hover:text-indigo-500" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 6">
 										<path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5 5 1 1 5"/>
 									</svg>
 								</button>
@@ -122,7 +122,7 @@
 									<svg 
 										id="response_downvote_button" 
 										data-response-id = "" 
-										class="w-4 h-4 sm:w-6 sm:h-6 text-gray-800 hover:text-indigo-500 {%if (article['my_vote'] == -1)%} text-indigo-500 {%endif%}" 
+										class="w-4 h-4 sm:w-6 sm:h-6 text-gray-800 hover:text-indigo-500" 
 										aria-hidden="true" 
 										xmlns="http://www.w3.org/2000/svg" 
 										fill="none" 
@@ -242,10 +242,10 @@
 
             
             if(response.my_vote === 1) {
-				clone.querySelector("#response_upvote_button").classList.add('bg-indigo-500');
+				clone.querySelector("#response_upvote_button").classList.add('text-indigo-500');
             }
             else if(response.my_vote === -1){
-				clone.querySelector("#response_downvote_button").classList.add('bg-indigo-500');
+				clone.querySelector("#response_downvote_button").classList.add('text-indigo-500');
             }
 
             if(response.user_id !== user_id){
@@ -284,19 +284,21 @@
 		    });
 	    }
 
-	    function handlearticleVoteClick(event, post_type, up_or_down_vote) {
+	    function handleArticleVoteClick(event, up_or_down_vote) {
+	    	console.log(article_id);
+	    	console.log("article");
+	    	console.log(up_or_down_vote);
+
 		    // Extract the response_id from the clicked button's data-response-id attribute
 		    var voteCounter = document.querySelector("#article_vote_counter");
-		    var up_vote_button = document.querySelector("#article_upvote_button")
-		    var down_vote_button = document.querySelector("#article_downvote_button")
-
-		    
+		    var up_vote_button = document.querySelector("#article_upvote_button");
+		    var down_vote_button = document.querySelector("#article_downvote_button");
 
 		    // Make a POST request to up-vote the response with the responseId
 		    $.ajax({
 		        type: 'POST',
-		        url: '/vote_unvote',
-		        data: { article_id: article_id, post_type: post_type, up_or_down_vote : up_or_down_vote},
+		        url: '/handle_article_vote',
+		        data: { article_id: article_id, up_or_down_vote : up_or_down_vote},
 		        success: function (data) {
 
 		        	voteCounter.innerText = data.vote_count;
@@ -304,18 +306,18 @@
 		        	const my_vote = data.my_vote;
 
 		        	if (my_vote === 0){
-		        		up_vote_button.classList.remove('bg-indigo-500');
-		        		down_vote_button.classList.remove('bg-indigo-500');
+		        		up_vote_button.classList.remove('text-indigo-500');
+		        		down_vote_button.classList.remove('text-indigo-500');
 		        	}
 		        	else if (my_vote === 1){
-		        		up_vote_button.classList.remove('bg-indigo-500');
-		        		down_vote_button.classList.remove('bg-indigo-500');
-		        		up_vote_button.classList.add('bg-indigo-500');
+		        		up_vote_button.classList.remove('text-indigo-500');
+		        		down_vote_button.classList.remove('text-indigo-500');
+		        		up_vote_button.classList.add('text-indigo-500');
 		        	}
 		        	else{
-		        		up_vote_button.classList.remove('bg-indigo-500');
-		        		down_vote_button.classList.remove('bg-indigo-500');
-		        		down_vote_button.classList.add('bg-indigo-500');
+		        		up_vote_button.classList.remove('text-indigo-500');
+		        		down_vote_button.classList.remove('text-indigo-500');
+		        		down_vote_button.classList.add('text-indigo-500');
 		        	}
 
 		        	if (data.vote_count > 0) {
@@ -353,36 +355,40 @@
         	});
 	    }
 
-		function handleResponseVoteClick(event, post_type, up_or_down_vote) {
+		function handleArticleResponseVoteClick(event, up_or_down_vote) {
 		    // Extract the response_id from the clicked button's data-response-id attribute
-		    var responseId = event.target.getAttribute("data-response-id");
+		    var articleResponseId = event.target.getAttribute("data-response-id");
 
-		    var responseContainer = document.querySelector(`[data-response-id="${responseId}"]`);
+		    var responseContainer = document.querySelector(`[data-response-id="${articleResponseId}"]`);
 		    var voteCounter = responseContainer.querySelector("#response_vote_counter");
 		    var up_vote_button = responseContainer.querySelector("#response_upvote_button");
 		    var down_vote_button = responseContainer.querySelector("#response_downvote_button");
 
-		    // Make a POST request to up-vote the response with the responseId
+		    console.log("article response vote click!!");
+		    console.log(articleResponseId);
+		    console.log(up_or_down_vote);
+
+		    // Make a POST request to up-vote the response with the articleResponseId
 		    $.ajax({
 		        type: 'POST',
-		        url: '/vote_unvote',
-		        data: { response_id: responseId, post_type: post_type, up_or_down_vote : up_or_down_vote},
+		        url: '/handle_article_response_vote',
+		        data: { article_response_id: articleResponseId, up_or_down_vote : up_or_down_vote },
 		        success: function (data) {
 
 		        	voteCounter.innerText = data.vote_count;
 		        	const my_vote = data.my_vote;
 
 		        	if (my_vote === 0){
-		        		up_vote_button.classList.remove('bg-indigo-500');
-		        		down_vote_button.classList.remove('bg-indigo-500');
+		        		up_vote_button.classList.remove('text-indigo-500');
+		        		down_vote_button.classList.remove('text-indigo-500');
 		        	}
 		        	else if (my_vote === 1){
-		        		up_vote_button.classList.add('bg-indigo-500');
-		        		down_vote_button.classList.remove('bg-indigo-500');
+		        		up_vote_button.classList.add('text-indigo-500');
+		        		down_vote_button.classList.remove('text-indigo-500');
 		        	}
 		        	else{
-						up_vote_button.classList.remove('bg-indigo-500');
-		        		down_vote_button.classList.add('bg-indigo-500');
+						up_vote_button.classList.remove('text-indigo-500');
+		        		down_vote_button.classList.add('text-indigo-500');
 		        	}
 
 		        	if (data.vote_count > 0) {
@@ -445,10 +451,10 @@
 	                    
 
 	                    if(article_response.my_vote === 1) {
-							clone.querySelector("#response_upvote_button").classList.add('bg-indigo-500');
+							clone.querySelector("#response_upvote_button").classList.add('text-indigo-500');
 	                    }
 	                    else if(article_response.my_vote === -1){
-							clone.querySelector("#response_downvote_button").classList.add('bg-indigo-500');
+							clone.querySelector("#response_downvote_button").classList.add('text-indigo-500');
 	                    }
 	                    
 			            if(article_response.user_id !== user_id){
@@ -503,19 +509,19 @@
 		// Add an event listener to handle the up-vote button click
 		document.addEventListener('click', function(event) {
 		    if (event.target.id === 'response_upvote_button') {
-		        handleResponseVoteClick(event, 'article_response', 'up');
+		        handleArticleResponseVoteClick(event, 'up');
 		    }
 
 		    if (event.target.id === 'response_downvote_button') {
-		        handleResponseVoteClick(event, 'article_response', 'down');
+		        handleArticleResponseVoteClick(event, 'down');
 		    }
 
 		    if (event.target.id === 'article_upvote_button'){
-		    	handlearticleVoteClick(event, 'article', 'up');
+		    	handleArticleVoteClick(event, 'up');
 		    }
 
 		    if (event.target.id === 'article_downvote_button'){
-		    	handlearticleVoteClick(event, 'article', 'down');
+		    	handleArticleVoteClick(event, 'down');
 		    }
 
 		    if (event.target.id === 'follow') {

@@ -337,7 +337,9 @@ CREATE TABLE Article_Vote (
     CONSTRAINT fk_post_vote_app_user
         FOREIGN KEY(user_id) 
         REFERENCES App_user(user_id)
-        ON DELETE CASCADE
+        ON DELETE CASCADE,
+
+    PRIMARY KEY (article_id, user_id)  
 );
 
 CREATE TABLE Article_Response_Vote (
@@ -353,7 +355,9 @@ CREATE TABLE Article_Response_Vote (
     CONSTRAINT fk_post_vote_app_user
         FOREIGN KEY(user_id) 
         REFERENCES App_user(user_id)
-        ON DELETE CASCADE
+        ON DELETE CASCADE,
+
+    PRIMARY KEY (article_response_id, user_id)
 );
 
 CREATE TABLE Article_Response_Comment (

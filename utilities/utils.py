@@ -1571,13 +1571,15 @@ def get_article(
 		SELECT
 		    au.*, 
 		    CASE WHEN f.followed_user_id IS NULL THEN false ELSE true END AS following,
-		    0 as my_vote
+		    CASE WHEN av.val IS NULL THEN 0 WHEN av.val = 1 THEN 1 ELSE -1 END AS my_vote
 		FROM Article_User au
 	    LEFT JOIN Follow f
 	    	ON au.author_user_id = f.followed_user_id AND f.follower_user_id = %s
+    	LEFT JOIN Article_Vote as av
+	    	ON au.article_id = av.article_id AND av.user_id = %s
 	"""
 
-	cur.execute(query, (article_id, user_id))
+	cur.execute(query, (article_id, user_id, user_id))
 
 	article = cur.fetchone()
 
@@ -1725,15 +1727,17 @@ def load_more_article_responses(
 		SELECT
 		    aru.*, 
 		    CASE WHEN f.followed_user_id IS NULL THEN false ELSE true END AS following,
-		    0 AS my_vote
+		    CASE WHEN arv.val IS NULL THEN 0 WHEN arv.val = 1 THEN 1 ELSE -1 END AS my_vote
 		FROM
 		    ArticleResponse_User aru
 		    LEFT JOIN Follow f
 		    	ON aru.author_user_id = f.followed_user_id AND f.follower_user_id = %s
+		    LEFT JOIN Article_Response_Vote as arv
+		    	ON aru.article_response_id = arv.article_response_id AND arv.user_id = %s
 		LIMIT %s OFFSET %s
 	"""
 
-	cur.execute(query, (article_id, user_id, limit, offset))
+	cur.execute(query, (article_id, user_id, user_id, limit, offset))
 
 	article_responses = cur.fetchall()
 
@@ -1767,14 +1771,140 @@ def handle_article_vote(
 	article_id: int,
 	up_or_down_vote: str
 ):
-	pass
+	conn = get_db_connection()
+	cur = conn.cursor()
+
+	#check if user has a vote on this post or not and if yes what vote
+	query = "SELECT val FROM Article_Vote WHERE article_id = %s AND user_id = %s"
+	cur.execute(query, (article_id, user_id))
+	result = cur.fetchone()
+
+	if result is None:
+		#no existing vote
+		#cast new vote
+		if up_or_down_vote == 'up':
+			#only add up vote
+			my_vote = +1
+			counter_update = +1
+		else:
+			#only add down vote
+			my_vote = -1
+			counter_update = -1
+	else:
+		#vote already exists
+		val = result[0]
+
+		#remove the existing vote
+		query = "DELETE FROM Article_Vote WHERE article_id = %s AND user_id = %s"
+		cur.execute(query, (article_id, user_id))
+		conn.commit()
+
+		if up_or_down_vote == 'up':
+			if val == 1:
+				#remove up vote
+				my_vote = 0
+				counter_update = -1
+			else:
+				#remove down vote - also we'll have to add a up vote
+				my_vote = +1
+				counter_update = +2
+		else:
+			if val == 1:
+				#remove up vote - also we'll have to add a down vote
+				my_vote = -1
+				counter_update = -2
+			else:
+				#remove down vote
+				my_vote = 0
+				counter_update = +1
+
+	if my_vote != 0:
+		query = "INSERT INTO Article_Vote (article_id, user_id, val) VALUES (%s, %s, %s)"
+		cur.execute(query, (article_id, user_id, my_vote))
+		conn.commit()
+
+	query = "UPDATE Article SET vote_counter = vote_counter + %s WHERE article_id = %s"
+	cur.execute(query, (counter_update, article_id))
+	conn.commit()
+
+	query = "SELECT vote_counter FROM Article WHERE article_id = %s"
+	cur.execute(query, (article_id,))
+	vote_count = cur.fetchone()[0]
+
+	cur.close()
+	conn.close()
+
+	return vote_count, my_vote
 
 def handle_article_response_vote(
 	user_id: int,
 	article_response_id: int,
 	up_or_down_vote: str
 ):
-	pass
+	conn = get_db_connection()
+	cur = conn.cursor()
+
+	#check if user has a vote on this post or not and if yes what vote
+	query = "SELECT val FROM Article_Response_Vote WHERE article_response_id = %s AND user_id = %s"
+	cur.execute(query, (article_response_id, user_id))
+	result = cur.fetchone()
+
+	if result is None:
+		#no existing vote
+		#cast new vote
+		if up_or_down_vote == 'up':
+			#only add up vote
+			my_vote = +1
+			counter_update = +1
+		else:
+			#only add down vote
+			my_vote = -1
+			counter_update = -1
+	else:
+		#vote already exists
+		val = result[0]
+
+		#remove the existing vote
+		query = "DELETE FROM Article_Response_Vote WHERE article_response_id = %s AND user_id = %s"
+		cur.execute(query, (article_response_id, user_id))
+		conn.commit()
+
+		if up_or_down_vote == 'up':
+			if val == 1:
+				#remove up vote
+				my_vote = 0
+				counter_update = -1
+			else:
+				#remove down vote - also we'll have to add a up vote
+				my_vote = +1
+				counter_update = +2
+		else:
+			if val == 1:
+				#remove up vote - also we'll have to add a down vote
+				my_vote = -1
+				counter_update = -2
+			else:
+				#remove down vote
+				my_vote = 0
+				counter_update = +1
+
+	if my_vote != 0:
+		query = "INSERT INTO Article_Response_Vote (article_response_id, user_id, val) VALUES (%s, %s, %s)"
+		cur.execute(query, (article_response_id, user_id, my_vote))
+		conn.commit()
+
+	query = "UPDATE Article_Response SET vote_counter = vote_counter + %s WHERE article_response_id = %s"
+	cur.execute(query, (counter_update, article_response_id))
+	conn.commit()
+
+	query = "SELECT vote_counter FROM Article_Response WHERE article_response_id = %s"
+	cur.execute(query, (article_response_id,))
+	vote_count = cur.fetchone()[0]
+
+	cur.close()
+	conn.close()
+
+	return vote_count, my_vote
 
 def article_search(
 	user_id: int,
