@@ -562,8 +562,6 @@
 	    }
 
 	    function loadWebSearchResults() {
-	    	document.getElementById('main-related-web-search-div').classList.remove('hidden');
-
 	    	if (webSearchLoadComplete) {
 	            return;
 	        }
@@ -585,6 +583,9 @@
 	            success: function (data) {
 	                if (data.web_search_results.length < numToLoad) {
 	                    webSearchLoadComplete = true;
+	                }
+	                else{
+	                	document.getElementById('main-related-web-search-div').classList.remove('hidden');
 	                }
 
 	                data.web_search_results.forEach(function (web_search_result) {
@@ -612,8 +613,6 @@
 	    }
 
 	    function loadMoreVideoResults() {
-	    	document.getElementById('main-related-video-div').classList.remove('hidden');
-
 	    	if (videoLoadComplete) {
 	            return;
 	        }
@@ -635,6 +634,9 @@
 	            success: function (data) {
 	                if (data.video_results.length < numToLoad) {
 	                    videoLoadComplete = true;
+	                }
+	                else{
+	    				document.getElementById('main-related-video-div').classList.remove('hidden');
 	                }
 
 	                data.video_results.forEach(function (video_result) {
@@ -665,8 +667,6 @@
 	    }
 
 		function loadMoreSimilarQuestions() {
-			document.getElementById('main-similar-question-div').classList.remove('hidden');
-
 			if (similarQuestionLoadComplete) {
 	            return;
 	        }
@@ -686,10 +686,11 @@
 	            url: '/load_more_related_questions',
 	            data: { question_id: question_id, num_to_load: numToLoad, offset: currentOffset },
 	            success: function (data) {
-	            	
-
 	                if (data.similar_questions.length < numToLoad) {
 	                    similarQuestionLoadComplete = true;
+	                }
+	                else{
+						document.getElementById('main-similar-question-div').classList.remove('hidden');
 	                }
 
 	                data.similar_questions.forEach(function (similar_question) {

@@ -57,7 +57,8 @@ def write_article():
 			contents = request.form.get('article-contents')
 			tags = request.form.get('article-tags')
 
-			article_id = utils.add_article(user_id = session['user_id'], title = title, contents = contents, tags = tags)
+			article_id = utils.add_article(user_id = session['user_id'], title = title, 
+				contents = contents, tags = tags)
 
 			return redirect(url_for('article', article_id = article_id))
 		else:
@@ -98,7 +99,8 @@ def add_article_response():
 	article_id = int(request.form.get('article_id'))
 	contents = request.form.get('contents')
 
-	article_response, article_response_counter = utils.add_article_response(user_id = session['user_id'], article_id = article_id, contents = contents)
+	article_response, article_response_counter = utils.add_article_response(user_id = session['user_id'], 
+		article_id = article_id, contents = contents)
 
 	return({'article_response' : article_response, 'article_response_counter' : article_response_counter})
 
@@ -113,12 +115,12 @@ def load_more_articles():
 
 @app.route('/load_more_article_responses', methods = ['POST'])	
 def load_more_article_responses():
-	user_id = int(request.form.get('user_id'))
 	article_id = int(request.form.get('article_id'))
-	limit = int(request.form.get('limit'))
+	limit = int(request.form.get('num_to_load'))
 	offset = int(request.form.get('offset'))
 
-	article_responses = utils.load_more_article_responses(user_id = user_id, article_id = article_id, limit = limit, offset = offset)
+	article_responses = utils.load_more_article_responses(user_id = session['user_id'], 
+		article_id = article_id, limit = limit, offset = offset)
 
 	return ({'article_responses' : article_responses})
 
@@ -127,7 +129,8 @@ def handle_article_vote():
 	article_id = int(request.form.get('article_id'))
 	up_or_down_vote = request.form.get('up_or_down_vote')
 
-	vote_count, my_vote = utils.handle_article_vote(user_id = session['user_id'], article_id = article_id, up_or_down_vote = up_or_down_vote)
+	vote_count, my_vote = utils.handle_article_vote(user_id = session['user_id'], 
+		article_id = article_id, up_or_down_vote = up_or_down_vote)
 
 	return jsonify({'vote_count' : vote_count, 'my_vote' : my_vote})
 
@@ -136,7 +139,8 @@ def handle_article_response_vote():
 	article_response_id = int(request.form.get('article_response_id'))
 	up_or_down_vote = request.form.get('up_or_down_vote')
 
-	vote_count, my_vote = utils.handle_article_response_vote(user_id = session['user_id'], article_response_id = article_response_id, up_or_down_vote = up_or_down_vote)
+	vote_count, my_vote = utils.handle_article_response_vote(user_id = session['user_id'], 
+		article_response_id = article_response_id, up_or_down_vote = up_or_down_vote)
 
 	return jsonify({'vote_count' : vote_count, 'my_vote' : my_vote})
 
@@ -145,7 +149,8 @@ def add_article_response_comment():
 	article_id = int(request.form.get('article_id'))
 	contents = request.form.get('contents')
 
-	response = utils.add_article_response_comment(user_id = session['user_id'], article_id = article_id, contents = contents)
+	response = utils.add_article_response_comment(user_id = session['user_id'], article_id = article_id, 
+		contents = contents)
 
 	return jsonify({'response': response})
 
@@ -156,7 +161,8 @@ def load_more_article_response_comments():
 	limit = int(request.form.get('limit'))
 	offset = int(request.form.get('offset'))
 
-	article_response_comments = utils.load_more_article_response_comments(user_id = user_id, article_response_id = article_response_id, limit = limit, offset = offset)
+	article_response_comments = utils.load_more_article_response_comments(user_id = user_id, 
+		article_response_id = article_response_id, limit = limit, offset = offset)
 
 	return jsonify({'article_response_comments' : article_response_comments})
 
@@ -180,7 +186,8 @@ def delete_article(article_id):
 def delete_article_response(article_response_id):
 	if session.get('user_id'):
 		#GET user_id and response_id
-		response_status = utils.delete_article_response(user_id = session['user_id'], article_response_id = article_response_id)
+		response_status = utils.delete_article_response(user_id = session['user_id'], 
+			article_response_id = article_response_id)
 
 		if response_status == "OK":
 			flash("Article Response deleted successfully!")
@@ -198,7 +205,8 @@ def article_search():
 	limit =  int(request.form.get('num_to_load'))
 	offset =  int(request.form.get('offset'))
 
-	article_search_results = utils.article_search(user_id = user_id, search_query = search_query, limit = limit, offset = offset)
+	article_search_results = utils.article_search(user_id = user_id, 
+		search_query = search_query, limit = limit, offset = offset)
 
 	return jsonify({'article_search_results' : article_search_results})
 
@@ -229,7 +237,8 @@ def add_response():
 		flash("Please enter response text")
 		return redirect(request.referrer)
 
-	response, question_response_counter = utils.add_response(user_id = session['user_id'], question_id = question_id, response_text = response_text)
+	response, question_response_counter = utils.add_response(user_id = session['user_id'], 
+		question_id = question_id, response_text = response_text)
 
 	if response == -1:
 		flash("An error occured")
@@ -252,7 +261,10 @@ def ask_question():
 			elif not question_details:
 				flash('question details are required!')
 			else:
-				question_id = utils.add_question(user_id = session['user_id'], question_title = question_title, question_text = question_details, question_tags = question_tags)
+				question_id = utils.add_question(user_id = session['user_id'], 
+					question_title = question_title, 
+					question_text = question_details, 
+					question_tags = question_tags)
 
 				if question_id == -1:
 					flash("An error occured")

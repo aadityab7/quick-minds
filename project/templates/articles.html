@@ -20,26 +20,26 @@
 		        <template id="article-template">
 		        	<div class="p-4">
 		        		<div class="sm:flex items-start gap-4 items-center pb-2">
-		              		<p id = "user_name" class="text-gray-500 font-bold"></p>
-		              		<p class="hidden sm:block text-sm text-gray-500">|</p>
+		              		<p id = "user_name" class="text-gray-500 font-semibold"></p>
 		              		<button id = "follow" data-user-id = "" class="text-blue-500"></button>
-		              		<p class="hidden sm:block text-sm text-gray-500">|</p>
 			              	<p id = "created_time" class="text-sm text-gray-500"></p>
 		              	</div>
 
 			          	<a href="">
 			            	<div class="article-list-box">
 
-			            		<div class="sm:flex justify-between items-center">
-				            		<div>
+			            		<div class="grid grid-cols-12">
+				            		<div class="col-span-full sm:col-span-9">
 					              		<h1 id = "article_title" class="text-xl font-bold"> </h1>
-					              		<p id = "article_description" class="text-gray-500"></p>
+					              		<p id = "article_description" class="mt-2"></p>
 				            		</div>
-			            		
-			            			<img id = "article_thumbnail_image" src="">
+			            			
+			            			<div class="col-span-full sm:col-end-13 sm:col-span-2 flex items-center sm:justify-end">
+			            				<img id = "article_thumbnail_image" src="" class="max-h-24 max-w-24 mt-4 sm:mt-0">
+			            			</div>
 			            		</div>
 			              		
-			              		<div id = "article_tags" class="flex items-start gap-4 mt-4"> 
+			              		<div id = "article_tags" class="flex flex-wrap items-start gap-4 mt-4"> 
 
 			              		<div class="flex items-start gap-4 mt-2">
 			              			<p id = "vote_counter" class="text-gray-500 text-sm font-bold"></p>
@@ -51,7 +51,7 @@
 			          	</a>
 		        	</div>
 		        	
-		          	<hr>
+		          	<hr class="mt-4">
 		        </template>
 		    </div>
 	    </div>

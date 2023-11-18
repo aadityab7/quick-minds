@@ -31,15 +31,20 @@
 				<div id = "article_votes" class="col-span-1 align-center justify-center">
 					<div class="flex mb-2 align-center justify-center">
 						<button >
-							<img id = "article_upvote_button" 
-								data-article-id = {{article.article_id}} 
-								class = "w-6 hover:bg-indigo-500 rounded-full {%if (article['my_vote'] == 1)%} bg-indigo-500 {%endif%}" 
-								src="https://img.icons8.com/ios/50/circled-chevron-up.png">
+							<svg 
+								id = "article_upvote_button" 
+								class="w-4 h-4 sm:w-6 sm:h-6 text-gray-800 hover:text-indigo-500 {%if (article['my_vote'] == 1)%} text-indigo-500 {%endif%}" aria-hidden="true" 
+								xmlns="http://www.w3.org/2000/svg" 
+								fill="none" 
+								viewBox="0 0 10 6"
+							>
+								<path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5 5 1 1 5"/>
+							</svg>
 						</button>
 					</div>
 					
 					<div class="flex align-center justify-center">
-						<p id = "article_vote_counter" class="text-l font-bold {% if (article['vote_counter'] > 0) %} text-green-600 {% elif (article['vote_counter'] < 0) %} text-red-600 {% endif %}
+						<p id = "article_vote_counter" class="sm:text-lg font-bold {% if (article['vote_counter'] > 0) %} text-green-600 {% elif (article['vote_counter'] < 0) %} text-red-600 {% endif %}
 						">
 							{{article["vote_counter"]}}
 						</p>
@@ -47,10 +52,15 @@
 	  				
 					<div class="flex mt-2 align-center justify-center">
 						<button>
-							<img id = "article_downvote_button" 
-								data-article-id = {{article.article_id}} 
-								class="w-6 hover:bg-indigo-500 rounded-full {%if (article['my_vote'] == -1)%} bg-indigo-500 {%endif%}" 
-								src="https://img.icons8.com/ios/50/circled-chevron-down.png">
+							<svg 
+								id = "article_downvote_button" 
+								class="w-4 h-4 sm:w-6 sm:h-6 text-gray-800 hover:text-indigo-500 {%if (article['my_vote'] == -1)%} text-indigo-500 {%endif%}" aria-hidden="true" 
+								xmlns="http://www.w3.org/2000/svg" 
+								fill="none" 
+								viewBox="0 0 10 6"
+							>
+								<path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 4 4 4-4"/>
+							</svg>
 						</button>	
 					</div>
 					
@@ -76,8 +86,6 @@
 
 
 			</div>
-
-			
 		</div>	
 		
 		<hr class="my-4">
@@ -99,10 +107,9 @@
 						<div id = 'response-votes' class="py-4 col-span-1 align-center justify-center">
 							<div class="flex mb-2 align-center justify-center">
 								<button>
-									<img id="response_upvote_button" 
-										data-response-id = "" 
-										class = 'w-6 hover:bg-indigo-500 rounded-full' 
-										src="https://img.icons8.com/ios/50/circled-chevron-up.png">
+									<svg id="response_upvote_button" data-response-id = "" class="w-4 h-4 sm:w-6 sm:h-6 text-gray-800 hover:text-indigo-500 {%if (article['my_vote'] == 1)%} text-indigo-500 {%endif%}" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 6">
+										<path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5 5 1 1 5"/>
+									</svg>
 								</button>
 							</div>
 							
@@ -112,10 +119,17 @@
 			  				
 							<div class="flex mt-2 align-center justify-center">
 								<button>
-									<img id="response_downvote_button" 
-									data-response-id = "" 
-									class="w-6 hover:bg-indigo-500 rounded-full" 
-									src="https://img.icons8.com/ios/50/circled-chevron-down.png">
+									<svg 
+										id="response_downvote_button" 
+										data-response-id = "" 
+										class="w-4 h-4 sm:w-6 sm:h-6 text-gray-800 hover:text-indigo-500 {%if (article['my_vote'] == -1)%} text-indigo-500 {%endif%}" 
+										aria-hidden="true" 
+										xmlns="http://www.w3.org/2000/svg" 
+										fill="none" 
+										viewBox="0 0 10 6"
+									>
+										<path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 4 4 4-4"/>
+									</svg>
 								</button>	
 							</div>
 						</div>
@@ -272,16 +286,17 @@
 
 	    function handlearticleVoteClick(event, post_type, up_or_down_vote) {
 		    // Extract the response_id from the clicked button's data-response-id attribute
-		    var articleId = event.target.getAttribute("data-article-id");
-
 		    var voteCounter = document.querySelector("#article_vote_counter");
 		    var up_vote_button = document.querySelector("#article_upvote_button")
 		    var down_vote_button = document.querySelector("#article_downvote_button")
+
+		    
+
 		    // Make a POST request to up-vote the response with the responseId
 		    $.ajax({
 		        type: 'POST',
 		        url: '/vote_unvote',
-		        data: { article_id: articleId, post_type: post_type, up_or_down_vote : up_or_down_vote},
+		        data: { article_id: article_id, post_type: post_type, up_or_down_vote : up_or_down_vote},
 		        success: function (data) {
 
 		        	voteCounter.innerText = data.vote_count;
@@ -386,7 +401,7 @@
 		    });   
 		}
 
-	    function loadMoreResponses() {
+	    function loadMoreArticleResponses() {
 
 	    	// Function to load more articles
 
@@ -406,38 +421,38 @@
 
 	        $.ajax({
 	            type: 'POST',
-	            url: '/load_more_responses',
+	            url: '/load_more_article_responses',
 	            data: { article_id: article_id, num_to_load: numToLoad, offset: currentOffset },
 	            success: function (data) {
-	                if (data.responses.length < numToLoad) {
+	                if (data.article_responses.length < numToLoad) {
 	                    loadComplete = true;
 	                }
 
-	                data.responses.forEach(function (response) {
+	                data.article_responses.forEach(function (article_response) {
 	                    var template = document.getElementById("response-template");
 	                    var clone = document.importNode(template.content, true);
 	                    
-	                    clone.querySelector("#complete_repsonse_block").setAttribute("data-response-id", response.response_id);
-	                    clone.querySelector("#response_upvote_button").setAttribute("data-response-id", response.response_id);
-	                    clone.querySelector("#response_downvote_button").setAttribute("data-response-id", response.response_id);
+	                    clone.querySelector("#complete_repsonse_block").setAttribute("data-response-id", article_response.article_response_id);
+	                    clone.querySelector("#response_upvote_button").setAttribute("data-response-id", article_response.article_response_id);
+	                    clone.querySelector("#response_downvote_button").setAttribute("data-response-id", article_response.article_response_id);
 
-	                    clone.querySelector("#user_name").textContent = response.user_name;
-	                    clone.querySelector("#response_counter").textContent = response.response_counter + ' comments';
-	                    clone.querySelector("#response_text").innerHTML	= response.response_text;
-	                    clone.querySelector("#created_time").textContent = response.created_time;
-	                    clone.querySelector("#response_vote_counter").textContent = response.vote_counter;
-	                    clone.querySelector("#follow").setAttribute('data-user-id', response.user_id);
+	                    clone.querySelector("#user_name").textContent = article_response.user_name;
+	                    clone.querySelector("#response_counter").textContent = article_response.response_counter + ' comments';
+	                    clone.querySelector("#response_text").innerHTML	= article_response.contents;
+	                    clone.querySelector("#created_time").textContent = article_response.created_time;
+	                    clone.querySelector("#response_vote_counter").textContent = article_response.vote_counter;
+	                    clone.querySelector("#follow").setAttribute('data-user-id', article_response.user_id);
 	                    
 
-	                    if(response.my_vote === 1) {
+	                    if(article_response.my_vote === 1) {
 							clone.querySelector("#response_upvote_button").classList.add('bg-indigo-500');
 	                    }
-	                    else if(response.my_vote === -1){
+	                    else if(article_response.my_vote === -1){
 							clone.querySelector("#response_downvote_button").classList.add('bg-indigo-500');
 	                    }
 	                    
-			            if(response.user_id !== user_id){
-			            	if (response.following){
+			            if(article_response.user_id !== user_id){
+			            	if (article_response.following){
 			                	clone.querySelector("#follow").textContent = 'following';
 			                }
 			                else{
@@ -447,12 +462,12 @@
 			            else{
 			            	clone.querySelector("#follow").classList.add('hidden');
 			            	clone.querySelector("#delete_response").classList.remove('hidden');
-			            	clone.querySelector("#delete_response").setAttribute("href", '/delete_response/' + response.response_id + '/');
+			            	clone.querySelector("#delete_response").setAttribute("href", '/delete_article_response/' + article_response.article_response_id + '/');
 			            }
 
-	                    if (response.vote_counter > 0) {
+	                    if (article_response.vote_counter > 0) {
 	                        clone.querySelector("#response_vote_counter").classList.add('text-green-600');
-	                    } else if (response.vote_counter < 0) {
+	                    } else if (article_response.vote_counter < 0) {
 	                        clone.querySelector("#response_vote_counter").classList.add('text-red-600');
 	                    }
 
@@ -488,11 +503,11 @@
 		// Add an event listener to handle the up-vote button click
 		document.addEventListener('click', function(event) {
 		    if (event.target.id === 'response_upvote_button') {
-		        handleResponseVoteClick(event, 'response', 'up');
+		        handleResponseVoteClick(event, 'article_response', 'up');
 		    }
 
 		    if (event.target.id === 'response_downvote_button') {
-		        handleResponseVoteClick(event, 'response', 'down');
+		        handleResponseVoteClick(event, 'article_response', 'down');
 		    }
 
 		    if (event.target.id === 'article_upvote_button'){
@@ -513,7 +528,7 @@
 
 		    // Load more responses when the "Load More" button is clicked
 		    if (event.target.id === 'load-more-button') {
-		    	loadMoreResponses();
+		    	loadMoreArticleResponses();
 		    }
 
 		    if (event.target.id === 'show-response-button') {
@@ -571,7 +586,7 @@
         });
 
 		// Load initial data for both sections when the page loads
-	    loadMoreResponses();
+	    loadMoreArticleResponses();
 	</script>
 
 {% endblock %}
