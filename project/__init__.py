@@ -27,8 +27,44 @@ app.config["SESSION_TYPE"] = "filesystem"
 Session(app)
 oauth = OAuth(app)
 
+@app.errorhandler(413)
+def too_large(e):
+    return make_response(jsonify(message="File is too large"), 413)
+
+@app.route('/', methods = ('GET', 'POST'))
+@app.route('/home', methods = ('GET', 'POST'))
+def index():
+	if session.get('user_id') and session.get('user_id') != -1: 
+		return render_template('index.html', 
+			user_id = session['user_id'], 
+			user_name = session['user_name'], 
+			user_picture_url = session['user_picture_url'])
+	else:
+		return redirect(url_for('login'))
+
+########################################################################################################################################
+#ARTICLES FUNCTIONALITY
 
 #TO BE IMPLEMENTED
+@app.route('/article_preview')
+def article_preview():
+	if session.get('user_id'):
+		return render_template('article_preview.html',
+			user_id = session['user_id'],
+			user_name = session['user_name'], 
+			user_picture_url = session['user_picture_url'])
+	else:
+		return redirect(url_for('login'))
+
+@app.route('/get_article_preview', methods = ['POST'])
+def get_article_preview():
+	article_id = int(request.form.get('article_id'))
+
+	preview = utils.get_article_preview(user_id = session['user_id'], article_id = article_id)
+
+	return jsonify({'preview' : preview})
+
+##
 @app.route('/articles')
 def articles():
 	if session.get('user_id'):
@@ -102,31 +138,13 @@ def load_more_article_responses():
 	offset = int(request.form.get('offset'))
 
 	article_responses = utils.load_more_article_responses(
-		user_id = session['user_id'], 
+		user_id = session['user_id'],
 		article_id = article_id, 
 		limit = limit, 
 		offset = offset
 	)
 
 	return ({'article_responses' : article_responses})
-
-@app.route('/article_preview')
-def article_preview():
-	if session.get('user_id'):
-		return render_template('article_preview.html',
-			user_id = session['user_id'],
-			user_name = session['user_name'], 
-			user_picture_url = session['user_picture_url'])
-	else:
-		return redirect(url_for('login'))
-
-@app.route('/get_article_preview', methods = ['POST'])
-def get_article_preview():
-	article_id = int(request.form.get('article_id'))
-
-	preview = utils.get_article_preview(user_id = session['user_id'], article_id = article_id)
-
-	return jsonify({'preview' : preview})
 
 @app.route('/handle_article_vote', methods = ['POST'])	
 def handle_article_vote():
@@ -202,35 +220,8 @@ def delete_article_response(article_response_id):
 	else:
 		return redirect(url_for('login'))
 
-@app.route('/article_search', methods = ['POST'])	
-def article_search():
-	user_id =  int(request.form.get('user_id'))
-	search_query =  request.form.get('search_query')
-	limit =  int(request.form.get('num_to_load'))
-	offset =  int(request.form.get('offset'))
-
-	article_search_results = utils.article_search(user_id = user_id, 
-		search_query = search_query, limit = limit, offset = offset)
-
-	return jsonify({'article_search_results' : article_search_results})
-
-@app.errorhandler(413)
-def too_large(e):
-    return make_response(jsonify(message="File is too large"), 413)
-
-@app.route('/', methods = ('GET', 'POST'))
-@app.route('/home', methods = ('GET', 'POST'))
-def index():
-	if session.get('user_id') and session.get('user_id') != -1: 
-		return render_template('index.html', 
-			user_id = session['user_id'], 
-			user_name = session['user_name'], 
-			user_picture_url = session['user_picture_url'])
-	else:
-		return redirect(url_for('login'))
-
-
-#ADD / INSERT or UPDATE DATA 
+########################################################################################################################################
+#QUESTIONS FUNCTIONALITY
 @app.route('/add_response', methods = ['POST'])
 def add_response():
 	
@@ -317,91 +308,6 @@ def delete_response(response_id):
 	else:
 		return redirect(url_for('login'))
 
-@app.route('/follow_unfollow', methods = ['POST'])
-def follow_unfollow():
-	followed_user_id = request.form.get('followed_user_id')
-
-	status = utils.follow_unfollow(follower_user_id = session['user_id'], followed_user_id = followed_user_id)
-
-	return jsonify({'status' : status})
-
-@app.route('/generate_quiz', methods = ['POST'])
-def generate_quiz():
-	user_id = request.form.get('user_id', 1)
-	topic_level_pairs = request.form.get('topic_level_pairs')
-	
-	quiz_id = utils.generate_quiz_questions(user_id = user_id, topic_level_pairs = topic_level_pairs)
-
-	return jsonify({'quiz_id' : quiz_id})
-
-@app.route('/record_user_quiz_response', methods = ['POST'])
-def record_user_quiz_response():
-
-	quiz_id = request.form.get('quiz_id');
-	quiz_question_ids = request.form.keys() - ['quiz_id'];
-
-	for quiz_question_id in quiz_question_ids:
-		utils.record_user_quiz_response(user_id = session['user_id'], quiz_question_id = quiz_question_id, user_response = int(request.form.get(quiz_question_id)))
-
-	utils.score_user_quiz(user_id = session['user_id'], quiz_id = quiz_id)
-
-	return redirect(url_for('quiz'))
-	#user_id = int(request.form.get('user_id'))
-	#quiz_question_id = int(request.form.get('quiz_question_id'))
-	#user_response = int(request.form.get('user_response'))
-
-	#response = utils.record_user_quiz_response(user_id = user_id, quiz_question_id = quiz_question_id, user_response = user_response)
-
-	return jsonify({'response' : response})
-
-@app.route('/score_user_quiz', methods = ['POST'])
-def score_user_quiz():
-	user_id = int(request.form.get('user_id'))
-	quiz_id = int(request.form.get('quiz_id'))
-
-	score = utils.score_user_quiz(user_id = user_id, quiz_id = quiz_id)
-
-	return jsonify({"score" : score})
-
-@app.route('/upload_image', methods = ['POST'])
-def upload_image():
-	
-	"""
-	I need to be able to extract 
-	file name 
-	image file itself
-	content type
-	"""
-	#print('request recived to upload image!!')
-
-	if 'image' not in request.files:
-		return jsonify({'error': 'No image uploaded!!'})
-
-	image = request.files['image']
-
-	if image.filename == '':
-		return jsonify({'error': 'No File Name!!'})
-
-	if image:
-		bucket_name = os.environ.get('STORAGE_BUCKET_NAME')
-		content_type = image.content_type
-		filename = image.filename
-
-		#print(f"uploading {filename} to {bucket_name}")
-
-		gcs_client = storage.Client()
-		storage_bucket = gcs_client.get_bucket(bucket_name)
-		blob = storage_bucket.blob(filename)
-
-		#print("starting image upload...")
-
-		blob.upload_from_string(image.read(), content_type = content_type)
-
-		image_url = blob.public_url;
-
-		# Return the URL of the saved image
-		return jsonify({'url': image_url})
-
 @app.route('/vote_unvote', methods = ['POST'])
 def vote_unvote():
 	question_id = int(request.form.get('question_id', -1))
@@ -419,64 +325,6 @@ def vote_unvote():
 
 	return jsonify({'vote_count' : vote_count, 'my_vote' : my_vote})
 
-
-#GET DATA
-@app.route('/attempt_quiz/<int:quiz_id>/')
-def attempt_quiz(quiz_id):
-	if session.get('user_id'):
-		return render_template('attempt_quiz.html', quiz_id = quiz_id,
-			start_quiz = "true",
-			user_id = session['user_id'], 
-			user_name = session['user_name'], 
-			user_picture_url = session['user_picture_url']
-		)
-	else:
-		return redirect(url_for('login'))
-
-@app.route('/create_custom_quiz', methods = ('GET', 'POST'))
-def create_custom_quiz():
-	if session.get('user_id'):
-		if request.method == 'GET':
-			return render_template('create_custom_quiz.html',
-				user_id = session['user_id'], 
-				user_name = session['user_name'], 
-				user_picture_url = session['user_picture_url']
-			)
-		else:
-			number_of_topics = len(request.form) // 2
-			topic_level_pairs = dict()
-
-			for i in range(1, number_of_topics + 1):
-				topic_name = request.form.get(f"topic_name_{i}")
-				difficulty_level = request.form.get(f"difficulty_level_{i}")
-
-				topic_level_pairs[topic_name] = difficulty_level
-
-			quiz_id = utils.generate_quiz_questions(user_id = session['user_id'], topic_level_pairs = topic_level_pairs)
-
-			return redirect(url_for('attempt_quiz', quiz_id = quiz_id))
-	else:
-		return redirect(url_for('login'))
-
-@app.route('/get_quiz_questions', methods = ['POST'])
-def get_quiz_questions():
-	quiz_id = int(request.form.get('quiz_id'))
-	limit = int(request.form.get('num_to_load', 10))
-	offset = int(request.form.get('offset', 0))
-
-	quiz_details, quiz_questions = utils.get_quiz_questions(quiz_id = quiz_id, limit = limit, offset = offset)
-
-	return jsonify({'quiz_details' : quiz_details, 'quiz_questions' : quiz_questions})
-
-@app.route('/get_quiz_results', methods = ['POST'])
-def get_quiz_results():
-	user_id = int(request.form.get('user_id'))
-	quiz_id = int(request.form.get('quiz_id'))
-
-	quiz_details, quiz_questions_results = utils.get_quiz_results(user_id = user_id, quiz_id = quiz_id)
-	
-	return jsonify({'quiz_details' : quiz_details, 'quiz_results' : quiz_questions_results})
-
 @app.route('/load_more_questions', methods = ['POST'])
 def load_more_questions():
 	# Get the number of transactions to load and offset from the request
@@ -489,16 +337,6 @@ def load_more_questions():
 				)
 
 	return jsonify({'questions': questions})
-
-@app.route('/load_more_quizzes', methods = ['POST'])
-def load_more_quizzes():
-		user_id = int(request.form.get('user_id'))
-		limit = int(request.form.get('num_to_load', 10))
-		offset = int(request.form.get('offset', 0))
-
-		quizzes = utils.load_more_quizzes(user_id = user_id, limit = limit, offset = offset)
-
-		return jsonify({'quizzes' : quizzes})
 
 @app.route('/load_more_responses', methods=['POST'])
 def load_more_responses():
@@ -560,6 +398,112 @@ def question_detail(question_id):
 	else:
 		return redirect(url_for('login'))
 
+########################################################################################################################################
+#QUIZ FUNCTIONALITY
+@app.route('/generate_quiz', methods = ['POST'])
+def generate_quiz():
+	user_id = request.form.get('user_id', 1)
+	topic_level_pairs = request.form.get('topic_level_pairs')
+	
+	quiz_id = utils.generate_quiz_questions(user_id = user_id, topic_level_pairs = topic_level_pairs)
+
+	return jsonify({'quiz_id' : quiz_id})
+
+@app.route('/record_user_quiz_response', methods = ['POST'])
+def record_user_quiz_response():
+
+	quiz_id = request.form.get('quiz_id');
+	quiz_question_ids = request.form.keys() - ['quiz_id'];
+
+	for quiz_question_id in quiz_question_ids:
+		utils.record_user_quiz_response(user_id = session['user_id'], quiz_question_id = quiz_question_id, user_response = int(request.form.get(quiz_question_id)))
+
+	utils.score_user_quiz(user_id = session['user_id'], quiz_id = quiz_id)
+
+	return redirect(url_for('quiz'))
+	#user_id = int(request.form.get('user_id'))
+	#quiz_question_id = int(request.form.get('quiz_question_id'))
+	#user_response = int(request.form.get('user_response'))
+
+	#response = utils.record_user_quiz_response(user_id = user_id, quiz_question_id = quiz_question_id, user_response = user_response)
+
+	return jsonify({'response' : response})
+
+@app.route('/score_user_quiz', methods = ['POST'])
+def score_user_quiz():
+	user_id = int(request.form.get('user_id'))
+	quiz_id = int(request.form.get('quiz_id'))
+
+	score = utils.score_user_quiz(user_id = user_id, quiz_id = quiz_id)
+
+	return jsonify({"score" : score})
+
+@app.route('/attempt_quiz/<int:quiz_id>/')
+def attempt_quiz(quiz_id):
+	if session.get('user_id'):
+		return render_template('attempt_quiz.html', quiz_id = quiz_id,
+			start_quiz = "true",
+			user_id = session['user_id'], 
+			user_name = session['user_name'], 
+			user_picture_url = session['user_picture_url']
+		)
+	else:
+		return redirect(url_for('login'))
+
+@app.route('/create_custom_quiz', methods = ('GET', 'POST'))
+def create_custom_quiz():
+	if session.get('user_id'):
+		if request.method == 'GET':
+			return render_template('create_custom_quiz.html',
+				user_id = session['user_id'], 
+				user_name = session['user_name'], 
+				user_picture_url = session['user_picture_url']
+			)
+		else:
+			number_of_topics = len(request.form) // 2
+			topic_level_pairs = dict()
+
+			for i in range(1, number_of_topics + 1):
+				topic_name = request.form.get(f"topic_name_{i}")
+				difficulty_level = request.form.get(f"difficulty_level_{i}")
+
+				topic_level_pairs[topic_name] = difficulty_level
+
+			quiz_id = utils.generate_quiz_questions(user_id = session['user_id'], topic_level_pairs = topic_level_pairs)
+
+			return redirect(url_for('attempt_quiz', quiz_id = quiz_id))
+	else:
+		return redirect(url_for('login'))
+
+@app.route('/get_quiz_questions', methods = ['POST'])
+def get_quiz_questions():
+	quiz_id = int(request.form.get('quiz_id'))
+	limit = int(request.form.get('num_to_load', 10))
+	offset = int(request.form.get('offset', 0))
+
+	quiz_details, quiz_questions = utils.get_quiz_questions(quiz_id = quiz_id, limit = limit, offset = offset)
+
+	return jsonify({'quiz_details' : quiz_details, 'quiz_questions' : quiz_questions})
+
+@app.route('/get_quiz_results', methods = ['POST'])
+def get_quiz_results():
+	user_id = int(request.form.get('user_id'))
+	quiz_id = int(request.form.get('quiz_id'))
+
+	quiz_details, quiz_questions_results = utils.get_quiz_results(user_id = user_id, quiz_id = quiz_id)
+	
+	return jsonify({'quiz_details' : quiz_details, 'quiz_results' : quiz_questions_results})
+
+@app.route('/load_more_quizzes', methods = ['POST'])
+def load_more_quizzes():
+		user_id = int(request.form.get('user_id'))
+		limit = int(request.form.get('num_to_load', 10))
+		offset = int(request.form.get('offset', 0))
+
+		quizzes = utils.load_more_quizzes(user_id = user_id, limit = limit, offset = offset)
+
+		return jsonify({'quizzes' : quizzes})
+
 @app.route('/quiz')
 def quiz():
 	if session.get('user_id') and session.get('user_id') != -1: 
@@ -570,16 +514,67 @@ def quiz():
 	else:
 		redirect(url_for('login'))
 
+########################################################################################################################################
+#COMMON FUNCTIONALITIES
+@app.route('/follow_unfollow', methods = ['POST'])
+def follow_unfollow():
+	followed_user_id = request.form.get('followed_user_id')
+
+	status = utils.follow_unfollow(follower_user_id = session['user_id'], followed_user_id = followed_user_id)
+
+	return jsonify({'status' : status})
+
+@app.route('/upload_image', methods = ['POST'])
+def upload_image():
+	
+	"""
+	I need to be able to extract 
+	file name 
+	image file itself
+	content type
+	"""
+	#print('request recived to upload image!!')
+
+	if 'image' not in request.files:
+		return jsonify({'error': 'No image uploaded!!'})
+
+	image = request.files['image']
+
+	if image.filename == '':
+		return jsonify({'error': 'No File Name!!'})
+
+	if image:
+		bucket_name = os.environ.get('STORAGE_BUCKET_NAME')
+		content_type = image.content_type
+		filename = image.filename
+
+		#print(f"uploading {filename} to {bucket_name}")
+
+		gcs_client = storage.Client()
+		storage_bucket = gcs_client.get_bucket(bucket_name)
+		blob = storage_bucket.blob(filename)
+
+		#print("starting image upload...")
+
+		blob.upload_from_string(image.read(), content_type = content_type)
+
+		image_url = blob.public_url;
+
+		# Return the URL of the saved image
+		return jsonify({'url': image_url})
+
 @app.route('/search', methods = ('GET', 'POST'))
 def search():
 	if session.get('user_id'):
-
 		if request.method == 'POST':
 			search_query = request.form.get('search_query', '')
 			limit = int(request.form.get('num_to_load', 10))
 			offset = int(request.form.get('offset', 0))
+			search_type = request.form.get('search_type')
+
+			print(f"search_type {search_type}")
 		
-			search_results = utils.question_search(user_id = session['user_id'], search_query = search_query, limit = limit, offset = offset)
+			search_results = utils.search(user_id = session['user_id'], search_query = search_query, limit = limit, offset = offset, search_type = search_type)
 
 			return jsonify({'search_results' : search_results})
 		else:
@@ -594,7 +589,8 @@ def search():
 	else:
 		return redirect(url_for('login'))
 
-#AUTH
+########################################################################################################################################
+#AUTHENTICATION FUNCTIONALITY
 #MAIN AUTHENTICATION SECTION (login, logout, sign_up)
 @app.route('/login')
 def login():

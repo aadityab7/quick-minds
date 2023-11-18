@@ -1446,6 +1446,25 @@ def question_search(
 
 	return search_results
 
+def search(
+	user_id: int,
+	search_query: str,
+	limit: int,
+	offset: int,
+	search_type: str
+):
+	if search_type == "question" or search_type == "all":
+		question_search_results = question_search(
+			user_id = user_id,
+			search_query = search_query,
+			limit = limit,
+			offset = offset
+		)
+
+		return question_search_results
+
+	return []
+
 def vote_unvote(
 	user_id: int,
 	question_id: int,
@@ -1494,14 +1513,7 @@ def vote_unvote(
 	else:
 		return handle_response_vote(user_id, response_id, up_or_down_vote)
 
-
 #functions to implement for articles
-def get_article_preview(
-	user_id: int,
-	article_id: int
-):
-	pass
-
 def add_article(
 	user_id: int,
 	title: str,
@@ -1906,29 +1918,6 @@ def handle_article_response_vote(
 
 	return vote_count, my_vote
 
-def article_search(
-	user_id: int,
-	search_query: str,
-	limit: int,
-	offset: int
-):
-	pass
-
-def add_article_response_comment(
-	user_id: int, 
-	article_response_id: int,
-	contents: str,
-):
-	pass
-
-def load_more_article_response_comments(
-	user_id: int, 
-	article_response_id: int,
-	limit: int,
-	offset: int
-):
-	pass
-
 def delete_article(
 	user_id: int,
 	article_id: int
@@ -1995,6 +1984,35 @@ def delete_article_response(
 	conn.close()
 
 	return response_status
+
+def get_article_preview(
+	user_id: int,
+	article_id: int
+):
+	pass
+
+def article_search(
+	user_id: int,
+	search_query: str,
+	limit: int,
+	offset: int
+):
+	pass
+
+def add_article_response_comment(
+	user_id: int, 
+	article_response_id: int,
+	contents: str,
+):
+	pass
+
+def load_more_article_response_comments(
+	user_id: int, 
+	article_response_id: int,
+	limit: int,
+	offset: int
+):
+	pass
 
 #COMMENT functions to be implemented
 def add_comment(

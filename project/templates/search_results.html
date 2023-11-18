@@ -94,7 +94,7 @@
 	        $.ajax({
 	            type: 'POST',
 	            url: '/search',
-	            data: { search_query: search_query, num_to_load: numToLoad, offset: currentOffset},
+	            data: { search_query: search_query, num_to_load: numToLoad, offset: currentOffset, search_type: 'question'},
 	            success: function (data) {
                     if (data.search_results.length === 0) {
                         loadComplete = true;

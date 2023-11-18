@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <title>{% block title %} {% endblock %}</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <script src="https://cdn.tailwindcss.com?plugins=forms,typography,aspect-ratio,line-clamp"></script>
+  <link href="{{url_for('static', filename = '/CSS/output.css')}}" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 </head>
@@ -123,7 +123,7 @@
                       <div class="block shrink-0">
                           <img
                             alt="profile_picture"
-                            src={{user_picture_url}}
+                            src= "{%if user_picture_url %} {{user_picture_url}} {%else%} 'no_photo_because_not_logged_in' {%endif%}"
                             class="h-10 w-10 rounded-full object-cover"
                           />
                       </div>
@@ -418,6 +418,8 @@
   </script>
 
   <script>
+    var logged_in_user_id = {{user_id|default('null') | safe}};
+
     // Get references to the button and dropdown menu
     const searchButton = document.getElementById('searchButton');
     const searchBar = document.getElementById('searchBar');
@@ -425,18 +427,23 @@
     const user_info = document.getElementById("user_info");
     const search_close_logo = document.getElementById("search_close_logo");
     const search_logo = document.getElementById("search_logo");
+    const sidebar_menu_button = document.getElementById("sidebar-menu-button");
 
     // Add a click event listener to the button
     searchButton.addEventListener('click', function (event) {
       // Toggle the 'hidden' class to show/hide the dropdown menu
       searchBar.classList.toggle('hidden');
       app_title.classList.toggle('hidden');
-      user_info.classList.toggle('hidden');
       searchButton.classList.toggle('ring');
       searchButton.classList.toggle('bg-white');
       searchButton.classList.toggle('bg-gray-100');
       search_logo.classList.toggle('hidden');
       search_close_logo.classList.toggle('hidden');
+      sidebar_menu_button.classList.toggle('hidden');
+
+      if(logged_in_user_id){
+        user_info.classList.toggle('hidden');
+      }
 
       // Prevent the click event from propagating to the document
       event.stopPropagation();
@@ -444,17 +451,6 @@
 
     // Add a click event listener to the document to close the dropdown when clicking anywhere else
     document.addEventListener('click', function (event) {
-      if (event.target !== searchButton && !searchBar.contains(event.target)) {
-        searchBar.classList.add('hidden');
-        app_title.classList.remove('hidden');
-        user_info.classList.remove('hidden');
-        searchButton.classList.remove('ring');
-        searchButton.classList.add('bg-white');
-        searchButton.classList.remove('bg-gray-100');
-        search_logo.classList.remove('hidden');
-        search_close_logo.classList.add('add');
-      }
-      
       if (event.target.id === 'sidebar-menu-button') {
         document.getElementById('sidebar-component-div').classList.toggle('hidden');
       }
