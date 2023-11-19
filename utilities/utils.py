@@ -191,13 +191,11 @@ def add_related_youtube_videos_to_question(
 	cur = conn.cursor()
 
 	for video_id, video_details in video_results.items():
-		
 		video_url = f'https://www.youtube.com/watch?v={video_id}'
 
 		query = "INSERT INTO Related_video \
 					(question_id, title, description, video_url, thumbnail_url, channel_title, player_embed_html) \
 				VALUES (%s, %s, %s, %s, %s, %s, %s)"
-		
 		
 		cur.execute(query, 
 			(question_id, video_details['title'], video_details['description'], video_url, 

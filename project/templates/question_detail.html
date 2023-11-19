@@ -8,7 +8,7 @@
 		
 		<div id = "main-question-div"> 
 			
-			<div id = "question-head-div" class="flex items-center justify-between mb-3 gap-4">	
+			<div id = "question-head-div" class="flex flex-wrap items-center justify-between mb-3 gap-4">	
 				<h1 class="text-xl font-bold">{{question["question_title"]}}</h1>
 
 				<a href="{{url_for('ask_question')}}"> 
@@ -59,7 +59,7 @@
 				<div id = 'question_details' class="col-span-11">
 					{{ question['question_text'] |safe }}
 
-					<div id = "question_tags" class="flex items-start gap-4 mt-4">
+					<div id = "question_tags" class="flex flex-wrap items-start gap-4 mt-4">
 						{%if question['tags']%}
 							{% for tag in question['tags'] %}
 								<p class = 'rounded-md py-1 px-2 bg-indigo-400 text-white text-sm'> {{tag}} </p>
@@ -187,7 +187,7 @@
 			<button id = "response-button" type="button" class="rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">Post your response</button>
 		</form>
 
-		<div id = "main-related-web-search-div" class="hidden">
+		<div id = "main-related-web-search-div" class="hidden max-w-full">
 			<hr class="my-4">
 
 			<h1 id = "related_web_searchs_heading" class="text-xl font-bold text-gray-500">
@@ -198,12 +198,12 @@
 				<template id="web-search-result-template">
 					<div id = "web-search-result-block" class="p-4">
 						<a id = 'web-search-result-redirect' href="">
+
 							<div id = "web-search-result-title" class="sm:text-xl hover:underline"> </div>
-							<div id = "web-search-result-link" class="text-green-400 text-sm"> </div>
+							<div id = "web-search-result-link" class="w-48 sm:w-full truncate text-green-400 sm:text-sm"> </div>
 							<div id = "web-search-result-description" class="text-gray-500 text-sm font-semibold"> </div>
 						</a>
 					</div>
-					
 					<hr>
 				</template>
 			</div>
@@ -239,7 +239,7 @@
 				</template>
 			</div>
 
-			<div id = "more-video-results-div">
+			<div id = "more-video-results-div" class="max-w-screen">
 				<button id = "load-more-video-button" class="hidden mt-4 rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">Load more Videos</button>
 			</div>
 		</div>
@@ -593,7 +593,7 @@
 	                    var clone = document.importNode(template.content, true);
 	                	
 	                    clone.querySelector("#web-search-result-title").innerHTML = web_search_result.title;
-	                    clone.querySelector("#web-search-result-link").textContent = web_search_result.link;
+	                    clone.querySelector("#web-search-result-link").innerText = web_search_result.link;
 	                    clone.querySelector("#web-search-result-description").innerHTML	= web_search_result.description;
 
 	                    clone.querySelector("#web-search-result-redirect").setAttribute('href', web_search_result.link);
