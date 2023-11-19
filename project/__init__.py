@@ -42,6 +42,44 @@ def index():
 	else:
 		return redirect(url_for('login'))
 
+@app.route('/profile', methods = ('GET', 'POST'))
+def profile():
+	if session.get('user_id'):
+		if request.method == 'GET':
+			return render_template('profile.html',
+				user_id = session['user_id'], 
+				user_name = session['user_name'], 
+				user_picture_url = session['user_picture_url'])
+		else:
+			profile_info, followers, following = utils.get_profile_info(user_id = session['user_id']) 
+
+			if profile_info == -1:
+				flash("some error occured while fetching user's data")
+				return redirect(request.referrer)
+
+			return jsonify({'profile_info': profile_info, 'followers': followers, 'following': following})
+	else:
+		return redirect(url_for('login'))
+
+
+@app.route('/tags', methods = ('GET', 'POST'))
+def tags():
+	if session.get('user_id'):
+		if request.method == 'GET':
+			return render_template('tags.html',
+				user_id = session['user_id'], 
+				user_name = session['user_name'], 
+				user_picture_url = session['user_picture_url'])
+		else:
+			limit = int(request.form.get('num_to_load'))
+			offset = int(request.form.get('offset'))
+
+			tags = utils.load_more_tags(limit = limit, offset = offset) 
+
+			return jsonify({'tags' : tags})
+	else:
+		return redirect(url_for('login'))
+
 ########################################################################################################################################
 #ARTICLES FUNCTIONALITY
 

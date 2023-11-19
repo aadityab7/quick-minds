@@ -1,0 +1,94 @@
+{% extends 'base.html' %}
+
+{% block title %}QUICK MINDS - PROFILE PAGE{% endblock %}
+
+{% block content %}
+
+	<div>
+		<img id = "profile_picture" src="">
+		<h1 id = "user_name"></h1>
+		<p id = "about"></p>
+		<p id = "joined_on"></p>
+		<p id = "followers"></p>
+		<p id = "following"></p>
+		<button id = "follow" data-user-id = "">
+			Follow
+		</button>
+		<p id = "badge">
+	</div>
+
+	<hr>
+
+	<h1>Recent Activity</h1>
+
+	<h1>
+		Questions Asked
+	</h1>
+
+	<h1>
+		Responded To
+	</h1>
+
+	<h1>
+		Articles written
+	</h1>
+
+	<h1>
+		Tags
+	</h1>
+
+	<script type="text/javascript">
+		var isLoading = false;
+		var user_id = {{user_id}};
+
+		function loadUserInfo() {
+	        // Check if an AJAX request is already in progress
+	        if (isLoading) {
+	            return;
+	        }
+
+	        // Set the isLoading flag to true
+	        isLoading = true;
+	    
+	        // Send an AJAX request to fetch user information
+	        $.ajax({
+	            type: 'POST',
+	            url: '/profile',
+	            success: function (data) {
+                    display_user_info(data.profile_info, data.followers, data.following);
+                    isLoading = false;
+	            },
+	            error: function(xhr, status, error) {
+	                console.error('Error fetching user profile info:', error);
+	            }
+	        });
+	    }
+
+	    function display_user_info(profile_info, followers, following) {
+            document.getElementById("profile_picture").setAttribute("src", profile_info.picture_url);
+            document.getElementById("user_name").textContent = profile_info.user_name;
+            document.getElementById("about").textContent = profile_info.about;
+            document.getElementById("badge").textContent = profile_info.badge;
+            document.getElementById("joined_on").textContent = "Member since: " + profile_info.account_creation_datetime;
+            document.getElementById("followers").textContent = followers + " Followers";
+            document.getElementById("following").textContent = following + " Following";
+
+            if(profile_info.user_id !== user_id){
+            	document.getElementById("follow").setAttribute('data-user-id', profile_info.user_id);
+
+            	if (user_id.following){
+                	document.getElementById("follow").textContent = 'following';
+                }
+                else{
+                	document.getElementById("follow").textContent = 'follow';
+                }
+            }
+            else{
+            	document.getElementById("follow").classList.add('hidden');
+            }
+	    }
+
+	    loadUserInfo();
+	</script>
+	
+{% endblock %}

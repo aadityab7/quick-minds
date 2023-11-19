@@ -140,10 +140,11 @@ CREATE TABLE IF NOT EXISTS Image  (
         ON DELETE CASCADE
 );
 
-CREATE TABLE IF NOT EXISTS Tag  (
+CREATE TABLE IF NOT EXISTS Tag (
     tag_name text PRIMARY KEY,
     tag_description text,
-    question_count integer DEFAULT 0
+    question_count integer DEFAULT 0,
+    article_count integer DEFAULT 0
 );
 
 CREATE TABLE IF NOT EXISTS Related_content  (
@@ -377,6 +378,52 @@ CREATE TABLE Article_Response_Comment (
         FOREIGN KEY(user_id) 
         REFERENCES App_user(user_id)
         ON DELETE CASCADE
+);
+
+CREATE TABLE Question_User_Tag (
+    tag_name text,
+    user_id integer,
+    question_id integer,
+
+    CONSTRAINT fk_question_user_tag_app_user
+        FOREIGN KEY(user_id) 
+        REFERENCES App_user(user_id)
+        ON DELETE CASCADE,
+
+    CONSTRAINT fk_question_user_tag_question
+        FOREIGN KEY(question_id)
+        REFERENCES Question(question_id)
+        ON DELETE CASCADE,
+
+    CONSTRAINT fk_question_user_tag_tag
+        FOREIGN KEY(tag_name)
+        REFERENCES Tag(tag_name)
+        ON DELETE CASCADE,
+
+    PRIMARY KEY(tag_name, user_id, question_id)
+);
+
+CREATE TABLE Article_User_Tag (
+    tag_name text,
+    user_id integer,
+    article_id integer,
+
+    CONSTRAINT fk_article_user_tag_app_user
+        FOREIGN KEY(user_id) 
+        REFERENCES App_user(user_id)
+        ON DELETE CASCADE,
+
+    CONSTRAINT fk_article_user_tag_article
+        FOREIGN KEY(article_id)
+        REFERENCES Article(article_id)
+        ON DELETE CASCADE,
+
+    CONSTRAINT fk_article_user_tag_tag
+        FOREIGN KEY(tag_name)
+        REFERENCES Tag(tag_name)
+        ON DELETE CASCADE,
+
+    PRIMARY KEY(tag_name, user_id, article_id)
 );
 
 CREATE TABLE Notification (

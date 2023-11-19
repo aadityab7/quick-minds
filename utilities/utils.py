@@ -65,8 +65,8 @@ def add_question(
 	question_tags: str
 ):
 	question_tags = [tag.strip() for tag in question_tags.split(',')]
-	question_tags = str(set(question_tags))
-	question_tags = re.sub(r"[']", "", question_tags)
+	question_tags_set = set(question_tags)
+	question_tags = re.sub(r"[']", "", str(question_tags_set))
 
 	question_query = question_title + " " + question_text + " " + question_tags
 
@@ -103,10 +103,12 @@ def add_question(
 	#images = re.findall(r'[!][[].*[\]][(].*[)]', question_text)
 	
 	#before returning the question find and add related resources and responses
-	generate_and_add_ai_response_question(question_id = question_id, question_query = question_query)
-	add_similar_questions_to_this_question(question_id = question_id, question_query = question_query)
-	add_related_search_results_to_question(question_id = question_id, question_query = question_query)
-	add_related_youtube_videos_to_question(question_id = question_id, question_query = question_query)
+	add_tags_to_question_user_tag_table(question_id = question_id, user_id = user_id, question_tags_set = question_tags_set)
+
+	#generate_and_add_ai_response_question(question_id = question_id, question_query = question_query)
+	#add_similar_questions_to_this_question(question_id = question_id, question_query = question_query)
+	#add_related_search_results_to_question(question_id = question_id, question_query = question_query)
+	#add_related_youtube_videos_to_question(question_id = question_id, question_query = question_query)
 
 	return question_id
 
@@ -292,6 +294,60 @@ def add_similar_questions_to_this_question(
 			conn.commit()
 		else:
 			break
+
+	cur.close()
+	conn.close()
+
+def add_tags_to_question_user_tag_table(
+	user_id: int,
+	question_id: int,
+	question_tags_set: set
+):	
+	conn = get_db_connection()
+	cur = conn.cursor()
+
+	for tag in question_tags_set:
+		query = "SELECT tag_name FROM Tag WHERE tag_name = %s"
+		cur.execute(query, (tag,))
+		result = cur.fetchone()
+
+		if result is None:
+			cur.execute("INSERT INTO Tag (tag_name) VALUES (%s)", (tag,))
+			conn.commit()
+		
+		cur.execute("UPDATE Tag SET question_count = question_count + 1 WHERE tag_name = %s", (tag,))
+		conn.commit()
+
+		query = "INSERT INTO Question_User_Tag (tag_name, user_id, question_id) VALUES (%s, %s, %s)"
+		cur.execute(query, (tag, user_id, question_id))
+		conn.commit()
+
+	cur.close()
+	conn.close()
+
+def add_tags_to_article_user_tag_table(
+	user_id: int,
+	article_id: int,
+	article_tags_set: set
+):	
+	conn = get_db_connection()
+	cur = conn.cursor()
+
+	for tag in article_tags_set:
+		query = "SELECT tag_name FROM Tag WHERE tag_name = %s"
+		cur.execute(query, (tag,))
+		result = cur.fetchone()
+
+		if result is None:
+			cur.execute("INSERT INTO Tag (tag_name) VALUES (%s)", (tag,))
+			conn.commit()
+		
+		cur.execute("UPDATE Tag SET article_count = article_count + 1 WHERE tag_name = %s", (tag,))
+		conn.commit()
+
+		query = "INSERT INTO Article_User_Tag (tag_name, user_id, article_id) VALUES (%s, %s, %s)"
+		cur.execute(query, (tag, user_id, article_id))
+		conn.commit()
 
 	cur.close()
 	conn.close()
@@ -615,6 +671,75 @@ def generate_and_add_ai_response_question(
 	response = generate_ai_response(question_query)
 
 	add_response(user_id =  0, question_id = question_id, response_text = response)
+
+def get_profile_info(
+	user_id: int
+):
+	conn = get_db_connection()
+	cur = conn.cursor()
+
+	query = """
+		SELECT
+			user_id,
+			name,
+		    about,
+		    badge,
+		    email,
+		    google_id,
+		    facebook_id,
+		    github_id,
+		    picture_url,
+		    account_creation_datetime,
+		    CASE WHEN Follow.followed_user_id IS NULL THEN false ELSE true END AS following
+		FROM App_user
+		LEFT JOIN Follow
+			ON App_user.user_id = Follow.followed_user_id AND Follow.follower_user_id = %s
+		WHERE user_id = %s
+	"""
+
+	cur.execute(query, (user_id, user_id))
+	profile_info = cur.fetchone()
+
+	query = """
+		SELECT 
+			COUNT(1) AS followers
+		FROM Follow 
+		WHERE followed_user_id = %s
+	"""
+
+	cur.execute(query, (user_id,))
+	followers = cur.fetchone()
+
+	query = """
+		SELECT 
+			COUNT(1) AS following
+		FROM Follow
+		WHERE follower_user_id = %s
+	"""
+
+	cur.execute(query, (user_id,))
+	following = cur.fetchone()
+
+	cur.close()
+	conn.close()
+
+	if followers is None:
+		followers = 0
+	else:
+		followers = followers[0]
+
+	if following is None:
+		following = 0
+	else:
+		following = following[0]
+
+	if profile_info is None:
+		return -1
+
+	profile_info_keys = ["user_id", "user_name", "about", "badge", "email", "google_id", "facebook_id", "github_id", "picture_url", "account_creation_datetime", "following"]
+	profile_info = dict(zip(profile_info_keys, profile_info))
+	
+	return profile_info, followers, following
 
 def generate_quiz_questions(
 	user_id: int,
@@ -1311,6 +1436,39 @@ def load_more_related_questions(
 
 	return similar_questions
 
+def load_more_tags(
+	limit: int,
+	offset: int,
+	sort_by: str = 'count'
+):
+	conn = get_db_connection()
+	cur = conn.cursor()
+
+	query = """
+		SELECT 
+			tag_name, 
+			tag_description, 
+			question_count, 
+			article_count 
+		FROM Tag 
+		ORDER BY question_count + article_count DESC
+		LIMIT %s OFFSET %s
+	"""
+
+	cur.execute(query, (limit, offset))
+	tags = cur.fetchall()
+
+	cur.close()
+	conn.close()
+
+	if tags is None:
+		tags = []
+
+	tag_keys = ["tag_name", "tag_description", "question_count", "article_count"]
+	tags = [dict(zip(tag_keys, tag)) for tag in tags]
+
+	return tags
+
 def make_web_search_request(
 	search_query: str,
 	num:int = 10
@@ -1527,8 +1685,8 @@ def add_article(
 		thumbnail_url = thumbnail_url[1:-1]
 
 	tags = [tag.strip() for tag in tags.split(',')]
-	tags = str(set(tags))
-	tags = re.sub(r"[']", "", tags)
+	article_tags_set = set(tags)
+	tags = re.sub(r"[']", "", str(article_tags_set))
 	
 	description = contents[:200] + "..."
 
@@ -1551,6 +1709,8 @@ def add_article(
 
 	cur.close()
 	conn.close()
+
+	add_tags_to_article_user_tag_table(user_id = user_id, article_id = article_id, article_tags_set = article_tags_set)
 
 	return article_id
 

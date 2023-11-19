@@ -1,0 +1,99 @@
+{% extends 'base.html' %}
+
+{% block title %}QUICK MINDS ARTICLES{% endblock %}
+
+{% block content %}
+	
+	<h1>Tags</h1>
+	<p>A tag is a keyword or label that categorizes your question with other, similar questions. Using the right tags makes it easier for others to find and answer your question.</p>
+
+	<div id="tags_page">
+		<template id="tag-template">
+			<p id = "tag_name"></p>
+			<p id = "tag_description"></p>
+			<p id = "question_count"></p>
+			<p id = "article_count"></p>
+		</template>
+	</div>
+
+	<script type="text/javascript">
+		var tags_page = document.getElementById('tags_page');
+
+	    var offset = {{ tags|length }}; 
+	    const user_id = {{user_id}};
+
+	    var numToLoad = 10;  // Adjust the number of tags to load at a time
+	    var isLoading = false;  // Flag to track whether an AJAX request is in progress
+	    var loadComplete = false; // All "For You" tags already loaded
+	    
+	    // Function to check if the user has scrolled to the bottom of the page
+	    function isScrolledToBottom() {
+	        var scrollTop = $(window).scrollTop();
+	        var windowHeight = $(window).height();
+	        var documentHeight = $(document).height();
+
+	        // Check if the user is close to the bottom (e.g., within 100 pixels)
+	        return (documentHeight - (scrollTop + windowHeight) < 100);
+	    }
+
+	    // Function to load more tags
+	    function loadMoreTags() {
+	        if (loadComplete) {
+	            return;
+	        } 
+
+	        // Check if an AJAX request is already in progress
+	        if (isLoading) {
+	            return;
+	        }
+
+	        // Set the isLoading flag to true
+	        isLoading = true;
+	        
+	        // Determine the current section and its respective offset
+	        var currentOffset = offset;
+
+	        // Send an AJAX request to fetch more tags
+	        $.ajax({
+	            type: 'POST',
+	            url: '/tags',
+	            data: { num_to_load: numToLoad, offset: currentOffset},
+	            success: function (data) {
+                    if (data.tags.length < numToLoad) {
+                        loadComplete = true;
+                    }
+
+                    data.tags.forEach(function (tag) {
+                        // Clone the template and populate it with data
+                        var template = document.getElementById("tag-template");
+                        var clone = document.importNode(template.content, true);
+
+                        clone.querySelector("#tag_name").textContent = tag.tag_name;
+                        clone.querySelector("#tag_description").textContent = tag.tag_description;
+                        clone.querySelector("#question_count").textContent = tag.question_count + " Questions asked";
+                        clone.querySelector("#article_count").textContent = tag.article_count + " Articles";
+
+                        
+                        // Append the populated template to the appropriate container
+                        document.getElementById('tags_page').appendChild(clone);
+                    });
+
+                    // Update the offset for "For You"
+                    offset += numToLoad;
+                    isLoading = false;
+	               
+	            }
+	        });
+	    }
+
+	    // Load initial data for both sections when the page loads
+	    loadMoreTags();
+
+	    // Load more tags when scrolling to the bottom
+	    $(window).scroll(function () {
+	        if (isScrolledToBottom()) {
+	            loadMoreTags();	        
+	        }
+	    });
+	</script>
+{% endblock %}
