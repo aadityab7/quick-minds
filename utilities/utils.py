@@ -105,10 +105,10 @@ def add_question(
 	#before returning the question find and add related resources and responses
 	add_tags_to_question_user_tag_table(question_id = question_id, user_id = user_id, question_tags_set = question_tags_set)
 
-	#generate_and_add_ai_response_question(question_id = question_id, question_query = question_query)
-	#add_similar_questions_to_this_question(question_id = question_id, question_query = question_query)
-	#add_related_search_results_to_question(question_id = question_id, question_query = question_query)
-	#add_related_youtube_videos_to_question(question_id = question_id, question_query = question_query)
+	generate_and_add_ai_response_question(question_id = question_id, question_query = question_query)
+	add_similar_questions_to_this_question(question_id = question_id, question_query = question_query)
+	add_related_search_results_to_question(question_id = question_id, question_query = question_query)
+	add_related_youtube_videos_to_question(question_id = question_id, question_query = question_query)
 
 	return question_id
 

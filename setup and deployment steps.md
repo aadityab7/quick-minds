@@ -27,11 +27,12 @@ Steps to follow for set up : [https://tailwindcss.com/docs/installation](https:/
 1. Create a Cloud SQL instance with PostgreSQL and in that create a database `quickminds`
 2. Go to [https://console.cloud.google.com/welcome?project=airy-period-401611&cloudshell=true](https://console.cloud.google.com/welcome?project=airy-period-401611&cloudshell=true)
 3. `gcloud sql connect quickminds --user=postgres`
-4. Enter DB_PASSWORD
-5. `\c quickminds`
-6. Enter DB_PASSWORD
-7. copy and paste all the drop table commands
-8. copy and paste all the create table commands
+4. Authorize the connection
+5. Enter DB_PASSWORD
+6. `\c quickminds`
+7. Enter DB_PASSWORD
+8. copy and paste all the drop table commands
+9. copy and paste all the create table commands
 
 # Steps to create google cloud storage (bucket):
 
