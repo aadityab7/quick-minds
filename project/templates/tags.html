@@ -3,17 +3,22 @@
 {% block title %}QUICK MINDS ARTICLES{% endblock %}
 
 {% block content %}
-	
-	<h1>Tags</h1>
-	<p>A tag is a keyword or label that categorizes your question with other, similar questions. Using the right tags makes it easier for others to find and answer your question.</p>
+	<div class="mx-auto max-w-screen-xl px-4 py-8 sm:px-6 lg:px-8">
+		<div id="lower" class="grow py-3 px-3 rounded-t-lg">
+			<h1>Tags</h1>
+			<p>A tag is a keyword or label that categorizes your question with other, similar questions. Using the right tags makes it easier for others to find and answer your question.</p>
 
-	<div id="tags_page">
-		<template id="tag-template">
-			<p id = "tag_name"></p>
-			<p id = "tag_description"></p>
-			<p id = "question_count"></p>
-			<p id = "article_count"></p>
-		</template>
+			<div id="tags_page" class="flex flex-wrap gap-4 mt-4">
+				<template id="tag-template">
+					<div>
+						<p id = "tag_name" class="tag"></p>
+						<p id = "tag_description"></p>
+						<p id = "question_count"></p>
+						<p id = "article_count"></p>
+					</div>
+				</template>
+			</div>
+		</div>
 	</div>
 
 	<script type="text/javascript">

@@ -3,39 +3,51 @@
 {% block title %}QUICK MINDS - PROFILE PAGE{% endblock %}
 
 {% block content %}
+	<div class="mx-auto max-w-screen-xl px-4 py-8 sm:px-6 lg:px-8">
+		<div id="lower" class="grow py-3 px-3 rounded-t-lg">
 
-	<div>
-		<img id = "profile_picture" src="">
-		<h1 id = "user_name"></h1>
-		<p id = "about"></p>
-		<p id = "joined_on"></p>
-		<p id = "followers"></p>
-		<p id = "following"></p>
-		<button id = "follow" data-user-id = "">
-			Follow
-		</button>
-		<p id = "badge">
+			<div class="sm:flex gap-4 items-center justify-between">
+				<div class="flex gap-4 items-center">
+					<img id = "profile_picture" src="" class="rounded-full h-20">
+					<div>
+						<h1 id = "user_name"></h1>
+						<p id = "about" class="text-gray-500"></p>
+						<p id = "joined_on" class="text-gray-500"></p>
+						<div class="flex gap-4">
+							<p id = "followers"></p>
+							<p id = "following"></p>
+						</div>
+						<button id = "follow" data-user-id = "">
+							Follow
+						</button>
+					</div>
+				</div>
+				<p id = "badge"></p>
+			</div>
+
+			<hr class="my-4">
+
+			<div class="flex flex-wrap gap-4 justify-between">
+				<h2>Recent Activity</h2>
+
+				<h2>
+					Questions Asked
+				</h2>
+
+				<h2>
+					Responded To
+				</h2>
+
+				<h2>
+					Articles written
+				</h2>
+
+				<h2>
+					Tags
+				</h2>
+			</div>
+		</div>
 	</div>
-
-	<hr>
-
-	<h1>Recent Activity</h1>
-
-	<h1>
-		Questions Asked
-	</h1>
-
-	<h1>
-		Responded To
-	</h1>
-
-	<h1>
-		Articles written
-	</h1>
-
-	<h1>
-		Tags
-	</h1>
 
 	<script type="text/javascript">
 		var isLoading = false;
