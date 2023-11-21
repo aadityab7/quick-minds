@@ -1,0 +1,184 @@
+{% extends 'base.html' %}
+
+{% block title %}QUICK MINDS - {{tag_name}}{% endblock %}
+
+{% block content %}
+	<div class="mx-auto max-w-screen-xl px-4 py-8 sm:px-6 lg:px-8">
+		<div id="lower" class="grow py-3 px-3 rounded-t-lg">
+			<div class="flex items-center justify-between">	
+				<h1 class="text-xl font-bold">{{tag_name}}</h1>
+				</a>
+			</div>
+
+			
+
+		    <div id="for_you_page" class="mt-8">
+		        <template id="question-template">
+		        	<div class="p-4">
+		        		<div class="flex items-start gap-4 items-center pb-2">
+		              		<p id = "user_name" class="text-gray-500 font-bold"></p>
+		              		<button id = "follow" data-user-id = "" class="text-blue-500"></button>
+		              	</div>
+
+			          	<a href="">
+			            	<div class="question-list-box">
+			              		<h1 id = "question_title" class="text-xl"> </h1>
+
+			              		<p id = "created_time" class="text-sm text-gray-500 mt-3"></p>
+
+			              		<div class="flex items-start gap-4 mt-2">
+			              			<p id = "vote_counter" class="text-gray-500 text-sm font-bold"></p>
+			              			<p id = "response_counter" class="text-gray-500 text-sm font-bold"></p>
+			              		</div>
+			              		
+			              		<div id = "question_tags" class="flex items-start gap-4 mt-3"> 
+
+			              		</div>
+			            	</div>
+			          	</a>
+		        	</div>
+		        	
+		          	<hr>
+		        </template>
+		    </div>
+	    </div>
+	</div>
+
+    <script>
+	  
+	    var for_you_page = document.getElementById('for_you_page');
+
+	    // Lazy loading and infinite scrolling
+	    // Adjust the initial offset based on what's already loaded for "For You"
+	    var offset = {{ questions|length }}; 
+	    const user_id = {{user_id}};
+	    const tag_name = "{{tag_name}}";
+
+	    var numToLoad = 10;  // Adjust the number of questions to load at a time
+	    var isLoading = false;  // Flag to track whether an AJAX request is in progress
+	    var loadComplete = false; // All "For You" questions already loaded
+	    
+	    // Function to check if the user has scrolled to the bottom of the page
+	    function isScrolledToBottom() {
+	        var scrollTop = $(window).scrollTop();
+	        var windowHeight = $(window).height();
+	        var documentHeight = $(document).height();
+
+	        // Check if the user is close to the bottom (e.g., within 100 pixels)
+	        return (documentHeight - (scrollTop + windowHeight) < 100);
+	    }
+
+	    // Function to load more questions
+	    function loadMoreQuestions() {
+	        if (loadComplete) {
+	            return;
+	        } 
+
+	        // Check if an AJAX request is already in progress
+	        if (isLoading) {
+	            return;
+	        }
+
+	        // Set the isLoading flag to true
+	        isLoading = true;
+	        
+	        // Determine the current section and its respective offset
+	        var currentOffset = offset;
+
+	        // Send an AJAX request to fetch more questions
+	        $.ajax({
+	            type: 'POST',
+	            url: '/load_more_questions_with_tag',
+	            data: { tag_name: tag_name, num_to_load: numToLoad, offset: currentOffset},
+	            success: function (data) {
+                    if (data.questions.length < numToLoad) {
+                        loadComplete = true;
+                    }
+
+                    data.questions.forEach(function (question) {
+                        // Clone the template and populate it with data
+                        var template = document.getElementById("question-template");
+                        var clone = document.importNode(template.content, true);
+
+                        // Create the URL with the question_id
+                        var question_url = "/question_detail/" + question.question_id + "/";
+
+                        clone.querySelector("a").setAttribute("href", question_url);
+                        clone.querySelector("#user_name").textContent = question.user_name;
+                        clone.querySelector("#response_counter").textContent = question.response_counter + ' response';
+                        clone.querySelector("#question_title").textContent = question.question_title;
+                        clone.querySelector("#created_time").textContent = question.created_time;
+                        clone.querySelector("#vote_counter").textContent = question.vote_counter + ' vote';
+
+                        clone.querySelector("#follow").setAttribute('data-user-id', question.user_id);
+
+                        var tag_html_content = "";
+
+                        for (tag in question.tags) {
+                        	tag_html_content += ("<p class = 'rounded-md py-1 px-2 bg-indigo-400 text-white text-sm'>" + question.tags[tag] + "</p>");
+                        }
+
+                        clone.querySelector("#question_tags").innerHTML = tag_html_content;
+                        
+                        if(question.user_id !== user_id){
+                        	if (question.following){
+	                        	clone.querySelector("#follow").textContent = 'following';
+	                        }
+	                        else{
+	                        	clone.querySelector("#follow").textContent = 'follow';
+	                        }
+                        }
+                        else{
+                        	clone.querySelector("#follow").classList.add('hidden');
+                        }
+                        
+
+                        if (question.vote_counter > 0) {
+                            clone.querySelector("#vote_counter").classList.add('text-green-600');
+                        } else if (question.vote_counter < 0) {
+                            clone.querySelector("#vote_counter").classList.add('text-red-600');
+                        }
+
+                        // Append the populated template to the appropriate container
+                        document.getElementById('for_you_page').appendChild(clone);
+                    });
+
+                    // Update the offset for "For You"
+                    offset += numToLoad;
+                    isLoading = false;
+	               
+	            }
+	        });
+	    }
+
+	    // Load initial data for both sections when the page loads
+	    loadMoreQuestions();
+
+	    // Load more questions when scrolling to the bottom
+	    $(window).scroll(function () {
+	        if (isScrolledToBottom()) {
+	            loadMoreQuestions();	        
+	        }
+	    });
+
+	    function handleFollow(event) {
+	    	const followed_user_id = event.target.getAttribute('data-user-id');
+
+    		$.ajax({
+		        type: 'POST',
+		        url: '/follow_unfollow',
+		        data: { followed_user_id: followed_user_id },
+		        success: function (data) {
+		        	event.target.textContent = data.status;
+		        }
+		    });
+	    }
+
+	    document.addEventListener('click', function(event) {
+	    	if (event.target.id === 'follow') {
+	    		handleFollow(event);
+	    	}
+	    });
+	</script>
+
+{% endblock %}

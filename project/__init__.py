@@ -80,6 +80,32 @@ def tags():
 	else:
 		return redirect(url_for('login'))
 
+@app.route('/tag/<string:tag_name>/')
+def tag(tag_name):
+	if session.get('user_id'):
+		return render_template('tag.html', 
+			tag_name = tag_name,
+			user_id = session['user_id'], 
+			user_name = session['user_name'], 
+			user_picture_url = session['user_picture_url'])
+	else:
+		return redirect(url_for('login'))
+
+@app.route('/load_more_questions_with_tag', methods = ['POST'])
+def load_more_questions_with_tag():
+	tag_name = request.form.get('tag_name')
+	limit = int(request.form.get('num_to_load'))
+	offset = int(request.form.get('offset'))
+
+	questions = utils.load_more_questions_with_tag(
+					user_id = session['user_id'], 
+					tag_name = tag_name,
+					limit = limit,
+					offset = offset
+				)
+
+	return jsonify({'questions': questions})
+
 ########################################################################################################################################
 #ARTICLES FUNCTIONALITY
 

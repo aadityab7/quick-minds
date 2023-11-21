@@ -64,9 +64,11 @@ def add_question(
 	question_text:str,
 	question_tags: str
 ):
+	question_tags = question_tags.lower()
+	question_tags = re.sub(r"[']", "", question_tags)
 	question_tags = [tag.strip() for tag in question_tags.split(',')]
 	question_tags_set = set(question_tags)
-	question_tags = re.sub(r"[']", "", str(question_tags_set))
+	question_tags = str(question_tags_set)
 
 	question_query = question_title + " " + question_text + " " + question_tags
 
@@ -1234,6 +1236,45 @@ def load_more_questions(
 	"""
 
 	cur.execute(query, (user_id, num_to_load, offset))
+	questions = cur.fetchall()
+
+	cur.close()
+	conn.close()
+
+	if questions is None:
+		questions = []
+
+	question_keys = ("question_id", "question_title", "vote_counter", "response_counter", "created_time", "tags", "user_id", "user_name", "following")
+	questions = [dict(zip(question_keys, question)) for question in questions]
+
+	return questions
+
+def load_more_questions_with_tag(
+	user_id: int, 
+	tag_name: str,
+	limit: int,
+	offset: int
+):
+	conn = get_db_connection()
+	cur = conn.cursor()
+
+	query = """
+		SELECT 
+			Question.question_id, Question.question_title, Question.vote_counter, Question.response_counter, 
+			Question.created_time, Question.tags, 
+			App_user.user_id, App_user.name, 
+			CASE WHEN Follow.followed_user_id IS NULL THEN false ELSE true END AS following	
+		FROM Question 
+		INNER JOIN App_user
+			ON Question.user_id = App_user.user_id
+		LEFT JOIN Follow 
+			on App_user.user_id = Follow.followed_user_id and Follow.follower_user_id = %s 
+		WHERE %s = ANY (Question.tags)
+		ORDER BY Question.created_time DESC
+		LIMIT %s OFFSET %s;
+	"""
+
+	cur.execute(query, (user_id, tag_name, limit, offset))
 	questions = cur.fetchall()
 
 	cur.close()

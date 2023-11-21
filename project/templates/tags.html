@@ -8,13 +8,17 @@
 			<h1>Tags</h1>
 			<p>A tag is a keyword or label that categorizes your question with other, similar questions. Using the right tags makes it easier for others to find and answer your question.</p>
 
-			<div id="tags_page" class="flex flex-wrap gap-4 mt-4">
+			<div id="tags_page" class="grid grid-cols-12 gap-4 mt-4">
 				<template id="tag-template">
-					<div>
-						<p id = "tag_name" class="tag"></p>
-						<p id = "tag_description"></p>
-						<p id = "question_count"></p>
-						<p id = "article_count"></p>
+					<div class="col-span-full sm:col-span-6 md:col-span-4 lg:col-span-3 p-2 border rounded-lg">
+						<a id = "tag_link" href="" class="flex flex-col items-start">
+							<p id = "tag_name" class="tag"></p>
+							<p id = "tag_description"></p>
+							<div class="flex flex-wrap gap-6">
+								<p id = "question_count" class="text-gray-500"></p>
+								<p id = "article_count" class="text-gray-500"></p>
+							</div>
+						</a>
 					</div>
 				</template>
 			</div>
@@ -73,9 +77,12 @@
                         var template = document.getElementById("tag-template");
                         var clone = document.importNode(template.content, true);
 
+                        var tag_url = "/tag/" + tag.tag_name + "/";
+
+                        clone.querySelector("#tag_link").setAttribute("href", tag_url)
                         clone.querySelector("#tag_name").textContent = tag.tag_name;
                         clone.querySelector("#tag_description").textContent = tag.tag_description;
-                        clone.querySelector("#question_count").textContent = tag.question_count + " Questions asked";
+                        clone.querySelector("#question_count").textContent = tag.question_count + " Questions";
                         clone.querySelector("#article_count").textContent = tag.article_count + " Articles";
 
                         
