@@ -1,4 +1,3 @@
-
 #Note : we represent user not logged in as user_id = -1
 
 import os
@@ -65,10 +64,9 @@ def add_question(
 	question_tags: str
 ):
 	question_tags = question_tags.lower()
-	question_tags = re.sub(r"[']", "", question_tags)
 	question_tags = [tag.strip() for tag in question_tags.split(',')]
 	question_tags_set = set(question_tags)
-	question_tags = str(question_tags_set)
+	question_tags = re.sub(r"[']", "", str(question_tags_set))
 
 	question_query = question_title + " " + question_text + " " + question_tags
 
@@ -1588,7 +1586,7 @@ def question_search(
 	conn = get_db_connection()
 	cur = conn.cursor()
 
-	query = """
+	"""
 		SELECT
 			Question.question_id, Question.question_title,
 			Question.vote_counter, Question.response_counter, Question.created_time, Question.tags,
@@ -1643,24 +1641,93 @@ def question_search(
 
 	return search_results
 
+def article_search(
+	user_id: int,
+	search_query: str,
+	limit: int,
+	offset: int
+):
+	conn = get_db_connection()
+	cur = conn.cursor()
+
+	text_highlight_query = """
+		SELECT
+			Article.article_id,
+			ts_headline(Article.title, query) as title,
+			Article.description,
+			Article.vote_counter, 
+			Article.response_counter, 
+			Article.created_time, 
+			Article.tags,
+			App_user.user_id, 
+			App_user.name,
+			CASE WHEN f.followed_user_id IS NULL THEN false ELSE true END AS following,
+			ts_rank_cd(document_vectors, query) as rank
+		FROM Article
+		INNER JOIN App_user
+		        	ON Article.user_id = App_user.user_id
+		LEFT JOIN Follow f
+		    	ON Article.user_id = f.followed_user_id AND f.follower_user_id = %s
+		, websearch_to_tsquery(%s) query
+		WHERE document_vectors @@ query 
+		ORDER BY rank DESC
+		LIMIT %s OFFSET %s;
+	"""
+
+	cur.execute(text_highlight_query, (user_id, search_query, limit, offset))
+	search_results = cur.fetchall()
+
+	cur.close()
+	conn.close()
+
+	if search_results is None:
+		search_results = []
+	
+	search_result_keys = (
+			"article_id",
+			"title",
+			"description",
+			"vote_counter", 
+			"response_counter", 
+			"created_time", 
+			"tags",
+			"user_id", 
+			"name",
+			"following",
+			"rank"
+	)
+
+	search_results = [dict(zip(search_result_keys, search_result)) for search_result in search_results]
+
+	return search_results
+
 def search(
 	user_id: int,
 	search_query: str,
 	limit: int,
 	offset: int,
-	search_type: str
+	search_type: str = "all"
 ):
+	search_results = dict()
+
 	if search_type == "question" or search_type == "all":
-		question_search_results = question_search(
+		search_results["question_search_results"] = question_search(
 			user_id = user_id,
 			search_query = search_query,
 			limit = limit,
 			offset = offset
 		)
 
-		return question_search_results
+	if search_type == "article" or search_type == "all":
+		
+		search_results["article_search_results"] = article_search(
+			user_id = user_id, 
+			search_query = search_query, 
+			limit = limit, 
+			offset = offset
+		)
 
-	return []
+	return search_results
 
 def vote_unvote(
 	user_id: int,
@@ -1711,6 +1778,7 @@ def vote_unvote(
 		return handle_response_vote(user_id, response_id, up_or_down_vote)
 
 #functions to implement for articles
+
 def add_article(
 	user_id: int,
 	title: str,
@@ -1731,12 +1799,14 @@ def add_article(
 	
 	description = contents[:200] + "..."
 
+	article_complete_contents = title + " " + contents + " " + tags
+
 	conn = get_db_connection()
 	cur = conn.cursor()
 
-	query = "INSERT INTO Article (user_id, title, description, contents, thumbnail_url, tags) VALUES (%s, %s, %s, %s, %s, %s)"
+	query = "INSERT INTO Article (user_id, title, description, contents, thumbnail_url, tags, document_vectors) VALUES (%s, %s, %s, %s, %s, %s, to_tsvector(%s))"
 
-	cur.execute(query, (user_id, title, description, contents, thumbnail_url, tags))
+	cur.execute(query, (user_id, title, description, contents, thumbnail_url, tags, article_complete_contents))
 	conn.commit()
 
 	query = "SELECT article_id FROM Article WHERE user_id = %s ORDER BY created_time DESC LIMIT 1"
@@ -2187,14 +2257,6 @@ def delete_article_response(
 def get_article_preview(
 	user_id: int,
 	article_id: int
-):
-	pass
-
-def article_search(
-	user_id: int,
-	search_query: str,
-	limit: int,
-	offset: int
 ):
 	pass
 

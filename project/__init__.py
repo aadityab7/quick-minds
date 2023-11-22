@@ -61,6 +61,8 @@ def profile():
 	else:
 		return redirect(url_for('login'))
 
+########################################################################################################################################
+#TAGS FUNCTIONALITY
 
 @app.route('/tags', methods = ('GET', 'POST'))
 def tags():
@@ -634,11 +636,9 @@ def search():
 			search_query = request.form.get('search_query', '')
 			limit = int(request.form.get('num_to_load', 10))
 			offset = int(request.form.get('offset', 0))
-			search_type = request.form.get('search_type')
-
-			print(f"search_type {search_type}")
+			search_type = request.form.get('search_type', "all")
 		
-			search_results = utils.search(user_id = session['user_id'], search_query = search_query, limit = limit, offset = offset, search_type = search_type)
+			search_results = utils.search(user_id = session['user_id'], search_query = search_query, limit = limit, offset = offset, search_type = search_type)	
 
 			return jsonify({'search_results' : search_results})
 		else:

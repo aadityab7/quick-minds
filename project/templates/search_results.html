@@ -17,6 +17,7 @@
 			</div>			
 
 		    <div id="search_result_page" class="mt-8">
+			<h1 class="text-xl font-bold">Questions</h1>
 		        <template id="question-template">
 		        	<div class="p-4">
 		        		<div class="flex items-start gap-4 items-center pb-2">
@@ -45,50 +46,91 @@
 		          	<hr>
 		        </template>
 		    </div>
+
+		    <div id = "more-similar-questions-div">
+				<button id = "load-more-questions-button" class="hidden mt-4 rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">Load more Questions</button>
+			</div>
+
+		    <div id="articles_page" class="mt-8">
+			<h1 class="text-xl font-bold">Articles</h1>
+		        <template id="article-template">
+		        	<div class="p-4">
+		        		<div class="sm:flex items-start gap-4 items-center pb-2">
+		              		<p id = "user_name" class="text-gray-500 font-semibold"></p>
+		              		<button id = "follow" data-user-id = "" class="text-blue-500"></button>
+			              	<p id = "created_time" class="text-sm text-gray-500"></p>
+		              	</div>
+
+			          	<a href="">
+			            	<div class="article-list-box">
+
+			            		<div class="grid grid-cols-12">
+				            		<div class="col-span-full sm:col-span-9">
+					              		<h1 id = "article_title" class="text-xl"> </h1>
+					              		<p id = "article_description" class="mt-2"></p>
+				            		</div>
+			            			
+			            			<div class="col-span-full sm:col-end-13 sm:col-span-2 flex items-center sm:justify-end">
+			            				<img id = "article_thumbnail_image" src="" class="max-h-24 max-w-24 mt-4 sm:mt-0">
+			            			</div>
+			            		</div>
+			              		
+			              		<div id = "article_tags" class="flex flex-wrap items-start gap-4 mt-4"> </div>
+
+			              		<div id = "votes_and_responses" class="flex items-start gap-4 mt-4">
+			              			<p id = "vote_counter" class="text-gray-500 text-sm font-bold"></p>
+			              			<p id = "response_counter" class="text-gray-500 text-sm font-bold"></p>
+			              		</div>
+			            	</div>
+			          	</a>
+		        	</div>
+		        	
+		          	<hr class="mt-4">
+		        </template>
+		    </div>
+
+		    <div id = "more-similar-questions-div">
+				<button id = "load-more-articles-button" class="hidden mt-4 rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">Load more Articles</button>
+			</div>
+
 	    </div>
 	</div>
 	
 
 	<script>
-	    var search_result_page = document.getElementById('search_result_page');
-
 	    // Lazy loading and infinite scrolling
 	    // Adjust the initial offset based on what's already loaded for "For You"
-	    var offset = {{ search_results|length }}; 
 	    const user_id = {{user_id}};
-
 	    const search_query  = '{{search_query}}';
 
-	    var numToLoad = 10;  // Adjust the number of questions to load at a time
-	    var isLoading = false;  // Flag to track whether an AJAX request is in progress
-	    var loadComplete = false; // All "For You" questions already loaded
-	    
-	    // Function to check if the user has scrolled to the bottom of the page
-	    function isScrolledToBottom() {
-	        var scrollTop = $(window).scrollTop();
-	        var windowHeight = $(window).height();
-	        var documentHeight = $(document).height();
+	    var numToLoad = 5;  // Adjust the number of questions to load at a time
 
-	        // Check if the user is close to the bottom (e.g., within 100 pixels)
-	        return (documentHeight - (scrollTop + windowHeight) < 100);
-	    }
+	    var question_offset = 0;
+	    var question_search_is_loading = false;  // Flag to track whether an AJAX request is in progress
+	    var question_search_load_complete = false;
+	    
+	    var article_offset = 0;
+	    var article_search_is_loading = false;
+	    var article_search_load_complete = false;
 
 	    // Function to load more questions
 	    function loadMoreQuestions() {
-	        if (loadComplete) {
+	        if (question_search_load_complete) {
 	            return;
 	        } 
 
 	        // Check if an AJAX request is already in progress
-	        if (isLoading) {
+	        if (question_search_is_loading) {
 	            return;
 	        }
 
-	        // Set the isLoading flag to true
-	        isLoading = true;
+	        document.getElementById('load-more-questions-button').classList.add('hidden');
+
+	        // Set the question_search_is_loading flag to true
+	        question_search_is_loading = true;
 	        
 	        // Determine the current section and its respective offset
-	        var currentOffset = offset;
+	        var currentOffset = question_offset;
 
 	        // Send an AJAX request to fetch more questions
 	        $.ajax({
@@ -96,11 +138,11 @@
 	            url: '/search',
 	            data: { search_query: search_query, num_to_load: numToLoad, offset: currentOffset, search_type: 'question'},
 	            success: function (data) {
-                    if (data.search_results.length === 0) {
-                        loadComplete = true;
+                    if (data.search_results.question_search_results.length < numToLoad) {
+                        question_search_load_complete = true;
                     }
 
-                    data.search_results.forEach(function (question) {
+                    data.search_results.question_search_results.forEach(function (question) {
                         // Clone the template and populate it with data
                         var template = document.getElementById("question-template");
                         var clone = document.importNode(template.content, true);
@@ -149,22 +191,111 @@
                     });
 
                     // Update the offset for "For You"
-                    offset += numToLoad;
-                    isLoading = false;
+                    question_offset += numToLoad;
+                    question_search_is_loading = false;
 	               
+                    if(question_search_load_complete == false){
+                    	document.getElementById('load-more-questions-button').classList.remove('hidden');
+                    }
+
+	            }
+	        });
+	    }
+
+	    // Function to load more questions
+	    function loadMoreArticles() {
+	        if (article_search_load_complete) {
+	            return;
+	        } 
+
+	        // Check if an AJAX request is already in progress
+	        if (article_search_is_loading) {
+	            return;
+	        }
+
+	        document.getElementById('load-more-articles-button').classList.add('hidden');
+
+	        // Set the article_search_is_loading flag to true
+	        article_search_is_loading = true;
+	        
+	        // Determine the current section and its respective offset
+	        var currentOffset = article_offset;
+
+	        // Send an AJAX request to fetch more questions
+	        $.ajax({
+	            type: 'POST',
+	            url: '/search',
+	            data: { search_query: search_query, num_to_load: numToLoad, offset: currentOffset, search_type: 'article'},
+	            success: function (data) {
+	            	console.log(data);
+
+                    if (data.search_results.article_search_results.length < numToLoad) {
+                        article_search_load_complete = true;
+                    }
+
+                    data.search_results.article_search_results.forEach(function (article) {
+                        // Clone the template and populate it with data
+                        var template = document.getElementById("article-template");
+                        var clone = document.importNode(template.content, true);
+                        
+                        // Create the URL with the article_id
+                        var article_url = "/article/" + article.article_id + "/";
+
+                        clone.querySelector("a").setAttribute("href", article_url);
+                        clone.querySelector("#user_name").textContent = article.user_name;
+                        clone.querySelector("#response_counter").textContent = article.response_counter + ' response';
+                        clone.querySelector("#article_title").innerHTML = article.title;
+                        clone.querySelector("#created_time").textContent = article.created_time;
+                        clone.querySelector("#vote_counter").textContent = article.vote_counter + ' vote';
+						clone.querySelector("#article_description").textContent = article.description;
+                        
+                        clone.querySelector("#article_thumbnail_image").setAttribute('src', article.thumbnail_url);
+                        clone.querySelector("#follow").setAttribute('data-user-id', article.user_id);
+
+                        var tag_html_content = "";
+
+                        for (tag in article.tags) {
+                        	tag_html_content += ("<p class = 'rounded-md py-1 px-2 bg-indigo-400 text-white text-sm'>" + article.tags[tag] + "</p>");
+                        }
+
+                        clone.querySelector("#article_tags").innerHTML = tag_html_content;
+                        
+                        if(article.user_id !== user_id){
+                        	if (article.following){
+	                        	clone.querySelector("#follow").textContent = 'following';
+	                        }
+	                        else{
+	                        	clone.querySelector("#follow").textContent = 'follow';
+	                        }
+                        }
+                        else{
+                        	clone.querySelector("#follow").classList.add('hidden');
+                        }
+                        
+                        if (article.vote_counter > 0) {
+                            clone.querySelector("#vote_counter").classList.add('text-green-600');
+                        } else if (article.vote_counter < 0) {
+                        	console.log(article.vote_counter);
+                            clone.querySelector("#vote_counter").classList.add('text-red-600');
+                        }
+
+                        // Append the populated template to the appropriate container
+                        document.getElementById('articles_page').appendChild(clone);
+                    });
+
+                    article_offset += numToLoad;
+                    article_search_is_loading = false;
+
+                    if(article_search_load_complete == false){
+		            	document.getElementById('load-more-articles-button').classList.remove('hidden');
+		            }
 	            }
 	        });
 	    }
 
 	    // Load initial data for both sections when the page loads
 	    loadMoreQuestions();
-
-	    // Load more questions when scrolling to the bottom
-	    $(window).scroll(function () {
-	        if (isScrolledToBottom()) {
-	            loadMoreQuestions();	        
-	        }
-	    });
+	    loadMoreArticles();
 
 	    function handleFollow(event) {
 	    	const followed_user_id = event.target.getAttribute('data-user-id');
@@ -182,6 +313,14 @@
 	    document.addEventListener('click', function(event) {
 	    	if (event.target.id === 'follow') {
 	    		handleFollow(event);
+	    	}
+
+	    	if (event.target.id === 'load-more-questions-button') {
+	    		loadMoreQuestions();
+	    	}
+
+	    	if (event.target.id === 'load-more-articles-button') {
+	    		loadMoreArticles();
 	    	}
 	    });
 

@@ -299,6 +299,7 @@ CREATE TABLE Article (
     response_counter integer DEFAULT 0,
     created_time timestamp DEFAULT CURRENT_TIMESTAMP,
     user_id integer NOT NULL,
+    document_vectors tsvector,
 
     CONSTRAINT fk_article_app_user
         FOREIGN KEY(user_id) 
@@ -439,6 +440,7 @@ CREATE TABLE Notification (
 );
 
 CREATE INDEX idx_question_doc_vec ON Question USING gin(document_vectors);
+CREATE INDEX idx_article_doc_vec ON Article USING gin(document_vectors);
 
 INSERT INTO App_user 
     (user_id, username, name, about) 
