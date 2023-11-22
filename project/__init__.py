@@ -42,6 +42,10 @@ def index():
 	else:
 		return redirect(url_for('login'))
 
+
+########################################################################################################################################
+#PROFILE FUNCTIONALITY
+
 @app.route('/profile', methods = ('GET', 'POST'))
 def profile():
 	if session.get('user_id'):
@@ -60,6 +64,39 @@ def profile():
 			return jsonify({'profile_info': profile_info, 'followers': followers, 'following': following})
 	else:
 		return redirect(url_for('login'))
+
+
+@app.route('/get_user_questions_activity', methods = ['POST'])
+def get_user_questions_activity():
+	pass
+
+@app.route('/get_user_tag_activity', methods = ['POST'])
+def get_user_tag_activity():
+	pass
+
+@app.route('/get_user_response_activity', methods = ['POST'])
+def get_user_response_activity():
+	pass
+
+@app.route('/get_user_comment_activity', methods = ['POST'])
+def get_user_comment_activity():
+	pass
+
+@app.route('/get_user_article_activity', methods = ['POST'])
+def get_user_article_activity():
+	pass
+
+@app.route('/get_user_saves', methods = ['POST'])
+def get_user_saves():
+	pass
+
+@app.route('/get_user_followers', methods = ['POST'])
+def get_user_followers():
+	pass
+
+@app.route('/get_user_following', methods = ['POST'])
+def get_user_following():
+	pass
 
 ########################################################################################################################################
 #TAGS FUNCTIONALITY

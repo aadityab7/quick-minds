@@ -27,29 +27,64 @@
 
 			<hr class="my-4">
 
-			<div class="flex flex-wrap gap-4 justify-between">
-				<h2>Recent Activity</h2>
+			<div id = "section-buttons" class="hidden flex flex-wrap gap-4 justify-between items-center">
+		        <button id="questionButton">Questions</button>
 
-				<h2>
-					Questions Asked
-				</h2>
+		        <span
+		          aria-hidden="true"
+		          class="block h-4 w-px rounded-full bg-gray-900"
+		        ></span>
 
-				<h2>
-					Responded To
-				</h2>
+		        <button id="responseButton">Responses</button>
 
-				<h2>
-					Articles written
-				</h2>
+		        <span
+		          aria-hidden="true"
+		          class="block h-4 w-px rounded-full bg-gray-900"
+		        ></span>
 
-				<h2>
-					Tags
-				</h2>
+		        <button id="articleButton">Articles</button>
+
+		        <span
+		          aria-hidden="true"
+		          class="block h-4 w-px rounded-full bg-gray-900"
+		        ></span>
+
+		        <button id="tagButton">Tags</button>
+		    </div>
+		</div>
+
+		<div class="hidden">
+			<div id = "question_section">
+				<p> question_section </p>
+			</div>
+
+			<div id = "response_section">
+				<p> response_section </p>
+			</div>
+
+			<div id = "article_section">
+				<p> article_section </p>
+			</div>
+
+			<div id = "tag_section">
+				<p> tag_section </p>
 			</div>
 		</div>
+
+
 	</div>
 
 	<script type="text/javascript">
+      	var questionButton = document.getElementById('questionButton');
+      	var responseButton = document.getElementById('responseButton');
+      	var articleButton = document.getElementById('articleButton');
+      	var tagButton = document.getElementById('tagButton');
+
+		var question_section = document.getElementById('question_section');
+		var response_section = document.getElementById('response_section');
+		var article_section = document.getElementById('article_section');
+		var tag_section = document.getElementById('tag_section');
+
 		var isLoading = false;
 		var user_id = {{user_id}};
 
@@ -101,6 +136,64 @@
 	    }
 
 	    loadUserInfo();
+
+	    document.addEventListener('click', function(event) {
+	    	if (event.target.id === 'questionButton'){	  
+	    		questionButton.classList.add('font-bold');
+				responseButton.classList.remove('font-bold');
+				articleButton.classList.remove('font-bold');
+				tagButton.classList.remove('font-bold');
+
+				question_section.style.display = 'block';
+				response_section.style.display = 'none';
+				article_section.style.display = 'none';
+				tag_section.style.display = 'none';
+	    	
+	    	}
+	    	else if (event.target.id === 'responseButton'){	  
+	    		questionButton.classList.remove('font-bold');
+				responseButton.classList.add('font-bold');
+				articleButton.classList.remove('font-bold');
+				tagButton.classList.remove('font-bold');
+
+				question_section.style.display = 'none';
+				response_section.style.display = 'block';
+				article_section.style.display = 'none';
+				tag_section.style.display = 'none';
+	    	
+	    	}
+	    	else if (event.target.id === 'articleButton'){
+	    		questionButton.classList.remove('font-bold');
+				responseButton.classList.remove('font-bold');
+				articleButton.classList.add('font-bold');
+				tagButton.classList.remove('font-bold');
+
+				question_section.style.display = 'none';
+				response_section.style.display = 'none';
+				article_section.style.display = 'block';
+				tag_section.style.display = 'none';
+	    	}
+	    	else if (event.target.id === 'tagButton'){
+	    		questionButton.classList.remove('font-bold');
+				responseButton.classList.remove('font-bold');
+				articleButton.classList.remove('font-bold');
+				tagButton.classList.add('font-bold');
+
+				question_section.style.display = 'none';
+				response_section.style.display = 'none';
+				article_section.style.display = 'none';
+				tag_section.style.display = 'block';
+	    	
+	    	}
+	    });
+
+	    questionButton.classList.add('font-bold');
+
+		question_section.style.display = 'block';
+		response_section.style.display = 'none';
+		article_section.style.display = 'none';
+		tag_section.style.display = 'none';
+
 	</script>
 	
 {% endblock %}
