@@ -9,9 +9,10 @@ import vertexai
 from vertexai.language_models import TextGenerationModel
 import ast
 
-model = TextGenerationModel.from_pretrained("text-bison@001")
+#model = TextGenerationModel.from_pretrained("text-bison@001")
 
-def get_db_connection():
+def get_db_connection(
+):
 	"""
 	function to establish connection to the database
 	"""
@@ -23,8 +24,8 @@ def get_db_connection():
 
 	return conn
 
-def add_image_to_post(
-	image_file_url: str,
+def add_images_to_post(
+	images: list,
 	question_or_response_id: int,
 	post_type: str = 'question'
 ):
@@ -36,26 +37,12 @@ def add_image_to_post(
 	else:
 		query = "INSERT INTO Image (url, response_id, post_type) VALUES (%s, %s, %s)"
 
-	cur.execute(query, (image_file_url, question_or_response_id, post_type))
-	conn.commit()
-
-	if post_type == 'question':
-		query = "SELECT image_id FROM Image WHERE url = %s AND question_id = %s"
-	else:
-		query = "SELECT image_id FROM Image WHERE url = %s AND response_id = %s"
-
-	cur.execute(query, (image_file_url, question_or_response_id))
-	image_id = cur.fetchone()
+	for image in images:
+		cur.execute(query, (image, question_or_response_id, post_type))
+		conn.commit()
 
 	cur.close()
 	conn.close()
-
-	if image_id is None:
-		return -1
-	else:
-		image_id = image_id[0]
-
-	return image_id
 
 def add_question(
 	user_id: int,
@@ -77,7 +64,7 @@ def add_question(
 	conn = get_db_connection()
 	cur = conn.cursor()
 
-	query = "INSERT INTO Question (user_id, question_title, question_text, tags, document_vectors) VALUES (%s, %s, %s, %s, to_tsvector(%s))"
+	query = "INSERT INTO Question (user_id, question_title, question_text, tags, question_query) VALUES (%s, %s, %s, %s, %s)"
 
 	cur.execute(query, (user_id, question_title, question_text, question_tags, question_query))
 	conn.commit()
@@ -100,17 +87,176 @@ def add_question(
 		question_id = question[0]
 
 	#keep track of all the images seperatly as well
-	#images = re.findall(r'[!][[].*[\]][(].*[)]', question_text)
+	images = re.findall(r'!\[[^!]*\]\([^!]*\)', question_text)
 	
-	#before returning the question find and add related resources and responses
-	add_tags_to_question_user_tag_table(question_id = question_id, user_id = user_id, question_tags_set = question_tags_set)
+	add_images_to_post(
+		images = images, 
+		question_or_response_id = question_id, 
+		post_type = 'question' 
+	)
 
-	generate_and_add_ai_response_question(question_id = question_id, question_query = question_query)
-	add_similar_questions_to_this_question(question_id = question_id, question_query = question_query)
-	add_related_search_results_to_question(question_id = question_id, question_query = question_query)
-	add_related_youtube_videos_to_question(question_id = question_id, question_query = question_query)
+	#before returning the question find and add related resources and responses
+	add_tags_to_question_user_tag_table(
+		question_id = question_id, 
+		user_id = user_id, 
+		question_tags_set = question_tags_set
+	)
 
 	return question_id
+
+def extact_text_from_image(
+	image_url: str
+):
+	#perform text extraction 
+	#and store the resulting text as alt text of images
+
+	return image_url
+
+def question_step_text_extraction(
+	question_id: int
+):
+	conn = get_db_connection()
+	cur = conn.cursor()
+	
+	query = "SELECT url FROM Image WHERE question_id = %s"
+	
+	cur.execute(query, (question_id,))
+	images = cur.fetchall()
+
+	cur.close()
+	conn.close()
+
+	if images is None:
+		images = []
+
+	extracted_text = []
+
+	for image in images:
+		print(image[0])
+
+		image_text = extact_text_from_image(image_url = image[0])
+
+		print(image_text)
+
+		extracted_text.append(image_text)
+	
+	
+	extracted_text = ", added context added from images texts which may or may not be useful :" + str(extracted_text)
+
+	conn = get_db_connection()
+	cur = conn.cursor()
+
+	print("extracted_text")
+	print(extracted_text)
+	
+	
+	query = "UPDATE Question SET extracted_text = %s WHERE question_id = %s"
+	
+	cur.execute(query, (extracted_text, question_id))
+	conn.commit()
+
+	cur.close()
+	conn.close()
+
+	print("text extraction done!")
+
+	return "OK"
+
+def question_step_web_search(
+	question_id: int
+):
+	conn = get_db_connection()
+	cur = conn.cursor()
+	
+	query = "SELECT question_query, extracted_text FROM Question WHERE question_id = %s"
+	
+	cur.execute(query, (question_id,))
+	result = cur.fetchone()
+
+	cur.close()
+	conn.close()
+
+	if result is None:
+		question_query = ""
+	else:
+		question_query, extracted_text = result
+		question_query = question_query + extracted_text
+
+	add_related_search_results_to_question(question_id = question_id, question_query = question_query)
+
+	return "web search done!"
+
+def question_step_youtube_search(
+	question_id: int
+):
+	conn = get_db_connection()
+	cur = conn.cursor()
+	
+	query = "SELECT question_query, extracted_text FROM Question WHERE question_id = %s"
+	
+	cur.execute(query, (question_id,))
+	result = cur.fetchone()
+
+	cur.close()
+	conn.close()
+
+	if result is None:
+		question_query = ""
+	else:
+		question_query, extracted_text = result
+		question_query = question_query + extracted_text
+
+	add_related_youtube_videos_to_question(question_id = question_id, question_query = question_query)
+
+	return "youtube search done!"
+
+def question_step_similar_question(
+	question_id: int
+):
+	conn = get_db_connection()
+	cur = conn.cursor()
+	
+	query = "SELECT question_query, extracted_text FROM Question WHERE question_id = %s"
+	
+	cur.execute(query, (question_id,))
+	result = cur.fetchone()
+
+	cur.close()
+	conn.close()
+
+	if result is None:
+		question_query = ""
+	else:
+		question_query, extracted_text = result
+		question_query = question_query + extracted_text
+
+	add_similar_questions_to_this_question(question_id = question_id, question_query = question_query)
+
+	return "similar question search done!"
+
+def question_step_ai_response(
+	question_id: int
+):
+	conn = get_db_connection()
+	cur = conn.cursor()
+	
+	query = "SELECT question_query, extracted_text FROM Question WHERE question_id = %s"
+	
+	cur.execute(query, (question_id,))
+	result = cur.fetchone()
+
+	cur.close()
+	conn.close()
+
+	if result is None:
+		question_query = ""
+	else:
+		question_query, extracted_text = result
+		question_query = question_query + extracted_text
+
+	generate_and_add_ai_response_question(question_id = question_id, question_query = question_query)
+
+	return "AI response done!"
 
 def add_quiz_to_db(
 	user_id: int,
@@ -249,6 +395,9 @@ def add_response(
 
 	if response is None:
 		return -1
+
+	images = re.findall(r'[!][[].*[\]][(].*[)]', response_text)
+	add_images_to_post( images = images, question_or_response_id = response_id, post_type = 'response' )
 
 	if question_response_counter is None:
 		question_response_counter = 0

@@ -58,6 +58,7 @@ CREATE TABLE IF NOT EXISTS Question  (
     question_title text NOT NULL,
     question_text text NOT NULL,
     tags text[5],
+    question_query text,
     document_vectors tsvector
 ) INHERITS (Post);
 

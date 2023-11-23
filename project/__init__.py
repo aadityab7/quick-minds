@@ -325,6 +325,28 @@ def delete_article_response(article_response_id):
 
 ########################################################################################################################################
 #QUESTIONS FUNCTIONALITY
+
+@app.route('/question_progress/<int:question_id>')
+def question_progress(question_id):
+	if session.get('user_id'):
+		return render_template(
+			'question_progress.html', 
+			question_id = question_id,
+			user_id = session['user_id'], 
+			user_name = session['user_name'], 
+			user_picture_url = session['user_picture_url']
+		)
+	else:
+		return redirect(url_for('login'))
+
+@app.route('/question_step_text_extraction/', methods = ['POST'])
+def question_step_text_extraction():
+	question_id = int(request.form.get('question_id'))
+
+	response_status = utils.question_step_text_extraction(question_id = question_id)
+
+	return jsonify({'response_status' : response_status})
+
 @app.route('/add_response', methods = ['POST'])
 def add_response():
 	
@@ -370,7 +392,7 @@ def ask_question():
 
 				print(f" question added to database successfully!! {question_id}")
 				
-				return redirect(url_for('question_detail', question_id = question_id))
+				return redirect(url_for('question_progress', question_id = question_id))
 
 		return render_template('ask_question.html',
 			user_id = session['user_id'], 

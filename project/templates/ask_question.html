@@ -15,7 +15,6 @@
 		      <div class="mt-10 grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6">
 		        <div class="sm:col-span-4">
 		          <label for="question-title" class="block text-l font-medium leading-6 text-gray-900">Title</label>
-		          <p class="mt-1 text-sm leading-6 text-gray-600">Try to be specific as if you are asking question to someone in person.</p>
 		          <div class="mt-2">
 		            <div class="flex rounded-md shadow-sm ring-1 ring-inset ring-gray-300 focus-within:ring-2 focus-within:ring-inset focus-within:ring-indigo-600 sm:max-w-md">
 		              <input type="text" name="question-title" id="question-title" class="block flex-1 border-0 bg-transparent py-1.5 pl-2 text-gray-900 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6" placeholder="e.g. Is there a way to add markdown input field in flask app?" required>
@@ -39,7 +38,7 @@
 			            <input id="file-upload" name="file-upload" type="file" class="sr-only" accept=".png, .jpg, .jpeg, .gif">
 		            </label>
 		          </div>
-		          <p class="mt-3 text-sm leading-6 text-gray-600">Images are useful in a post, but make sure the post is still clear without them. If you post images of code or error messages, copy and paste or type the actual code or message into the post directly. <b>PNG, JPG, GIF up to 2MB</b></p>
+		          <p id = "image-instruction-text" class="hidden mt-3 text-sm leading-6 text-gray-600">Images are useful in a post, but make sure the post is still clear without them. If you post images of code or error messages, copy and paste or type the actual code or message into the post directly. <b>PNG, JPG, GIF up to 2MB</b></p>
 		          
 		        </div>
 
@@ -81,6 +80,7 @@
         const fileName = document.getElementById('fileName');
     
         fileInput.addEventListener('change', function () {
+        	document.getElementById('image-instruction-text').classList.remove('hidden');
             const file = fileInput.files[0];
             if (file) {
             	
