@@ -347,6 +347,38 @@ def question_step_text_extraction():
 
 	return jsonify({'response_status' : response_status})
 
+@app.route('/question_step_web_search', methods = ['POST'])
+def question_step_web_search():
+	question_id = int(request.form.get('question_id'))
+	
+	response_status = utils.question_step_web_search(question_id = question_id)
+
+	return jsonify({'response_status' : response_status})
+
+@app.route('/question_step_youtube_search', methods = ['POST'])
+def question_step_youtube_search():
+	question_id = int(request.form.get('question_id'))
+	
+	response_status = utils.question_step_youtube_search(question_id = question_id)
+
+	return jsonify({'response_status' : response_status})
+
+@app.route('/question_step_similar_question', methods = ['POST'])
+def question_step_similar_question():
+	question_id = int(request.form.get('question_id'))
+	
+	response_status = utils.question_step_similar_question(question_id = question_id)
+
+	return jsonify({'response_status' : response_status})
+
+@app.route('/question_step_ai_response', methods = ['POST'])
+def question_step_ai_response():
+	question_id = int(request.form.get('question_id'))
+	
+	response_status = utils.question_step_ai_response(question_id = question_id)
+
+	return jsonify({'response_status' : response_status})
+
 @app.route('/add_response', methods = ['POST'])
 def add_response():
 	

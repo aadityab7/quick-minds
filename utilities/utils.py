@@ -9,7 +9,8 @@ import vertexai
 from vertexai.language_models import TextGenerationModel
 import ast
 
-#model = TextGenerationModel.from_pretrained("text-bison@001")
+from google.api_core.client_options import ClientOptions
+from google.cloud import documentai  # type: ignore
 
 def get_db_connection(
 ):
@@ -87,8 +88,9 @@ def add_question(
 		question_id = question[0]
 
 	#keep track of all the images seperatly as well
-	images = re.findall(r'!\[[^!]*\]\([^!]*\)', question_text)
-	
+	image_embeddings = re.findall(r'!\[[^!]*\]\([^!]*\)', question_text)
+	images = [re.findall(r'\(.*\)', image_embedding)[0][1:-1] for image_embedding in image_embeddings]
+
 	add_images_to_post(
 		images = images, 
 		question_or_response_id = question_id, 
@@ -110,153 +112,57 @@ def extact_text_from_image(
 	#perform text extraction 
 	#and store the resulting text as alt text of images
 
-	return image_url
+	#return 'image_url'
 
-def question_step_text_extraction(
-	question_id: int
-):
-	conn = get_db_connection()
-	cur = conn.cursor()
-	
-	query = "SELECT url FROM Image WHERE question_id = %s"
-	
-	cur.execute(query, (question_id,))
-	images = cur.fetchall()
+	project_id = os.environ.get('PROJECT_ID')
+	location = os.environ.get('LOCATION')
+	processor_id = os.environ.get('PROCESSOR_ID')
 
-	cur.close()
-	conn.close()
+	extentions_mime_types = {
+		"pdf"   :   "application/pdf",
+		"gif"  :   "image/gif",
+		"tiff" :   "image/tiff",
+		"tif"  :   "image/tiff",
+		"jpg"  :   "image/jpeg",
+		"jpeg" :   "image/jpeg",
+		"png"  :   "image/png",
+		"bmp"  :   "image/bmp",
+		"webp" :   "image/webp"
+	}
 
-	if images is None:
-		images = []
+	mime_type = extentions_mime_types[image_url.split('.')[-1]]
 
-	extracted_text = []
+	# You must set the `api_endpoint` if you use a location other than "us".
+	opts = ClientOptions(api_endpoint=f"{location}-documentai.googleapis.com")
 
-	for image in images:
-		print(image[0])
+	client = documentai.DocumentProcessorServiceClient(client_options=opts)
 
-		image_text = extact_text_from_image(image_url = image[0])
+	name = client.processor_path(project_id, location, processor_id)
 
-		print(image_text)
+	# Read the file into memory
+	image_content = requests.get(image_url).content
 
-		extracted_text.append(image_text)
-	
-	
-	extracted_text = ", added context added from images texts which may or may not be useful :" + str(extracted_text)
+	# Load binary data
+	raw_document = documentai.RawDocument(
+		content=image_content,
+		mime_type=mime_type,  # Refer to https://cloud.google.com/document-ai/docs/file-types for supported file types
+	)
 
-	conn = get_db_connection()
-	cur = conn.cursor()
+	# Configure the process request
+	# `processor.name` is the full resource name of the processor, e.g.:
+	# `projects/{project_id}/locations/{location}/processors/{processor_id}`
+	request = documentai.ProcessRequest(name=name, raw_document=raw_document)
 
-	print("extracted_text")
-	print(extracted_text)
-	
-	
-	query = "UPDATE Question SET extracted_text = %s WHERE question_id = %s"
-	
-	cur.execute(query, (extracted_text, question_id))
-	conn.commit()
+	result = client.process_document(request=request)
 
-	cur.close()
-	conn.close()
+	# For a full list of `Document` object attributes, reference this page:
+	# https://cloud.google.com/document-ai/docs/reference/rest/v1/Document
+	document = result.document
 
-	print("text extraction done!")
+	# Read the text recognition output from the processor
+	extracted_text = document.text
 
-	return "OK"
-
-def question_step_web_search(
-	question_id: int
-):
-	conn = get_db_connection()
-	cur = conn.cursor()
-	
-	query = "SELECT question_query, extracted_text FROM Question WHERE question_id = %s"
-	
-	cur.execute(query, (question_id,))
-	result = cur.fetchone()
-
-	cur.close()
-	conn.close()
-
-	if result is None:
-		question_query = ""
-	else:
-		question_query, extracted_text = result
-		question_query = question_query + extracted_text
-
-	add_related_search_results_to_question(question_id = question_id, question_query = question_query)
-
-	return "web search done!"
-
-def question_step_youtube_search(
-	question_id: int
-):
-	conn = get_db_connection()
-	cur = conn.cursor()
-	
-	query = "SELECT question_query, extracted_text FROM Question WHERE question_id = %s"
-	
-	cur.execute(query, (question_id,))
-	result = cur.fetchone()
-
-	cur.close()
-	conn.close()
-
-	if result is None:
-		question_query = ""
-	else:
-		question_query, extracted_text = result
-		question_query = question_query + extracted_text
-
-	add_related_youtube_videos_to_question(question_id = question_id, question_query = question_query)
-
-	return "youtube search done!"
-
-def question_step_similar_question(
-	question_id: int
-):
-	conn = get_db_connection()
-	cur = conn.cursor()
-	
-	query = "SELECT question_query, extracted_text FROM Question WHERE question_id = %s"
-	
-	cur.execute(query, (question_id,))
-	result = cur.fetchone()
-
-	cur.close()
-	conn.close()
-
-	if result is None:
-		question_query = ""
-	else:
-		question_query, extracted_text = result
-		question_query = question_query + extracted_text
-
-	add_similar_questions_to_this_question(question_id = question_id, question_query = question_query)
-
-	return "similar question search done!"
-
-def question_step_ai_response(
-	question_id: int
-):
-	conn = get_db_connection()
-	cur = conn.cursor()
-	
-	query = "SELECT question_query, extracted_text FROM Question WHERE question_id = %s"
-	
-	cur.execute(query, (question_id,))
-	result = cur.fetchone()
-
-	cur.close()
-	conn.close()
-
-	if result is None:
-		question_query = ""
-	else:
-		question_query, extracted_text = result
-		question_query = question_query + extracted_text
-
-	generate_and_add_ai_response_question(question_id = question_id, question_query = question_query)
-
-	return "AI response done!"
+	return extracted_text
 
 def add_quiz_to_db(
 	user_id: int,
@@ -396,9 +302,6 @@ def add_response(
 	if response is None:
 		return -1
 
-	images = re.findall(r'[!][[].*[\]][(].*[)]', response_text)
-	add_images_to_post( images = images, question_or_response_id = response_id, post_type = 'response' )
-
 	if question_response_counter is None:
 		question_response_counter = 0
 	else:
@@ -408,6 +311,9 @@ def add_response(
 	response = dict(zip(response_keys, response))
 
 	response['response_text'] = markdown.markdown(response['response_text'])
+
+	images = re.findall(r'[!][[].*[\]][(].*[)]', response_text)
+	#add_images_to_post( images = images, question_or_response_id = response['response_id'], post_type = 'response')
 
 	return response, question_response_counter
 
@@ -798,6 +704,8 @@ def generate_ai_response(
 	top_p: float = 0.8,
 	top_k: int = 40
 ):	
+	model = TextGenerationModel.from_pretrained("text-bison@001")
+
 	parameters = {
 					"temperature": temperature, 
 					"max_output_tokens": max_output_tokens,
@@ -1790,65 +1698,159 @@ def question_search(
 
 	return search_results
 
-def article_search(
-	user_id: int,
-	search_query: str,
-	limit: int,
-	offset: int
+def question_step_text_extraction(
+	question_id: int
 ):
 	conn = get_db_connection()
 	cur = conn.cursor()
-
-	text_highlight_query = """
-		SELECT
-			Article.article_id,
-			ts_headline(Article.title, query) as title,
-			Article.description,
-			Article.vote_counter, 
-			Article.response_counter, 
-			Article.created_time, 
-			Article.tags,
-			App_user.user_id, 
-			App_user.name,
-			CASE WHEN f.followed_user_id IS NULL THEN false ELSE true END AS following,
-			ts_rank_cd(document_vectors, query) as rank
-		FROM Article
-		INNER JOIN App_user
-		        	ON Article.user_id = App_user.user_id
-		LEFT JOIN Follow f
-		    	ON Article.user_id = f.followed_user_id AND f.follower_user_id = %s
-		, websearch_to_tsquery(%s) query
-		WHERE document_vectors @@ query 
-		ORDER BY rank DESC
-		LIMIT %s OFFSET %s;
-	"""
-
-	cur.execute(text_highlight_query, (user_id, search_query, limit, offset))
-	search_results = cur.fetchall()
+	
+	query = "SELECT url FROM Image WHERE question_id = %s"
+	
+	cur.execute(query, (question_id,))
+	images = cur.fetchall()
 
 	cur.close()
 	conn.close()
 
-	if search_results is None:
-		search_results = []
+	if images is None:
+		images = []
+
+	extracted_text = []
+
+	for image in images:
+		print(image[0])
+
+		image_text = extact_text_from_image(image_url = image[0])
+
+		print(image_text)
+
+		extracted_text.append(image_text)
 	
-	search_result_keys = (
-			"article_id",
-			"title",
-			"description",
-			"vote_counter", 
-			"response_counter", 
-			"created_time", 
-			"tags",
-			"user_id", 
-			"name",
-			"following",
-			"rank"
-	)
+	
+	extracted_text = ", added context added from images texts which may or may not be useful :" + str(extracted_text)
 
-	search_results = [dict(zip(search_result_keys, search_result)) for search_result in search_results]
+	conn = get_db_connection()
+	cur = conn.cursor()
 
-	return search_results
+	print("extracted_text")
+	print(extracted_text)
+	
+	
+	query = "UPDATE Question SET extracted_text = %s WHERE question_id = %s"
+	
+	cur.execute(query, (extracted_text, question_id))
+	conn.commit()
+
+	cur.close()
+	conn.close()
+
+	print("text extraction done!")
+
+	return "OK"
+
+def question_step_web_search(
+	question_id: int
+):
+	conn = get_db_connection()
+	cur = conn.cursor()
+	
+	query = "SELECT question_query, extracted_text FROM Question WHERE question_id = %s"
+	
+	cur.execute(query, (question_id,))
+	result = cur.fetchone()
+
+	cur.close()
+	conn.close()
+
+	if result is None:
+		question_query = ""
+	else:
+		question_query, extracted_text = result
+		question_query = question_query + extracted_text
+
+	add_related_search_results_to_question(question_id = question_id, question_query = question_query)
+
+	print("web search done!")
+
+	return "OK"
+
+def question_step_youtube_search(
+	question_id: int
+):
+	conn = get_db_connection()
+	cur = conn.cursor()
+	
+	query = "SELECT question_query, extracted_text FROM Question WHERE question_id = %s"
+	
+	cur.execute(query, (question_id,))
+	result = cur.fetchone()
+
+	cur.close()
+	conn.close()
+
+	if result is None:
+		question_query = ""
+	else:
+		question_query, extracted_text = result
+		question_query = question_query + extracted_text
+
+	add_related_youtube_videos_to_question(question_id = question_id, question_query = question_query)
+	
+	print("youtube search done!")
+
+	return "OK"
+
+def question_step_similar_question(
+	question_id: int
+):
+	conn = get_db_connection()
+	cur = conn.cursor()
+	
+	query = "SELECT question_query, extracted_text FROM Question WHERE question_id = %s"
+	
+	cur.execute(query, (question_id,))
+	result = cur.fetchone()
+
+	cur.close()
+	conn.close()
+
+	if result is None:
+		question_query = ""
+	else:
+		question_query, extracted_text = result
+		question_query = question_query + extracted_text
+
+	add_similar_questions_to_this_question(question_id = question_id, question_query = question_query)
+
+	print("similar question search done!")
+
+	return "OK"
+
+def question_step_ai_response(
+	question_id: int
+):
+	conn = get_db_connection()
+	cur = conn.cursor()
+	
+	query = "SELECT question_query, extracted_text FROM Question WHERE question_id = %s"
+	
+	cur.execute(query, (question_id,))
+	result = cur.fetchone()
+
+	cur.close()
+	conn.close()
+
+	if result is None:
+		question_query = ""
+	else:
+		question_query, extracted_text = result
+		question_query = question_query + extracted_text
+
+	generate_and_add_ai_response_question(question_id = question_id, question_query = question_query)
+
+	print("AI response generation done!")
+
+	return "OK"
 
 def search(
 	user_id: int,
@@ -1927,6 +1929,65 @@ def vote_unvote(
 		return handle_response_vote(user_id, response_id, up_or_down_vote)
 
 #functions to implement for articles
+def article_search(
+	user_id: int,
+	search_query: str,
+	limit: int,
+	offset: int
+):
+	conn = get_db_connection()
+	cur = conn.cursor()
+
+	text_highlight_query = """
+		SELECT
+			Article.article_id,
+			ts_headline(Article.title, query) as title,
+			Article.description,
+			Article.vote_counter, 
+			Article.response_counter, 
+			Article.created_time, 
+			Article.tags,
+			App_user.user_id, 
+			App_user.name,
+			CASE WHEN f.followed_user_id IS NULL THEN false ELSE true END AS following,
+			ts_rank_cd(document_vectors, query) as rank
+		FROM Article
+		INNER JOIN App_user
+		        	ON Article.user_id = App_user.user_id
+		LEFT JOIN Follow f
+		    	ON Article.user_id = f.followed_user_id AND f.follower_user_id = %s
+		, websearch_to_tsquery(%s) query
+		WHERE document_vectors @@ query 
+		ORDER BY rank DESC
+		LIMIT %s OFFSET %s;
+	"""
+
+	cur.execute(text_highlight_query, (user_id, search_query, limit, offset))
+	search_results = cur.fetchall()
+
+	cur.close()
+	conn.close()
+
+	if search_results is None:
+		search_results = []
+	
+	search_result_keys = (
+			"article_id",
+			"title",
+			"description",
+			"vote_counter", 
+			"response_counter", 
+			"created_time", 
+			"tags",
+			"user_id", 
+			"name",
+			"following",
+			"rank"
+	)
+
+	search_results = [dict(zip(search_result_keys, search_result)) for search_result in search_results]
+
+	return search_results
 
 def add_article(
 	user_id: int,
