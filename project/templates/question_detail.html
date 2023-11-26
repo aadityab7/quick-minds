@@ -9,22 +9,28 @@
 		<div id = "main-question-div"> 
 			
 			<div id = "question-head-div" class="flex flex-wrap items-center justify-between mb-3 gap-4">	
-				<h1 class="text-xl font-bold">{{question["question_title"]}}</h1>
+				
+				<div id = "question-and-user-metadata-div">
+					<div class="flex items-start gap-4 mb-2 items-center">
+						<img
+	        				id="user_profile_picture"
+	                        alt="user_profile_picture"
+	                        src= {{question.picture_url}}
+	                        class="h-5 w-5 rounded-full object-cover"
+	                    />
+			      		<p id = "user_name" class="text-gray-500 font-bold">{{question["user_name"]}}</p>
+					    <button id = "follow" data-user-id = {{question.user_id}} class="text-blue-500 {% if (question['user_id'] == user_id) %} hidden {% endif %}">
+				    		{% if (question['following'] == true) %} following {%else%} follow {%endif%}
+						</button>
+			      	</div>
+
+			      	<p id = "created_time" class="text-gray-500">{{question["created_time"]}}</p>
+				</div>
+				
 
 				<a href="{{url_for('ask_question')}}"> 
 					<button type="submit" class="rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">Ask Question</button>
 				</a>
-			</div>
-
-			<div id = "question-and-user-metadata-div">
-				<div class="flex items-start gap-4 mb-2 items-center">
-		      		<p id = "user_name" class="text-gray-500 font-bold">{{question["user_name"]}}</p>
-				    <button id = "follow" data-user-id = {{question.user_id}} class="text-blue-500 {% if (question['user_id'] == user_id) %} hidden {% endif %}">
-			    		{% if (question['following'] == true) %} following {%else%} follow {%endif%}
-					</button>
-		      	</div>
-
-		      	<p id = "created_time" class="text-gray-500">{{question["created_time"]}}</p>
 			</div>
 			
 			<div id = "question-details-div" class="mt-8 grid grid-cols-12 items-start gap-2 sm:gap-0">
@@ -141,6 +147,12 @@
 						<div id = 'response-details' class="col-span-11 p-4">
 							<div id = "response-and-user-metadata-div">
 								<div id = "response-user-data" class="flex items-start gap-4 mb-2 items-center">
+				              		<img
+				        				id="user_profile_picture"
+			                            alt="user_profile_picture"
+			                            src= ""
+			                            class="h-5 w-5 rounded-full object-cover"
+			                        />
 				              		<p id = "user_name" class="text-gray-500 font-bold"></p>
 			              			<button id = "follow" data-user-id = "" class="text-blue-500"></button>
 				              	</div>
@@ -338,6 +350,7 @@
             clone.querySelector("#created_time").textContent = response.created_time;
             clone.querySelector("#response_vote_counter").textContent = response.vote_counter;
             clone.querySelector("#follow").setAttribute('data-user-id', response.user_id);
+            clone.querySelector("#user_profile_picture").setAttribute("src", response.picture_url);
 
             
             if(response.my_vote === 1) {
@@ -471,16 +484,16 @@
 		        	const my_vote = data.my_vote;
 
 		        	if (my_vote === 0){
-		        		up_vote_button.classList.remove('bg-indigo-500');
-		        		down_vote_button.classList.remove('bg-indigo-500');
+		        		up_vote_button.classList.remove('text-indigo-500');
+		        		down_vote_button.classList.remove('text-indigo-500');
 		        	}
 		        	else if (my_vote === 1){
-		        		up_vote_button.classList.add('bg-indigo-500');
-		        		down_vote_button.classList.remove('bg-indigo-500');
+		        		up_vote_button.classList.add('text-indigo-500');
+		        		down_vote_button.classList.remove('text-indigo-500');
 		        	}
 		        	else{
-						up_vote_button.classList.remove('bg-indigo-500');
-		        		down_vote_button.classList.add('bg-indigo-500');
+						up_vote_button.classList.remove('text-indigo-500');
+		        		down_vote_button.classList.add('text-indigo-500');
 		        	}
 
 		        	if (data.vote_count > 0) {
@@ -539,6 +552,7 @@
 	                    clone.querySelector("#created_time").textContent = response.created_time;
 	                    clone.querySelector("#response_vote_counter").textContent = response.vote_counter;
 	                    clone.querySelector("#follow").setAttribute('data-user-id', response.user_id);
+	                    clone.querySelector("#user_profile_picture").setAttribute("src", response.picture_url);
 	                    
 
 	                    if(response.my_vote === 1) {
@@ -548,7 +562,13 @@
 							clone.querySelector("#response_downvote_button").classList.add('text-indigo-500');
 	                    }
 	                    
-			            if(response.user_id !== user_id){
+	                    if(response.user_id === 0){
+			            	//AI response
+			            	clone.querySelector("#user_name").classList.add("text-indigo-500");
+			            	clone.querySelector("#follow").classList.add('hidden');
+			            	clone.querySelector("#user_profile_picture").classList.add('hidden');
+			            }
+			            else if(response.user_id !== user_id){
 			            	if (response.following){
 			                	clone.querySelector("#follow").textContent = 'following';
 			                }
@@ -556,7 +576,7 @@
 			                	clone.querySelector("#follow").textContent = 'follow';
 			                }
 			            }
-			            else{
+			           	else{
 			            	clone.querySelector("#follow").classList.add('hidden');
 			            	clone.querySelector("#delete_response").classList.remove('hidden');
 			            	clone.querySelector("#delete_response").setAttribute("href", '/delete_response/' + response.response_id + '/');
@@ -580,7 +600,6 @@
 			        else{
 			        	document.getElementById('no-more-responses').classList.remove('hidden');
 			        }
-
 	            }
 	        });
 	    }

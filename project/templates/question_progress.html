@@ -214,16 +214,18 @@
 		}
 
 		function redirect_to_question_details_page() {
+			console.log("another step done!!")
+			additional_steps_done = additional_steps_done + 1;
+
 			if (additional_steps_done === 4){
 				//redirect to question details page
-				console.log("redirecting to question details page")
-			}
-			else{
-				console.log("another step done!!")
-				additional_steps_done = additional_steps_done + 1;
+				console.log("redirecting to question details page");
+				console.log(question_id);
+				document.getElementById('redirect_clock').classList.add('hidden');
+        		document.getElementById('redirect_check').classList.remove('hidden');
 			}
 		}
 
-		//extract_text_from_images();
+		extract_text_from_images();
 	</script>
 {% endblock %}

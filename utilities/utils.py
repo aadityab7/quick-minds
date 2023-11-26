@@ -12,6 +12,46 @@ import ast
 from google.api_core.client_options import ClientOptions
 from google.cloud import documentai  # type: ignore
 
+from openai import OpenAI
+
+def generate_openai_chatgpt_response(
+	question_query: str
+):
+	client = OpenAI(
+		organization='org-lqIExgjtwWzoYKQEgeGPH1Ve',
+	)
+	
+	"""
+	response = client.completions.create(
+		model="gpt-3.5-turbo-instruct",
+		prompt=prompt,
+		#max_tokens=7,
+		#temperature=0
+	)
+	"""
+
+	completion = client.chat.completions.create(
+		model="gpt-3.5-turbo",
+		messages=[
+			{
+				"role": "system", 
+				"content": 
+					"You are a helpful assistant skilled in providing quick first response to user's questions on a community learning platform. \
+					You generate infomative response for user's questions and try to answer it such that no followups are needed."
+			},
+			{
+				"role": "user", 
+				"content": question_query
+			}
+		]
+	)
+
+	print(completion.choices[0].message)
+
+	response = completion.choices[0].message
+
+	return response
+
 def get_db_connection(
 ):
 	"""
@@ -52,7 +92,10 @@ def add_question(
 	question_tags: str
 ):
 	question_title = question_text[:50]
-	
+
+	if len(question_text) > 50:
+		question_title += "..."
+
 	question_tags = question_tags.lower()
 	question_tags = [tag.strip() for tag in question_tags.split(',')]
 	question_tags_set = set(question_tags)
@@ -113,8 +156,6 @@ def extact_text_from_image(
 ):
 	#perform text extraction 
 	#and store the resulting text as alt text of images
-
-	#return 'image_url'
 
 	project_id = os.environ.get('PROJECT_ID')
 	location = os.environ.get('LOCATION')
@@ -282,13 +323,22 @@ def add_response(
 	cur.execute(query, (question_id,))
 	conn.commit()
 
-	query = "SELECT \
-				Response.response_id, Response.response_text, Response.vote_counter, Response.response_counter, Response.created_time, App_user.user_id, App_user.name\
-			FROM Response \
-			INNER JOIN App_user\
-				ON Response.user_id = App_user.user_id\
-			WHERE Response.user_id = %s \
-			ORDER BY Response.created_time DESC LIMIT 1"
+	query = """
+		SELECT
+			Response.response_id, 
+			Response.response_text,
+			Response.vote_counter, 
+			Response.response_counter, 
+			Response.created_time, 
+			App_user.user_id, 
+			App_user.name,
+			App_user.picture_url
+		FROM Response
+		INNER JOIN App_user
+			ON Response.user_id = App_user.user_id
+		WHERE Response.user_id = %s
+		ORDER BY Response.created_time DESC LIMIT 1
+	"""
 	
 	cur.execute(query, (user_id,))
 	response = cur.fetchone()
@@ -309,7 +359,7 @@ def add_response(
 	else:
 		question_response_counter = question_response_counter[0]
 
-	response_keys = ("response_id", "response_text", "vote_counter", "response_counter", "created_time", "user_id", "user_name")
+	response_keys = ("response_id", "response_text", "vote_counter", "response_counter", "created_time", "user_id", "user_name", "picture_url")
 	response = dict(zip(response_keys, response))
 
 	response['response_text'] = markdown.markdown(response['response_text'])
@@ -699,7 +749,7 @@ def follow_unfollow(
 
 	return status
 
-def generate_ai_response(
+def generate_google_vertexai_response(
 	question_query: str,
 	temperature: float = 0.2,
 	max_output_tokens: int = 256,
@@ -727,9 +777,13 @@ def generate_and_add_ai_response_question(
 	question_id: int,
 	question_query: str
 ):
-	response = generate_ai_response(question_query)
+	#gpt_response = generate_openai_chatgpt_response(question_query)
 
-	add_response(user_id =  0, question_id = question_id, response_text = response)
+	#add_response(user_id =  1, question_id = question_id, response_text = gpt_response)
+	
+	vertex_response = generate_google_vertexai_response(question_query)
+
+	add_response(user_id =  0, question_id = question_id, response_text = vertex_response)
 
 def get_profile_info(
 	user_id: int
@@ -861,7 +915,7 @@ def get_question(
 		    SELECT
 		        Question.question_id as question_id, Question.question_title, Question.question_text,
 				Question.vote_counter, Question.response_counter, Question.created_time, Question.tags,
-				App_user.user_id as question_user_id, App_user.name
+				App_user.user_id as question_user_id, App_user.name, App_user.picture_url
 		    FROM
 		        Question
 		        INNER JOIN App_user
@@ -907,12 +961,34 @@ def get_question(
 	cur.close()
 	conn.close()
 
-	question_keys =	("question_id", "question_title", "question_text", "vote_counter", "response_counter", "created_time", "tags", "user_id", "user_name", "following", "my_vote")
+	question_keys =	("question_id", "question_title", "question_text", "vote_counter", "response_counter", "created_time", "tags", "user_id", "user_name", "picture_url", "following", "my_vote")
 	question = dict(zip(question_keys, question))
 
 	question["question_text"] = markdown.markdown(question["question_text"])
 
 	return question
+
+def get_question_count(
+):	
+	conn = get_db_connection()
+	cur = conn.cursor()
+
+	query = """
+		SELECT COUNT(1) AS total_question_count FROM Question
+	"""
+
+	cur.execute(query)
+	result = cur.fetchone()
+
+	if result is None:
+		total_question_count = 0
+	else:
+		total_question_count = result[0]
+
+	cur.close()
+	conn.close()
+
+	return total_question_count
 
 def get_quiz_questions(
 	quiz_id: int,
@@ -1281,7 +1357,7 @@ def load_more_questions(
 		SELECT 
 			Question.question_id, Question.question_title, Question.vote_counter, Question.response_counter, 
 			Question.created_time, Question.tags, 
-			App_user.user_id, App_user.name, 
+			App_user.user_id, App_user.name, App_user.picture_url,
 			CASE WHEN Follow.followed_user_id IS NULL THEN false ELSE true END AS following	
 		FROM Question 
 		INNER JOIN App_user
@@ -1301,7 +1377,7 @@ def load_more_questions(
 	if questions is None:
 		questions = []
 
-	question_keys = ("question_id", "question_title", "vote_counter", "response_counter", "created_time", "tags", "user_id", "user_name", "following")
+	question_keys = ("question_id", "question_title", "vote_counter", "response_counter", "created_time", "tags", "user_id", "user_name", "picture_url", "following")
 	questions = [dict(zip(question_keys, question)) for question in questions]
 
 	return questions
@@ -1391,15 +1467,21 @@ def load_more_responses(
 	query = """
 		WITH ResponseUser AS (
 		    SELECT
-		        Response.response_id as Response_id, Response.response_text,
-				Response.vote_counter, Response.response_counter, Response.created_time,
-				App_user.user_id as Response_user_id, App_user.name
+		        Response.response_id as Response_id, 
+		        Response.response_text,
+				Response.vote_counter, 
+				Response.response_counter, 
+				Response.created_time,
+				App_user.user_id as Response_user_id, 
+				App_user.name, 
+				App_user.picture_url
 		    FROM
 		        Response
 		        INNER JOIN App_user
 		        	ON Response.user_id = App_user.user_id
 		    WHERE
 		        Response.question_id = %s
+		    ORDER BY Response.vote_counter DESC
 		)
 		SELECT
 		    ru.*, 
@@ -1411,6 +1493,7 @@ def load_more_responses(
 		    	ON ru.Response_user_id = f.followed_user_id AND f.follower_user_id = %s
 		    LEFT JOIN Post_Vote as pv
 		    	ON ru.Response_id = pv.response_id AND pv.user_id = %s
+		
 		LIMIT %s OFFSET %s
 	"""
 
@@ -1440,7 +1523,7 @@ def load_more_responses(
 	if responses is None:
 		responses = []
 
-	response_keys = ("response_id", "response_text", "vote_counter", "response_counter", "created_time", "user_id", "user_name", "following", "my_vote")
+	response_keys = ("response_id", "response_text", "vote_counter", "response_counter", "created_time", "user_id", "user_name", "picture_url", "following", "my_vote")
 	responses = [dict(zip(response_keys, response)) for response in responses]
 
 	for response in responses:
@@ -1667,8 +1750,13 @@ def question_search(
 		SELECT
 			Question.question_id,
 			ts_headline(Question.question_title, query) as question_title,
-			Question.vote_counter, Question.response_counter, Question.created_time, Question.tags,
-			App_user.user_id, App_user.name,
+			Question.vote_counter, 
+			Question.response_counter, 
+			Question.created_time, 
+			Question.tags,
+			App_user.user_id, 
+			App_user.name,
+			App_user.picture_url,
 			CASE WHEN f.followed_user_id IS NULL THEN false ELSE true END AS following,
 			ts_rank_cd(document_vectors, query) as rank
 		FROM Question
@@ -1693,7 +1781,7 @@ def question_search(
 	
 	search_result_keys = (
 						"question_id", "question_title", "vote_counter", "response_counter", 
-						"created_time", "tags", "user_id", "user_name", "following", "rank"
+						"created_time", "tags", "user_id", "user_name", "picture_url", "following", "rank"
 					)
 
 	search_results = [dict(zip(search_result_keys, search_result)) for search_result in search_results]
@@ -1729,14 +1817,13 @@ def question_step_text_extraction(
 		extracted_text.append(image_text)
 	
 	
-	extracted_text = ", added context added from images texts which may or may not be useful :" + str(extracted_text)
+	extracted_text = ", added context added from images texts: " + str(extracted_text)
 
 	conn = get_db_connection()
 	cur = conn.cursor()
 
 	print("extracted_text")
 	print(extracted_text)
-	
 	
 	query = "UPDATE Question SET extracted_text = %s WHERE question_id = %s"
 	
@@ -1745,8 +1832,6 @@ def question_step_text_extraction(
 
 	cur.close()
 	conn.close()
-
-	print("text extraction done!")
 
 	return "OK"
 
@@ -1951,6 +2036,7 @@ def article_search(
 			Article.tags,
 			App_user.user_id, 
 			App_user.name,
+			App_user.picture_url,
 			CASE WHEN f.followed_user_id IS NULL THEN false ELSE true END AS following,
 			ts_rank_cd(document_vectors, query) as rank
 		FROM Article
@@ -1983,6 +2069,7 @@ def article_search(
 			"tags",
 			"user_id", 
 			"name",
+			"picture_url",
 			"following",
 			"rank"
 	)
@@ -2009,7 +2096,10 @@ def add_article(
 	article_tags_set = set(tags)
 	tags = re.sub(r"[']", "", str(article_tags_set))
 	
-	description = contents[:200] + "..."
+	description = contents[:200] 
+
+	if len(contents) > 200:
+		description += "..."
 
 	article_complete_contents = title + " " + contents + " " + tags
 
@@ -2054,7 +2144,9 @@ def get_article(
 				Article.response_counter, 
 				Article.created_time, 
 				Article.tags, 
-				App_user.user_id as author_user_id, App_user.name
+				App_user.user_id as author_user_id, 
+				App_user.name,
+				App_user.picture_url
 			FROM Article 
 			INNER JOIN App_user
 				ON Article.user_id = App_user.user_id
@@ -2082,12 +2174,34 @@ def get_article(
 	cur.close()
 	conn.close()
 
-	article_keys =	("article_id", "title", "contents", "vote_counter", "response_counter", "created_time", "tags", "user_id", "user_name", "following", "my_vote")
+	article_keys =	("article_id", "title", "contents", "vote_counter", "response_counter", "created_time", "tags", "user_id", "user_name", "picture_url", "following", "my_vote")
 	article = dict(zip(article_keys, article))
 
 	article["contents"] = markdown.markdown(article["contents"])
 
 	return article
+
+def get_article_count(
+):
+	conn = get_db_connection()
+	cur = conn.cursor()
+
+	query = """
+		SELECT COUNT(1) AS total_article_count FROM Article
+	"""
+
+	cur.execute(query)
+	result = cur.fetchone()
+
+	if result is None:
+		total_article_count = 0
+	else:
+		total_article_count = result[0]
+
+	cur.close()
+	conn.close()
+
+	return total_article_count
 
 def add_article_response(
 	user_id: int,
@@ -2108,9 +2222,14 @@ def add_article_response(
 
 	query = """
 		SELECT
-			Article_Response.article_response_id, Article_Response.contents,
-			Article_Response.vote_counter, Article_Response.response_counter, Article_Response.created_time, 
-			App_user.user_id, App_user.name
+			Article_Response.article_response_id, 
+			Article_Response.contents,
+			Article_Response.vote_counter, 
+			Article_Response.response_counter, 
+			Article_Response.created_time, 
+			App_user.user_id, 
+			App_user.name,
+			App_user.picture_url
 		FROM Article_Response
 		INNER JOIN App_user
 			ON article_Response.user_id = App_user.user_id
@@ -2137,7 +2256,7 @@ def add_article_response(
 	else:
 		article_response_counter = article_response_counter[0]
 
-	article_response_keys = ("article_response_id", "contents", "vote_counter", "response_counter", "created_time", "user_id", "user_name")
+	article_response_keys = ("article_response_id", "contents", "vote_counter", "response_counter", "created_time", "user_id", "user_name", "picture_url")
 	article_response = dict(zip(article_response_keys, article_response))
 
 	article_response['contents'] = markdown.markdown(article_response['contents'])
@@ -2167,6 +2286,7 @@ def load_more_articles(
 			Article.tags, 
 			App_user.user_id, 
 			App_user.name, 
+			App_user.picture_url,
 			CASE WHEN Follow.followed_user_id IS NULL THEN false ELSE true END AS following	
 		FROM Article 
 		INNER JOIN App_user
@@ -2186,7 +2306,7 @@ def load_more_articles(
 	if articles is None:
 		articles = []
 
-	article_keys = ("article_id", "title", "description", "thumbnail_url", "vote_counter", "response_counter", "created_time", "tags", "user_id", "user_name", "following")
+	article_keys = ("article_id", "title", "description", "thumbnail_url", "vote_counter", "response_counter", "created_time", "tags", "user_id", "user_name", "picture_url", "following")
 	articles = [dict(zip(article_keys, article)) for article in articles]
 
 	return articles
@@ -2209,7 +2329,8 @@ def load_more_article_responses(
 				Article_Response.response_counter, 
 				Article_Response.created_time,
 				App_user.user_id as author_user_id, 
-				App_user.name
+				App_user.name,
+				App_user.picture_url
 		    FROM
 		        article_Response
 		        INNER JOIN App_user
@@ -2248,6 +2369,7 @@ def load_more_article_responses(
 		"created_time", 
 		"user_id", 
 		"user_name", 
+		"picture_url",
 		"following", 
 		"my_vote"
 	)

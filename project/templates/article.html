@@ -18,6 +18,12 @@
 
 			<div id = "article-and-user-metadata-div">
 				<div class="flex items-start gap-4 mb-2 items-center">
+					<img
+        				id="user_profile_picture"
+                        alt="user_profile_picture"
+                        src= {{article.picture_url}}
+                        class="h-5 w-5 rounded-full object-cover"
+                    />
 		      		<p id = "user_name" class="text-gray-500 font-bold">{{article["user_name"]}}</p>
 				    <button id = "follow" data-user-id = {{article.user_id}} class="text-blue-500 {% if (article['user_id'] == user_id) %} hidden {% endif %}">
 			    		{% if (article['following'] == true) %} following {%else%} follow {%endif%}
@@ -137,6 +143,12 @@
 						<div id = 'response-details' class="col-span-11 p-4">
 							<div id = "response-and-user-metadata-div">
 								<div id = "response-user-data" class="flex items-start gap-4 mb-2 items-center">
+									<img
+				        				id="user_profile_picture"
+			                            alt="user_profile_picture"
+			                            src= ""
+			                            class="h-5 w-5 rounded-full object-cover"
+			                        />
 				              		<p id = "user_name" class="text-gray-500 font-bold"></p>
 			              			<button id = "follow" data-user-id = "" class="text-blue-500"></button>
 				              	</div>
@@ -239,7 +251,7 @@
             clone.querySelector("#created_time").textContent = response.created_time;
             clone.querySelector("#response_vote_counter").textContent = response.vote_counter;
             clone.querySelector("#follow").setAttribute('data-user-id', response.user_id);
-
+            clone.querySelector("#user_profile_picture").setAttribute("src", response.picture_url);
             
             if(response.my_vote === 1) {
 				clone.querySelector("#response_upvote_button").classList.add('text-indigo-500');
@@ -448,6 +460,7 @@
 	                    clone.querySelector("#created_time").textContent = article_response.created_time;
 	                    clone.querySelector("#response_vote_counter").textContent = article_response.vote_counter;
 	                    clone.querySelector("#follow").setAttribute('data-user-id', article_response.user_id);
+            			clone.querySelector("#user_profile_picture").setAttribute("src", article_response.picture_url);
 	                    
 
 	                    if(article_response.my_vote === 1) {

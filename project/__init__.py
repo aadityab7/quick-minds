@@ -35,7 +35,7 @@ def too_large(e):
 @app.route('/home', methods = ('GET', 'POST'))
 def index():
 	if session.get('user_id') and session.get('user_id') != -1: 
-		return render_template('index.html', 
+		return render_template('questions.html', 
 			user_id = session['user_id'], 
 			user_name = session['user_name'], 
 			user_picture_url = session['user_picture_url'])
@@ -323,8 +323,18 @@ def delete_article_response(article_response_id):
 	else:
 		return redirect(url_for('login'))
 
+@app.route('/get_article_count')
+def get_article_count():
+	total_article_count = utils.get_article_count()
+	return jsonify({"total_article_count" : total_article_count})
+
 ########################################################################################################################################
 #QUESTIONS FUNCTIONALITY
+
+@app.route('/get_question_count')
+def get_question_count():
+	total_question_count = utils.get_question_count()
+	return jsonify({"total_question_count" : total_question_count})
 
 @app.route('/question_progress/<int:question_id>')
 def question_progress(question_id):

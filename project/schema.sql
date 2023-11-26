@@ -29,7 +29,7 @@ CREATE TABLE IF NOT EXISTS App_user  (
     username text,
     name text NOT NULL,
     about text,
-    badge text DEFAULT 'beginner',
+    badge text DEFAULT 'Beginner',
     email text,
     google_id text, 
     facebook_id text,
@@ -447,5 +447,10 @@ INSERT INTO App_user
     (user_id, username, name, about) 
 VALUES 
     (0, 'google_vertex_ai', 'Google Vertex AI', 'Generative AI chat bot by Google which provides quick first response to user questions.');
+
+INSERT INTO App_user 
+    (user_id, username, name, about) 
+VALUES 
+    (1, 'openai_chat_gpt', 'OpenAI Chat GOT', 'Generative AI chat bot by OpenAI which provides quick first response to user questions.');
 
 CREATE EXTENSION pg_trgm;

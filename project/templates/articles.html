@@ -14,12 +14,20 @@
 				</a>
 			</div>
 
-			
+			<h2 id="total_article_count" class="mt-8"></h2>
 
-		    <div id="articles_page" class="mt-8">
+			<hr class="mt-4">
+
+		    <div id="articles_page">
 		        <template id="article-template">
 		        	<div class="p-4">
 		        		<div class="sm:flex items-start gap-4 items-center pb-2">
+		        			<img
+		        				id="user_profile_picture"
+	                            alt="user_profile_picture"
+	                            src= ""
+	                            class="h-5 w-5 rounded-full object-cover"
+	                        />
 		              		<p id = "user_name" class="text-gray-500 font-semibold"></p>
 		              		<button id = "follow" data-user-id = "" class="text-blue-500"></button>
 			              	<p id = "created_time" class="text-sm text-gray-500"></p>
@@ -124,6 +132,8 @@
                         clone.querySelector("#article_thumbnail_image").setAttribute('src', article.thumbnail_url);
                         clone.querySelector("#follow").setAttribute('data-user-id', article.user_id);
 
+                        clone.querySelector("#user_profile_picture").setAttribute('src', article.picture_url);
+
                         var tag_html_content = "";
 
                         for (tag in article.tags) {
@@ -163,6 +173,18 @@
 	            }
 	        });
 	    }
+
+	    function get_article_count() {
+	    	$.ajax({
+	    		type: 'GET',
+	    		url: '/get_article_count',
+	    		success: function(data) {
+	    			document.getElementById("total_article_count").innerText = data.total_article_count + " Articles";
+	    		}
+	    	});
+	    }
+
+	    get_article_count();
 
 	    // Load initial data for both sections when the page loads
 	    loadMoreArticles();

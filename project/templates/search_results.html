@@ -21,6 +21,12 @@
 		        <template id="question-template">
 		        	<div class="p-4">
 		        		<div class="flex items-start gap-4 items-center pb-2">
+		        			<img
+		        				id="user_profile_picture"
+	                            alt="user_profile_picture"
+	                            src= ""
+	                            class="h-5 w-5 rounded-full object-cover"
+	                        />
 		              		<p id = "user_name" class="text-gray-500 font-bold"></p>
 		              		<button id = "follow" data-user-id = "" class="text-blue-500"></button>
 		              	</div>
@@ -48,6 +54,7 @@
 		    </div>
 
 		    <div id = "more-similar-questions-div">
+		    	<p id = "no-more-questions" class="hidden">No more questions matching search result.</p>
 				<button id = "load-more-questions-button" class="hidden mt-4 rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">Load more Questions</button>
 			</div>
 
@@ -56,6 +63,12 @@
 		        <template id="article-template">
 		        	<div class="p-4">
 		        		<div class="sm:flex items-start gap-4 items-center pb-2">
+		        			<img
+		        				id="user_profile_picture"
+	                            alt="user_profile_picture"
+	                            src= ""
+	                            class="h-5 w-5 rounded-full object-cover"
+	                        />
 		              		<p id = "user_name" class="text-gray-500 font-semibold"></p>
 		              		<button id = "follow" data-user-id = "" class="text-blue-500"></button>
 			              	<p id = "created_time" class="text-sm text-gray-500"></p>
@@ -90,6 +103,7 @@
 		    </div>
 
 		    <div id = "more-similar-questions-div">
+		    	<p id = "no-more-articles" class="hidden">No more articles matching search result.</p>
 				<button id = "load-more-articles-button" class="hidden mt-4 rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">Load more Articles</button>
 			</div>
 
@@ -103,7 +117,7 @@
 	    const user_id = {{user_id}};
 	    const search_query  = '{{search_query}}';
 
-	    var numToLoad = 5;  // Adjust the number of questions to load at a time
+	    var numToLoad = 3;  // Adjust the number of questions to load at a time
 
 	    var question_offset = 0;
 	    var question_search_is_loading = false;  // Flag to track whether an AJAX request is in progress
@@ -156,7 +170,7 @@
                         clone.querySelector("#question_title").innerHTML = question.question_title;
                         clone.querySelector("#created_time").textContent = question.created_time;
                         clone.querySelector("#vote_counter").textContent = question.vote_counter + ' vote';
-
+                        clone.querySelector("#user_profile_picture").setAttribute("src", question.picture_url);
                         clone.querySelector("#follow").setAttribute('data-user-id', question.user_id);
 
                         var tag_html_content = "";
@@ -196,6 +210,9 @@
 	               
                     if(question_search_load_complete == false){
                     	document.getElementById('load-more-questions-button').classList.remove('hidden');
+                    }
+                    else{
+                    	document.getElementById('no-more-questions').classList.remove('hidden');
                     }
 
 	            }
@@ -242,13 +259,14 @@
                         var article_url = "/article/" + article.article_id + "/";
 
                         clone.querySelector("a").setAttribute("href", article_url);
-                        clone.querySelector("#user_name").textContent = article.user_name;
+                        clone.querySelector("#user_name").textContent = article.name;
                         clone.querySelector("#response_counter").textContent = article.response_counter + ' response';
                         clone.querySelector("#article_title").innerHTML = article.title;
                         clone.querySelector("#created_time").textContent = article.created_time;
                         clone.querySelector("#vote_counter").textContent = article.vote_counter + ' vote';
 						clone.querySelector("#article_description").textContent = article.description;
                         
+                        clone.querySelector("#user_profile_picture").setAttribute("src", article.picture_url);
                         clone.querySelector("#article_thumbnail_image").setAttribute('src', article.thumbnail_url);
                         clone.querySelector("#follow").setAttribute('data-user-id', article.user_id);
 
@@ -288,6 +306,9 @@
 
                     if(article_search_load_complete == false){
 		            	document.getElementById('load-more-articles-button').classList.remove('hidden');
+		            }
+		            else{
+		            	document.getElementById('no-more-articles').classList.remove('hidden');
 		            }
 	            }
 	        });
