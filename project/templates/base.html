@@ -5,11 +5,11 @@
   <title>{% block title %} {% endblock %}</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <!--
+  -->
   <script src="https://cdn.tailwindcss.com?plugins=forms,typography,aspect-ratio,line-clamp"></script>
-  -->
   <!--
-  -->
   <link href="{{url_for('static', filename='CSS/output.css', _external=True, _scheme='https')}}" rel="stylesheet" type="text/css">
+  -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 </head>
@@ -216,7 +216,7 @@
     </div>
 
     <div id = "everything" class="flex"> 
-      <div id = "sidebar-component-div" class="min-h-screen bg-white border-r">
+      <div id = "sidebar-component-div" class="w-full sm:w-auto min-h-screen bg-white border-r">
           <div class="sticky flex-col top-20 left-0 sm:flex sm:w-16 lg:w-64">
             <div class="overflow-y-auto overflow-x-hidden flex-grow">
               <ul class="flex flex-col py-4 space-y-1">
@@ -230,7 +230,7 @@
                     <span class="inline-flex justify-center items-center ml-4">
                       <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
                     </span>
-                    <span class="ml-2 text-sm tracking-wide truncate hidden lg:block">Home</span>
+                    <span class="ml-2 text-sm tracking-wide truncate sm:hidden lg:block">Home</span>
                   </a>
                 </li>
                 
@@ -349,7 +349,7 @@
           </div>
       </div>
         
-      <div id = "center-components-div" class="flex-end flex-grow flex flex-col">
+      <div id = "center-components-div" class="hidden sm:block flex-end flex-grow flex flex-col">
         <div id = "actual-contents-div">
           {% for message in get_flashed_messages() %}
             <div class="mx-auto max-w-screen-xl">
@@ -472,18 +472,9 @@
     document.addEventListener('click', function (event) {
       if (event.target.id === 'sidebar-menu-button') {
         document.getElementById('sidebar-component-div').classList.toggle('hidden');
+        document.getElementById("center-components-div").classList.toggle("hidden")
       }
     });
-
-    function openSlideOver() {
-      console.log("open button clicked")
-      document.getElementById('slide-over-panel').classList.add('transform', 'translate-x-0');
-    }
-
-    function closeSlideOver() {
-      console.log("close button clicked")
-      document.getElementById('slide-over-panel').classList.remove('transform', 'translate-x-0');
-    }
   </script>
 </body>
 </html>

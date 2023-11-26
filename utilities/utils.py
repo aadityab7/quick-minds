@@ -47,10 +47,12 @@ def add_images_to_post(
 
 def add_question(
 	user_id: int,
-	question_title: str,
+	#question_title: str,
 	question_text:str,
 	question_tags: str
 ):
+	question_title = question_text[:50]
+	
 	question_tags = question_tags.lower()
 	question_tags = [tag.strip() for tag in question_tags.split(',')]
 	question_tags_set = set(question_tags)
