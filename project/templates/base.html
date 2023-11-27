@@ -349,7 +349,7 @@
           </div>
       </div>
         
-      <div id = "center-components-div" class="hidden sm:block flex-end flex-grow flex flex-col">
+      <div id = "center-components-div" class="sm:block flex-end flex-grow flex flex-col">
         <div id = "actual-contents-div">
           {% for message in get_flashed_messages() %}
             <div class="mx-auto max-w-screen-xl">
@@ -472,7 +472,7 @@
     document.addEventListener('click', function (event) {
       if (event.target.id === 'sidebar-menu-button') {
         document.getElementById('sidebar-component-div').classList.toggle('hidden');
-        document.getElementById("center-components-div").classList.toggle("hidden")
+        document.getElementById("center-components-div").classList.toggle("hidden");
       }
     });
   </script>
