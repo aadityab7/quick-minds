@@ -35,20 +35,19 @@ def too_large(e):
 @app.route('/home', methods = ('GET', 'POST'))
 def index():
 	if session.get('user_id') and session.get('user_id') != -1: 
-		return render_template('questions.html', 
-			user_id = session['user_id'], 
-			user_name = session['user_name'], 
-			user_picture_url = session['user_picture_url'])
+		return redirect(url_for("questions"))
 	else:
-		return redirect(url_for('login'))
-
+		session["user_id"] = -1
+		session['user_name'] = ""
+		session['user_picture_url'] = ""
+		return render_template('landing_page.html')
 
 ########################################################################################################################################
 #PROFILE FUNCTIONALITY
 
 @app.route('/profile', methods = ('GET', 'POST'))
 def profile():
-	if session.get('user_id'):
+	if session.get('user_id') and session.get('user_id') != -1:
 		if request.method == 'GET':
 			return render_template('profile.html',
 				user_id = session['user_id'], 
@@ -103,32 +102,33 @@ def get_user_following():
 
 @app.route('/tags', methods = ('GET', 'POST'))
 def tags():
-	if session.get('user_id'):
-		if request.method == 'GET':
-			return render_template('tags.html',
-				user_id = session['user_id'], 
-				user_name = session['user_name'], 
-				user_picture_url = session['user_picture_url'])
-		else:
-			limit = int(request.form.get('num_to_load'))
-			offset = int(request.form.get('offset'))
-
-			tags = utils.load_more_tags(limit = limit, offset = offset) 
-
-			return jsonify({'tags' : tags})
-	else:
-		return redirect(url_for('login'))
-
-@app.route('/tag/<string:tag_name>/')
-def tag(tag_name):
-	if session.get('user_id'):
-		return render_template('tag.html', 
-			tag_name = tag_name,
+	if request.method == 'GET':
+		return render_template('tags.html',
 			user_id = session['user_id'], 
 			user_name = session['user_name'], 
 			user_picture_url = session['user_picture_url'])
 	else:
-		return redirect(url_for('login'))
+		limit = int(request.form.get('num_to_load'))
+		offset = int(request.form.get('offset'))
+
+		tags = utils.load_more_tags(limit = limit, offset = offset) 
+
+		return jsonify({'tags' : tags})
+
+@app.route('/tag/<string:tag_name>/')
+def tag(tag_name):
+	if session.get('user_id') and session.get('user_id') != -1:
+		pass		
+	else:
+		session["user_id"] = -1
+		session['user_name'] = ""
+		session['user_picture_url'] = ""
+			
+	return render_template('tag.html', 
+		tag_name = tag_name,
+		user_id = session['user_id'], 
+		user_name = session['user_name'], 
+		user_picture_url = session['user_picture_url'])
 
 @app.route('/load_more_questions_with_tag', methods = ['POST'])
 def load_more_questions_with_tag():
@@ -151,7 +151,7 @@ def load_more_questions_with_tag():
 #TO BE IMPLEMENTED
 @app.route('/article_preview')
 def article_preview():
-	if session.get('user_id'):
+	if session.get('user_id') and session.get('user_id') != -1:
 		return render_template('article_preview.html',
 			user_id = session['user_id'],
 			user_name = session['user_name'], 
@@ -170,17 +170,15 @@ def get_article_preview():
 ##
 @app.route('/articles')
 def articles():
-	if session.get('user_id'):
-		return render_template('articles.html',
-			user_id = session['user_id'],
-			user_name = session['user_name'], 
-			user_picture_url = session['user_picture_url'])
-	else:
-		return redirect(url_for('login'))
+	return render_template('articles.html',
+		user_id = session['user_id'],
+		user_name = session['user_name'], 
+		user_picture_url = session['user_picture_url'])
+
 
 @app.route('/write_article', methods = ('GET', 'POST'))
 def write_article():
-	if session.get('user_id'):
+	if session.get('user_id') and session.get('user_id') != -1:
 		if request.method == 'POST':
 			title = request.form.get('article-title')
 			contents = request.form.get('article-contents')
@@ -200,20 +198,24 @@ def write_article():
 
 @app.route('/article/<int:article_id>/', methods = ('GET', 'POST'))	
 def article(article_id):
-	if session.get('user_id'):
-		article = utils.get_article(user_id = session['user_id'], article_id = article_id)	
-
-		if article == -1:
-			flash("An error while fetching the article")
-			return redirect(request.referrer)
-
-		return render_template('article.html', article = article,
-			user_id = session['user_id'], 
-			user_name = session['user_name'], 
-			user_picture_url = session['user_picture_url']
-		)
+	if session.get('user_id') and session.get('user_id') != -1:
+		pass
 	else:
-		return redirect(url_for('login'))
+		session['user_id'] = -1
+		session['user_name'] = ""
+		session['user_picture_url'] = ""
+
+	article = utils.get_article(user_id = session['user_id'], article_id = article_id)	
+
+	if article == -1:
+		flash("An error while fetching the article")
+		return redirect(request.referrer)
+
+	return render_template('article.html', article = article,
+		user_id = session['user_id'], 
+		user_name = session['user_name'], 
+		user_picture_url = session['user_picture_url']
+	)
 
 @app.route('/add_article_response', methods = ['POST'])	
 def add_article_response():
@@ -293,7 +295,7 @@ def load_more_article_response_comments():
 
 @app.route('/delete_article/<int:article_id>/', methods = ('GET', 'POST'))	
 def delete_article(article_id):
-	if session.get('user_id'):
+	if session.get('user_id') and session.get('user_id') != -1:
 		#GET user_id and question_id
 		
 		response_status = utils.delete_article(user_id = session['user_id'], article_id = article_id)
@@ -309,7 +311,7 @@ def delete_article(article_id):
 
 @app.route('/delete_article_response/<int:article_response_id>/', methods = ('GET', 'POST'))	
 def delete_article_response(article_response_id):
-	if session.get('user_id'):
+	if session.get('user_id') and session.get('user_id') != -1:
 		#GET user_id and response_id
 		response_status = utils.delete_article_response(user_id = session['user_id'], 
 			article_response_id = article_response_id)
@@ -331,6 +333,13 @@ def get_article_count():
 ########################################################################################################################################
 #QUESTIONS FUNCTIONALITY
 
+@app.route('/questions')
+def questions():
+	return render_template('questions.html', 
+			user_id = session['user_id'], 
+			user_name = session['user_name'], 
+			user_picture_url = session['user_picture_url'])
+
 @app.route('/get_question_count')
 def get_question_count():
 	total_question_count = utils.get_question_count()
@@ -338,7 +347,7 @@ def get_question_count():
 
 @app.route('/question_progress/<int:question_id>')
 def question_progress(question_id):
-	if session.get('user_id'):
+	if session.get('user_id') and session.get('user_id') != -1:
 		return render_template(
 			'question_progress.html', 
 			question_id = question_id,
@@ -391,26 +400,28 @@ def question_step_ai_response():
 
 @app.route('/add_response', methods = ['POST'])
 def add_response():
-	
-	response_text = request.form.get('response_text')
-	question_id = request.form.get('question_id')
+	if session.get('user_id') and session.get('user_id') != -1:
+		response_text = request.form.get('response_text')
+		question_id = request.form.get('question_id')
 
-	if not response_text:
-		flash("Please enter response text")
-		return redirect(request.referrer)
+		if not response_text:
+			flash("Please enter response text")
+			return redirect(request.referrer)
 
-	response, question_response_counter = utils.add_response(user_id = session['user_id'], 
-		question_id = question_id, response_text = response_text)
+		response, question_response_counter = utils.add_response(user_id = session['user_id'], 
+			question_id = question_id, response_text = response_text)
 
-	if response == -1:
-		flash("An error occured")
-		return redirect(request.referrer)
+		if response == -1:
+			flash("An error occured")
+			return redirect(request.referrer)
 
-	return jsonify({'response' : response, 'question_response_counter' : question_response_counter})
+		return jsonify({'response' : response, 'question_response_counter' : question_response_counter})
+	else:
+		return redirect(url_for('login'))
 
 @app.route('/ask_question', methods = ('GET', 'POST'))
 def ask_question():
-	if session.get('user_id'):
+	if session.get('user_id') and session.get('user_id') != -1:
 		user_id = session['user_id']
 
 		if request.method == 'POST':
@@ -433,8 +444,6 @@ def ask_question():
 					flash("An error occured")
 					return redirect(request.referrer)
 
-				print(f" question added to database successfully!! {question_id}")
-				
 				return redirect(url_for('question_progress', question_id = question_id))
 
 		return render_template('ask_question.html',
@@ -446,7 +455,7 @@ def ask_question():
 
 @app.route('/delete_question/<int:question_id>/', methods = ('GET', 'POST'))
 def delete_question(question_id):
-	if session.get('user_id'):
+	if session.get('user_id') and session.get('user_id') != -1:
 		#GET user_id and question_id
 		
 		response_status = utils.delete_question(user_id = session['user_id'], question_id = question_id)
@@ -462,7 +471,7 @@ def delete_question(question_id):
 
 @app.route('/delete_response/<int:response_id>/', methods = ('GET', 'POST'))
 def delete_response(response_id):
-	if session.get('user_id'):
+	if session.get('user_id') and session.get('user_id') != -1:
 		#GET user_id and response_id
 		
 		response_status = utils.delete_response(user_id = session['user_id'], response_id = response_id)
@@ -478,20 +487,23 @@ def delete_response(response_id):
 
 @app.route('/vote_unvote', methods = ['POST'])
 def vote_unvote():
-	question_id = int(request.form.get('question_id', -1))
-	response_id = int(request.form.get('response_id', -1))
-	post_type = request.form.get('post_type', 'question')
-	up_or_down_vote = request.form.get('up_or_down_vote', 'up')
+	if session.get('user_id') and session.get('user_id') != -1:
+		question_id = int(request.form.get('question_id', -1))
+		response_id = int(request.form.get('response_id', -1))
+		post_type = request.form.get('post_type', 'question')
+		up_or_down_vote = request.form.get('up_or_down_vote', 'up')
 
-	print(question_id, response_id, post_type, up_or_down_vote)
+		print(question_id, response_id, post_type, up_or_down_vote)
 
-	vote_count, my_vote = utils.vote_unvote(user_id = session['user_id'], 
-											question_id = question_id, 
-											response_id = response_id, 
-											post_type = post_type,
-											up_or_down_vote = up_or_down_vote)
+		vote_count, my_vote = utils.vote_unvote(user_id = session['user_id'], 
+												question_id = question_id, 
+												response_id = response_id, 
+												post_type = post_type,
+												up_or_down_vote = up_or_down_vote)
 
-	return jsonify({'vote_count' : vote_count, 'my_vote' : my_vote})
+		return jsonify({'vote_count' : vote_count, 'my_vote' : my_vote})
+	else:
+		return redirect(url_for("login"))
 
 @app.route('/load_more_questions', methods = ['POST'])
 def load_more_questions():
@@ -551,20 +563,24 @@ def load_more_related_questions():
 
 @app.route('/question_detail/<int:question_id>/', methods = ('GET', 'POST'))
 def question_detail(question_id):
-	if session.get('user_id'):
-		question = utils.get_question(user_id = session['user_id'], question_id = question_id)
-
-		if question == -1:
-			flash("An error while fetching the question")
-			return redirect(request.referrer)
-
-		return render_template('question_detail.html', question = question,
-			user_id = session['user_id'], 
-			user_name = session['user_name'], 
-			user_picture_url = session['user_picture_url']
-		)
+	if session.get('user_id') and session.get('user_id') != -1:
+		pass
 	else:
-		return redirect(url_for('login'))
+		session['user_id'] = -1
+		session['user_name'] = ""
+		session['user_picture_url'] = ""
+
+	question = utils.get_question(user_id = session['user_id'], question_id = question_id)
+
+	if question == -1:
+		flash("An error while fetching the question")
+		return redirect(request.referrer)
+
+	return render_template('question_detail.html', question = question,
+		user_id = session['user_id'], 
+		user_name = session['user_name'], 
+		user_picture_url = session['user_picture_url']
+	)
 
 ########################################################################################################################################
 #QUIZ FUNCTIONALITY
@@ -608,7 +624,7 @@ def score_user_quiz():
 
 @app.route('/attempt_quiz/<int:quiz_id>/')
 def attempt_quiz(quiz_id):
-	if session.get('user_id'):
+	if session.get('user_id') and session.get('user_id') != -1:
 		return render_template('attempt_quiz.html', quiz_id = quiz_id,
 			start_quiz = "true",
 			user_id = session['user_id'], 
@@ -620,7 +636,7 @@ def attempt_quiz(quiz_id):
 
 @app.route('/create_custom_quiz', methods = ('GET', 'POST'))
 def create_custom_quiz():
-	if session.get('user_id'):
+	if session.get('user_id') and session.get('user_id') != -1:
 		if request.method == 'GET':
 			return render_template('create_custom_quiz.html',
 				user_id = session['user_id'], 
@@ -680,7 +696,7 @@ def quiz():
 			user_name = session['user_name'], 
 			user_picture_url = session['user_picture_url'])
 	else:
-		redirect(url_for('login'))
+		return redirect(url_for('login'))
 
 ########################################################################################################################################
 #COMMON FUNCTIONALITIES
@@ -733,28 +749,32 @@ def upload_image():
 
 @app.route('/search', methods = ('GET', 'POST'))
 def search():
-	if session.get('user_id'):
-		if request.method == 'POST':
-			search_query = request.form.get('search_query', '')
-			limit = int(request.form.get('num_to_load', 10))
-			offset = int(request.form.get('offset', 0))
-			search_type = request.form.get('search_type', "all")
-		
-			search_results = utils.search(user_id = session['user_id'], search_query = search_query, limit = limit, offset = offset, search_type = search_type)	
-
-			return jsonify({'search_results' : search_results})
-		else:
-			search_query = request.args.get('search_query', '')
-			
-			return render_template('search_results.html', 
-				search_query = search_query,
-				user_id = session['user_id'], 
-				user_name = session['user_name'], 
-				user_picture_url = session['user_picture_url']
-			)
+	if session.get('user_id') and session.get('user_id') != -1:
+		pass
 	else:
-		return redirect(url_for('login'))
+		session['user_id'] = -1
+		session['user_name'] = ""
+		session['user_picture_url'] = ""
 
+	if request.method == 'POST':
+		search_query = request.form.get('search_query', '')
+		limit = int(request.form.get('num_to_load', 10))
+		offset = int(request.form.get('offset', 0))
+		search_type = request.form.get('search_type', "all")
+	
+		search_results = utils.search(user_id = session['user_id'], search_query = search_query, limit = limit, offset = offset, search_type = search_type)	
+
+		return jsonify({'search_results' : search_results})
+	else:
+		search_query = request.args.get('search_query', '')
+		
+		return render_template('search_results.html', 
+			search_query = search_query,
+			user_id = session['user_id'], 
+			user_name = session['user_name'], 
+			user_picture_url = session['user_picture_url']
+		)
+		
 ########################################################################################################################################
 #AUTHENTICATION FUNCTIONALITY
 #MAIN AUTHENTICATION SECTION (login, logout, sign_up)

@@ -310,6 +310,9 @@
 	</div>
 
 	<script>
+	    const question_id = {{question.question_id}};
+	    const user_id = {{user_id}};
+
 	    var numToLoad = 4;
 	    
 	    var offset = {{ responses|length }};
@@ -328,9 +331,6 @@
 	    
 	    var similarQuestionLoadComplete = false;
 		var similarQuestionIsLoading = false;
-
-	    const question_id = {{question.question_id}};
-	    const user_id = {{user_id}};
 
 	    const add_response_form = document.getElementById('add_response_form');
 	    const responses = document.getElementById('response-list');
@@ -384,6 +384,11 @@
         }
 
         function handleFollow(event) {
+        	if (user_id === -1){
+				window.location = "{{url_for('login')}}";
+				return;
+			}
+			
 	    	const followed_user_id = event.target.getAttribute('data-user-id');
 
     		$.ajax({
@@ -397,6 +402,11 @@
 	    }
 
 	    function handleQuestionVoteClick(event, post_type, up_or_down_vote) {
+	    	if (user_id === -1){
+				window.location = "{{url_for('login')}}";
+				return;
+			}
+
 		    // Extract the response_id from the clicked button's data-response-id attribute
 		    var questionId = event.target.getAttribute("data-question-id");
 
@@ -446,6 +456,11 @@
 		}
 
 		function handleResponseFormSubmission() {
+			if (user_id === -1){
+				window.location = "{{url_for('login')}}";
+				return;
+			}
+
 	    	const response_text_element = document.getElementById('response-text');
         	const response_text = response_text_element.value;
 
@@ -465,6 +480,11 @@
 	    }
 
 		function handleResponseVoteClick(event, post_type, up_or_down_vote) {
+			if (user_id === -1){
+				window.location = "{{url_for('login')}}";
+				return;
+			}
+
 		    // Extract the response_id from the clicked button's data-response-id attribute
 		    var responseId = event.target.getAttribute("data-response-id");
 

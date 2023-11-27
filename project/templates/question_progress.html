@@ -223,6 +223,11 @@
 				console.log(question_id);
 				document.getElementById('redirect_clock').classList.add('hidden');
         		document.getElementById('redirect_check').classList.remove('hidden');
+
+        		if (user_id === -1){
+					window.location = "{{url_for('question_detail', question_id = question_id)}}";
+					return;
+				}
 			}
 		}
 

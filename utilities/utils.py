@@ -1393,9 +1393,15 @@ def load_more_questions_with_tag(
 
 	query = """
 		SELECT 
-			Question.question_id, Question.question_title, Question.vote_counter, Question.response_counter, 
-			Question.created_time, Question.tags, 
-			App_user.user_id, App_user.name, 
+			Question.question_id, 
+			Question.question_title, 
+			Question.vote_counter, 
+			Question.response_counter, 
+			Question.created_time, 
+			Question.tags, 
+			App_user.user_id, 
+			App_user.name,
+			App_user.picture_url, 
 			CASE WHEN Follow.followed_user_id IS NULL THEN false ELSE true END AS following	
 		FROM Question 
 		INNER JOIN App_user
@@ -1416,7 +1422,7 @@ def load_more_questions_with_tag(
 	if questions is None:
 		questions = []
 
-	question_keys = ("question_id", "question_title", "vote_counter", "response_counter", "created_time", "tags", "user_id", "user_name", "following")
+	question_keys = ("question_id", "question_title", "vote_counter", "response_counter", "created_time", "tags", "user_id", "user_name", "picture_url", "following")
 	questions = [dict(zip(question_keys, question)) for question in questions]
 
 	return questions

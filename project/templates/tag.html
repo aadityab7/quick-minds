@@ -9,13 +9,17 @@
 				<h1 class="text-xl font-bold">{{tag_name}}</h1>
 				</a>
 			</div>
-
 			
-
-		    <div id="for_you_page" class="mt-8">
+		    <div id="tag_question_page" class="mt-8">
 		        <template id="question-template">
 		        	<div class="p-4">
 		        		<div class="flex items-start gap-4 items-center pb-2">
+		        			<img
+		        				id="user_profile_picture"
+	                            alt="user_profile_picture"
+	                            src= ""
+	                            class="h-5 w-5 rounded-full object-cover"
+	                        />
 		              		<p id = "user_name" class="text-gray-500 font-bold"></p>
 		              		<button id = "follow" data-user-id = "" class="text-blue-500"></button>
 		              	</div>
@@ -46,7 +50,7 @@
 
     <script>
 	  
-	    var for_you_page = document.getElementById('for_you_page');
+	    var tag_question_page = document.getElementById('tag_question_page');
 
 	    // Lazy loading and infinite scrolling
 	    // Adjust the initial offset based on what's already loaded for "For You"
@@ -109,6 +113,7 @@
                         clone.querySelector("#question_title").textContent = question.question_title;
                         clone.querySelector("#created_time").textContent = question.created_time;
                         clone.querySelector("#vote_counter").textContent = question.vote_counter + ' vote';
+                        clone.querySelector("#user_profile_picture").setAttribute("src", question.picture_url);
 
                         clone.querySelector("#follow").setAttribute('data-user-id', question.user_id);
 
@@ -140,7 +145,7 @@
                         }
 
                         // Append the populated template to the appropriate container
-                        document.getElementById('for_you_page').appendChild(clone);
+                        document.getElementById('tag_question_page').appendChild(clone);
                     });
 
                     // Update the offset for "For You"
@@ -162,6 +167,11 @@
 	    });
 
 	    function handleFollow(event) {
+	    	if (user_id === -1){
+				window.location = "{{url_for('login')}}";
+				return;
+			}
+
 	    	const followed_user_id = event.target.getAttribute('data-user-id');
 
     		$.ajax({

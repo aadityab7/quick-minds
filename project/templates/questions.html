@@ -186,6 +186,11 @@
 	    });
 
 	    function handleFollow(event) {
+	    	if (user_id === -1){
+				window.location = "{{url_for('login')}}";
+				return;
+			}
+			
 	    	const followed_user_id = event.target.getAttribute('data-user-id');
 
     		$.ajax({
@@ -197,8 +202,6 @@
 		        }
 		    });
 	    }
-
-	
 
 	    document.addEventListener('click', function(event) {
 	    	if (event.target.id === 'follow') {
