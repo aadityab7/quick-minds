@@ -1,27 +1,29 @@
-DROP TABLE IF EXISTS ai_chat CASCADE;                     
-DROP TABLE IF EXISTS app_user CASCADE;                    
-DROP TABLE IF EXISTS article CASCADE;                     
-DROP TABLE IF EXISTS article_response CASCADE;            
-DROP TABLE IF EXISTS article_response_comment CASCADE;    
-DROP TABLE IF EXISTS article_response_vote CASCADE;       
-DROP TABLE IF EXISTS article_vote CASCADE;                
-DROP TABLE IF EXISTS chat_message CASCADE;                
-DROP TABLE IF EXISTS comment CASCADE;                     
-DROP TABLE IF EXISTS follow CASCADE;                      
-DROP TABLE IF EXISTS image CASCADE;     
-DROP TABLE IF EXISTS notification CASCADE;                                         
-DROP TABLE IF EXISTS post CASCADE;                        
-DROP TABLE IF EXISTS post_vote CASCADE;                   
-DROP TABLE IF EXISTS question CASCADE;                    
-DROP TABLE IF EXISTS quiz CASCADE;                        
-DROP TABLE IF EXISTS quiz_question CASCADE;               
-DROP TABLE IF EXISTS quiz_question_user_response CASCADE; 
-DROP TABLE IF EXISTS quiz_score_card CASCADE;             
-DROP TABLE IF EXISTS related_content CASCADE;             
-DROP TABLE IF EXISTS related_question CASCADE;            
-DROP TABLE IF EXISTS related_video CASCADE;               
-DROP TABLE IF EXISTS related_web_search_result CASCADE;   
-DROP TABLE IF EXISTS response CASCADE;                    
+DROP TABLE IF EXISTS ai_chat CASCADE;
+DROP TABLE IF EXISTS app_user CASCADE;
+DROP TABLE IF EXISTS article CASCADE;
+DROP TABLE IF EXISTS article_response CASCADE;
+DROP TABLE IF EXISTS article_response_comment CASCADE;
+DROP TABLE IF EXISTS article_response_vote CASCADE;
+DROP TABLE IF EXISTS article_user_tag CASCADE;
+DROP TABLE IF EXISTS article_vote CASCADE;
+DROP TABLE IF EXISTS chat_message CASCADE;
+DROP TABLE IF EXISTS comment CASCADE;
+DROP TABLE IF EXISTS follow CASCADE;
+DROP TABLE IF EXISTS image CASCADE;
+DROP TABLE IF EXISTS notification CASCADE;
+DROP TABLE IF EXISTS post CASCADE;
+DROP TABLE IF EXISTS post_vote CASCADE;
+DROP TABLE IF EXISTS question CASCADE;
+DROP TABLE IF EXISTS question_user_tag CASCADE;
+DROP TABLE IF EXISTS quiz CASCADE;
+DROP TABLE IF EXISTS quiz_question CASCADE;
+DROP TABLE IF EXISTS quiz_question_user_response CASCADE;
+DROP TABLE IF EXISTS quiz_score_card CASCADE;
+DROP TABLE IF EXISTS related_content CASCADE;
+DROP TABLE IF EXISTS related_question CASCADE;
+DROP TABLE IF EXISTS related_video CASCADE;
+DROP TABLE IF EXISTS related_web_search_result CASCADE;
+DROP TABLE IF EXISTS response CASCADE;
 DROP TABLE IF EXISTS tag CASCADE;
 
 CREATE TABLE IF NOT EXISTS App_user  ( 
@@ -430,13 +432,32 @@ CREATE TABLE Article_User_Tag (
 
 CREATE TABLE Notification (
     notification_id serial PRIMARY KEY,
-    user_id integer NOT NULL,
+    author_user_id integer NOT NULL,
+    interacting_user_id integer NOT NULL,
+    question_id integer,
+    article_id integer,
     message text NOT NULL,
+
     created_time timestamp DEFAULT CURRENT_TIMESTAMP,
 
-    CONSTRAINT fk_notification_app_user
-        FOREIGN KEY(user_id) 
+    CONSTRAINT fk_notification_app_user_one
+        FOREIGN KEY(author_user_id) 
         REFERENCES App_user(user_id)
+        ON DELETE CASCADE,
+
+    CONSTRAINT fk_notification_app_user_two
+        FOREIGN KEY(interacting_user_id) 
+        REFERENCES App_user(user_id)
+        ON DELETE CASCADE,
+
+    CONSTRAINT fk_notification_question
+        FOREIGN KEY(question_id) 
+        REFERENCES Question(question_id)
+        ON DELETE CASCADE,
+
+    CONSTRAINT fk_notification_article
+        FOREIGN KEY(article_id) 
+        REFERENCES Article(article_id)
         ON DELETE CASCADE
 );
 

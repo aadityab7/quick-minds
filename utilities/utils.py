@@ -343,29 +343,36 @@ def add_response(
 	cur.execute(query, (user_id,))
 	response = cur.fetchone()
 
-	query = "SELECT response_counter FROM Question WHERE question_id = %s"
-	
-	cur.execute(query, (question_id,))
-	question_response_counter = cur.fetchone()
-
-	cur.close()
-	conn.close()
-
 	if response is None:
-		return -1
-
-	if question_response_counter is None:
-		question_response_counter = 0
-	else:
-		question_response_counter = question_response_counter[0]
+		response = []
 
 	response_keys = ("response_id", "response_text", "vote_counter", "response_counter", "created_time", "user_id", "user_name", "picture_url")
 	response = dict(zip(response_keys, response))
 
-	response['response_text'] = markdown.markdown(response['response_text'])
+	query = "SELECT question_title, user_id, response_counter FROM Question WHERE question_id = %s"
+	
+	cur.execute(query, (question_id,))
+	result = cur.fetchone()
 
-	images = re.findall(r'[!][[].*[\]][(].*[)]', response_text)
-	#add_images_to_post( images = images, question_or_response_id = response['response_id'], post_type = 'response')
+	if result is None:
+		question_title = ""
+		question_author_user_id = -1
+		question_response_counter = 0
+	else:
+		question_title = result[0]
+		question_author_user_id = result[1]
+		question_response_counter = result[2]
+
+	query = "INSERT INTO Notification (author_user_id, interacting_user_id, message, question_id) VALUES (%s, %s, %s, %s)"
+	msg = f"{response['user_name']} - responded to your question: {question_title}"
+
+	cur.execute(query, (question_author_user_id, user_id, msg, question_id))
+	conn.commit()
+
+	cur.close()
+	conn.close()
+
+	response['response_text'] = markdown.markdown(response['response_text'])
 
 	return response, question_response_counter
 
@@ -2339,29 +2346,37 @@ def add_article_response(
 	cur.execute(query, (user_id,))
 	article_response = cur.fetchone()
 
-	query = "SELECT response_counter FROM Article WHERE article_id = %s"
-	
-	cur.execute(query, (article_id,))
-	article_response_counter = cur.fetchone()
-
-	cur.close()
-	conn.close()
-
 	if article_response is None:
-		return -1, -1
-
-	if article_response_counter is None:
-		article_response_counter = 0
-	else:
-		article_response_counter = article_response_counter[0]
+		article_response = []
 
 	article_response_keys = ("article_response_id", "contents", "vote_counter", "response_counter", "created_time", "user_id", "user_name", "picture_url")
 	article_response = dict(zip(article_response_keys, article_response))
 
-	article_response['contents'] = markdown.markdown(article_response['contents'])
+	query = "SELECT title, user_id, response_counter FROM Article WHERE article_id = %s"
+	
+	cur.execute(query, (article_id,))
+	result = cur.fetchone()
 
-	print("article_response")
-	print(article_response)
+	if result is None:
+		article_title = ""
+		article_author_user_id = -1
+		article_response_counter = 0
+	else:
+		article_title = result[0]
+		article_author_user_id = result[1] 
+		article_response_counter = result[2]
+
+	query = "INSERT INTO Notification (author_user_id, interacting_user_id, message, article_id) VALUES (%s, %s, %s, %s)"
+
+	msg = f"{article_response['user_name']} responded to your article: {article_title}"
+
+	cur.execute(query, (article_author_user_id, user_id, msg, article_id))
+	conn.commit()
+
+	cur.close()
+	conn.close()
+
+	article_response['contents'] = markdown.markdown(article_response['contents'])
 
 	return article_response, article_response_counter
 
