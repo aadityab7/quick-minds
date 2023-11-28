@@ -1427,6 +1427,53 @@ def load_more_questions_with_tag(
 
 	return questions
 
+def load_more_articles_with_tag(
+	user_id: int, 
+	tag_name: str,
+	limit: int,
+	offset: int
+):
+	conn = get_db_connection()
+	cur = conn.cursor()
+
+	query = """
+		SELECT 
+			Article.article_id, 
+			Article.title, 
+			Article.description, 
+			Article.thumbnail_url, 
+			Article.vote_counter, 
+			Article.response_counter, 
+			Article.created_time, 
+			Article.tags, 
+			App_user.user_id, 
+			App_user.name, 
+			App_user.picture_url,
+			CASE WHEN Follow.followed_user_id IS NULL THEN false ELSE true END AS following	
+		FROM Article 
+		INNER JOIN App_user
+			ON Article.user_id = App_user.user_id
+		LEFT JOIN Follow 
+			on App_user.user_id = Follow.followed_user_id and Follow.follower_user_id = %s 
+		WHERE %s = ANY (Article.tags)
+		ORDER BY Article.created_time DESC
+		LIMIT %s OFFSET %s;
+	"""
+	
+	cur.execute(query, (user_id, tag_name, limit, offset))
+	articles = cur.fetchall()
+
+	cur.close()
+	conn.close()
+
+	if articles is None:
+		articles = []
+
+	article_keys = ("article_id", "title", "description", "thumbnail_url", "vote_counter", "response_counter", "created_time", "tags", "user_id", "user_name", "picture_url", "following")
+	articles = [dict(zip(article_keys, article)) for article in articles]
+
+	return articles
+
 def load_more_quizzes(
 	user_id: int,
 	limit: int, 
@@ -1971,7 +2018,52 @@ def search(
 			offset = offset
 		)
 
+	if search_type == "tag" or search_type == "all":
+
+		search_results["tag_search_results"] = tag_search(
+			search_query = search_query,
+			limit = limit,
+			offset = offset
+		)
+
 	return search_results
+
+def tag_search(
+	search_query: str,
+	limit: int,
+	offset: int
+):
+	conn = get_db_connection()
+	cur = conn.cursor()
+
+	query = """
+		SELECT 
+			tag_name, 
+			tag_description,
+			question_count,
+			article_count,
+			similarity(%s, tag_name) as similarity 
+		FROM Tag 
+		ORDER BY similarity DESC;
+	"""
+
+	cur.execute(query, (search_query,))
+
+	tag_search_results = cur.fetchall()
+
+	if tag_search_results is None:
+		tag_search_results = []
+
+	tag_search_keys = (
+		"tag_name",
+		"tag_description",
+		"question_count",
+		"article_count"
+	)
+
+	tag_search_results = [dict(zip(tag_search_keys, tag_search_result[:-1])) for tag_search_result in tag_search_results if tag_search_result[-1] >= 0.2]
+
+	return tag_search_results
 
 def vote_unvote(
 	user_id: int,
@@ -2098,6 +2190,7 @@ def add_article(
 		thumbnail_url = re.sub(r'[!][[].*[\]]', '', thumbnail_url)
 		thumbnail_url = thumbnail_url[1:-1]
 
+	tags = tags.lower()
 	tags = [tag.strip() for tag in tags.split(',')]
 	article_tags_set = set(tags)
 	tags = re.sub(r"[']", "", str(article_tags_set))

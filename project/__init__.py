@@ -102,6 +102,13 @@ def get_user_following():
 
 @app.route('/tags', methods = ('GET', 'POST'))
 def tags():
+	if session.get("user_id") and session.get('user_id') != -1:
+		pass
+	else:
+		session["user_id"] = -1
+		session['user_name'] = ""
+		session['user_picture_url'] = ""
+		
 	if request.method == 'GET':
 		return render_template('tags.html',
 			user_id = session['user_id'], 
@@ -148,33 +155,27 @@ def load_more_questions_with_tag():
 ########################################################################################################################################
 #ARTICLES FUNCTIONALITY
 
-#TO BE IMPLEMENTED
-@app.route('/article_preview')
-def article_preview():
-	if session.get('user_id') and session.get('user_id') != -1:
-		return render_template('article_preview.html',
-			user_id = session['user_id'],
-			user_name = session['user_name'], 
-			user_picture_url = session['user_picture_url'])
-	else:
-		return redirect(url_for('login'))
+@app.route('/load_more_articles_with_tag', methods = ['POST'])
+def load_more_articles_with_tag():
+	tag_name = request.form.get('tag_name')
+	limit = int(request.form.get('num_to_load'))
+	offset = int(request.form.get('offset'))
 
-@app.route('/get_article_preview', methods = ['POST'])
-def get_article_preview():
-	article_id = int(request.form.get('article_id'))
+	articles = utils.load_more_articles_with_tag(
+					user_id = session['user_id'], 
+					tag_name = tag_name,
+					limit = limit,
+					offset = offset
+				)
 
-	preview = utils.get_article_preview(user_id = session['user_id'], article_id = article_id)
+	return jsonify({'articles': articles})
 
-	return jsonify({'preview' : preview})
-
-##
 @app.route('/articles')
 def articles():
 	return render_template('articles.html',
 		user_id = session['user_id'],
 		user_name = session['user_name'], 
 		user_picture_url = session['user_picture_url'])
-
 
 @app.route('/write_article', methods = ('GET', 'POST'))
 def write_article():

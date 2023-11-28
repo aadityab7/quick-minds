@@ -73,8 +73,6 @@
                             </button>
                           </div>
                     </form>
-                  
-                  
 
                   <button
                     id="searchButton"
@@ -339,13 +337,13 @@
                   </a>
                 </li>
 
-                <li class="{% if user_id and user_id != -1 %} hidden {% else %} block {% endif %}">
+                <li class="{% if user_id and user_id != -1 %} hidden {% else %} block sm:hidden lg:block {% endif %}">
                   <a id = "login_button" href="{{url_for('login')}}" class="relative flex flex-row items-center h-11 px-4"> 
                     <button type="submit" class="flex-grow rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">Log In</button>
                   </a>
                 </li>
 
-                <li class="{% if user_id and user_id != -1 %} hidden {% else %} block {% endif %}">
+                <li class="{% if user_id and user_id != -1 %} hidden {% else %} block sm:hidden lg:block {% endif %}">
                   <a id = "sign_up_button" href="{{url_for('sign_up')}}" class="relative flex flex-row items-center h-11 px-4"> 
                     <button type="submit" class="flex-grow rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">Sign Up</button>
                   </a>

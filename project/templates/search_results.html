@@ -17,7 +17,7 @@
 			</div>			
 
 		    <div id="search_result_page" class="mt-8">
-			<h1 class="text-xl font-bold">Questions</h1>
+				<h1 class="text-xl font-bold">Questions</h1>
 		        <template id="question-template">
 		        	<div class="p-4">
 		        		<div class="flex items-start gap-4 items-center pb-2">
@@ -59,7 +59,7 @@
 			</div>
 
 		    <div id="articles_page" class="mt-8">
-			<h1 class="text-xl font-bold">Articles</h1>
+				<h1 class="text-xl font-bold">Articles</h1>
 		        <template id="article-template">
 		        	<div class="p-4">
 		        		<div class="sm:flex items-start gap-4 items-center pb-2">
@@ -102,9 +102,32 @@
 		        </template>
 		    </div>
 
-		    <div id = "more-similar-questions-div">
+		    <div id = "more-articles-div">
 		    	<p id = "no-more-articles" class="hidden">No more articles matching search result.</p>
 				<button id = "load-more-articles-button" class="hidden mt-4 rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">Load more Articles</button>
+			</div>
+
+			<div class="mt-8">
+				<h1 class="text-xl font-bold">Tags</h1>
+
+				<div id="tags_page" class="grid grid-cols-12 gap-4 mt-4">
+					<template id="tag-template">
+						<div class="col-span-full sm:col-span-6 md:col-span-4 lg:col-span-3 p-2 border rounded-lg">
+							<a id = "tag_link" href="" class="flex flex-col items-start">
+								<p id = "tag_name" class="tag"></p>
+								<p id = "tag_description"></p>
+								<div class="flex flex-wrap gap-6">
+									<p id = "question_count" class="text-gray-500"></p>
+									<p id = "article_count" class="text-gray-500"></p>
+								</div>
+							</a>
+						</div>
+					</template>
+				</div>
+			</div>
+
+			<div id = "more-tags-div">
+				<button id = "load-more-tags-button" class="hidden mt-4 rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">Load more Tags</button>
 			</div>
 
 	    </div>
@@ -117,7 +140,7 @@
 	    const user_id = {{user_id}};
 	    const search_query  = '{{search_query}}';
 
-	    var numToLoad = 3;  // Adjust the number of questions to load at a time
+	    var numToLoad = 3;  // Adjust the number of elements to load at a time
 
 	    var question_offset = 0;
 	    var question_search_is_loading = false;  // Flag to track whether an AJAX request is in progress
@@ -126,6 +149,10 @@
 	    var article_offset = 0;
 	    var article_search_is_loading = false;
 	    var article_search_load_complete = false;
+
+	    var tag_offset = 0;
+	    var tag_search_is_loading = false;
+	    var tag_search_load_complete = false;
 
 	    // Function to load more questions
 	    function loadMoreQuestions() {
@@ -314,9 +341,68 @@
 	        });
 	    }
 
+	    function loadMoreTags() {
+	        if (tag_search_load_complete) {
+	            return;
+	        } 
+
+	        // Check if an AJAX request is already in progress
+	        if (tag_search_is_loading) {
+	            return;
+	        }
+
+	        document.getElementById('load-more-tags-button').classList.add('hidden');
+
+	        // Set the tag_search_is_loading flag to true
+	        tag_search_is_loading = true;
+	        
+	        // Determine the current section and its respective offset
+	        var currentOffset = tag_offset;
+
+	        // Send an AJAX request to fetch more questions
+	        $.ajax({
+	            type: 'POST',
+	            url: '/search',
+	            data: { search_query: search_query, num_to_load: numToLoad, offset: currentOffset, search_type: 'tag'},
+	            success: function (data) {
+	            	console.log(data);
+
+                    if (data.search_results.tag_search_results.length < numToLoad) {
+                        tag_search_load_complete = true;
+                    }
+
+                    data.search_results.tag_search_results.forEach(function (tag) {
+                        // Clone the template and populate it with data
+                        var template = document.getElementById("tag-template");
+                        var clone = document.importNode(template.content, true);
+                        
+                        // Create the URL with the tag_id
+                        var tag_url = "/tag/" + tag.tag_name + "/";
+
+                        clone.querySelector("a").setAttribute("href", tag_url);
+                        clone.querySelector("#tag_name").textContent = tag.tag_name;
+                        clone.querySelector("#tag_description").textContent = tag.tag_description;
+                        clone.querySelector("#question_count").textContent = tag.question_count + " questions";
+                        clone.querySelector("#article_count").textContent = tag.article_count + " articles";
+
+                        // Append the populated template to the appropriate container
+                        document.getElementById('tags_page').appendChild(clone);
+                    });
+
+                    tag_offset += numToLoad;
+                    tag_search_is_loading = false;
+
+                    if(tag_search_load_complete === false){
+		            	document.getElementById('load-more-tags-button').classList.remove('hidden');
+		            }
+	            }
+	        });
+	    }
+
 	    // Load initial data for both sections when the page loads
 	    loadMoreQuestions();
 	    loadMoreArticles();
+	    loadMoreTags();
 
 	    function handleFollow(event) {
 	    	if (user_id === -1){
@@ -347,6 +433,10 @@
 
 	    	if (event.target.id === 'load-more-articles-button') {
 	    		loadMoreArticles();
+	    	}
+
+	    	if (event.target.id === 'load-more-tags-button') {
+	    		loadMoreTags();
 	    	}
 	    });
 
