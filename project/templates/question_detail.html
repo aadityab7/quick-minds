@@ -425,18 +425,18 @@
 		        	const my_vote = data.my_vote;
 
 		        	if (my_vote === 0){
-		        		up_vote_button.classList.remove('bg-indigo-500');
-		        		down_vote_button.classList.remove('bg-indigo-500');
+		        		up_vote_button.classList.remove('text-indigo-500');
+		        		down_vote_button.classList.remove('text-indigo-500');
 		        	}
 		        	else if (my_vote === 1){
-		        		up_vote_button.classList.remove('bg-indigo-500');
-		        		down_vote_button.classList.remove('bg-indigo-500');
-		        		up_vote_button.classList.add('bg-indigo-500');
+		        		up_vote_button.classList.remove('text-indigo-500');
+		        		down_vote_button.classList.remove('text-indigo-500');
+		        		up_vote_button.classList.add('text-indigo-500');
 		        	}
 		        	else{
-		        		up_vote_button.classList.remove('bg-indigo-500');
-		        		down_vote_button.classList.remove('bg-indigo-500');
-		        		down_vote_button.classList.add('bg-indigo-500');
+		        		up_vote_button.classList.remove('text-indigo-500');
+		        		down_vote_button.classList.remove('text-indigo-500');
+		        		down_vote_button.classList.add('text-indigo-500');
 		        	}
 
 		        	if (data.vote_count > 0) {

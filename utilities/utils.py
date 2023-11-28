@@ -110,7 +110,12 @@ def add_question(
 	conn = get_db_connection()
 	cur = conn.cursor()
 
-	query = "INSERT INTO Question (user_id, question_title, question_text, tags, question_query) VALUES (%s, %s, %s, %s, %s)"
+	query = """
+		INSERT INTO Question 
+			(user_id, question_title, question_text, tags, question_query) 
+		VALUES 
+			(%s, %s, %s, %s, %s)
+	"""
 
 	cur.execute(query, (user_id, question_title, question_text, question_tags, question_query))
 	conn.commit()
@@ -186,9 +191,11 @@ def extact_text_from_image(
 	image_content = requests.get(image_url).content
 
 	# Load binary data
+	# Refer to https://cloud.google.com/document-ai/docs/file-types 
+	# for supported file types
 	raw_document = documentai.RawDocument(
 		content=image_content,
-		mime_type=mime_type,  # Refer to https://cloud.google.com/document-ai/docs/file-types for supported file types
+		mime_type=mime_type,  
 	)
 
 	# Configure the process request
@@ -225,7 +232,12 @@ def add_quiz_to_db(
 	cur.execute(query, (user_id,))
 	quiz_id = cur.fetchone()[0]
 
-	query = "INSERT INTO Quiz_Question (quiz_id, question_text, option_1, option_2, option_3, option_4, correct_answer) VALUES (%s, %s, %s, %s, %s, %s, %s)"
+	query = """
+		INSERT INTO Quiz_Question 
+			(quiz_id, question_text, option_1, option_2, option_3, option_4, correct_answer) 
+		VALUES 
+			(%s, %s, %s, %s, %s, %s, %s)
+	"""
 
 	for question in quiz_ai_response['questions']:
 		
@@ -234,12 +246,29 @@ def add_quiz_to_db(
 		else:
 			options = question.get('list_of_4_options')
 
-		cur.execute(query, (quiz_id, question['question_text'], options[0], options[1], options[2], options[3], question['correct_option_number']))
+		cur.execute(
+			query, 
+			(
+				quiz_id, 
+				question['question_text'], 
+				options[0], 
+				options[1], 
+				options[2], 
+				options[3], 
+				question['correct_option_number']
+			)
+		)
 		conn.commit()
 
 	#store initially unattempted quiz score
 	total_quiz_questions = len(quiz_ai_response['questions'])
-	query = "INSERT INTO Quiz_Score_Card (quiz_id, user_id, total_quiz_questions, attempted, correct, wrong) VALUES (%s, %s, %s, %s, %s, %s)"
+
+	query = """
+		INSERT INTO Quiz_Score_Card 
+			(quiz_id, user_id, total_quiz_questions, attempted, correct, wrong) 
+		VALUES 
+			(%s, %s, %s, %s, %s, %s)
+	"""
 
 	cur.execute(query, (quiz_id, user_id, total_quiz_questions, 0, 0, 0))
 	conn.commit()
@@ -267,7 +296,12 @@ def add_related_search_results_to_question(
 		link = response_item['link']
 		description = response_item['htmlSnippet']
 
-		query = "INSERT INTO Related_web_search_result (question_id, title, description, link) VALUES (%s, %s, %s, %s)"
+		query = """
+			INSERT INTO Related_web_search_result 
+				(question_id, title, description, link) 
+			VALUES 
+				(%s, %s, %s, %s)
+		"""
 		cur.execute(query, (question_id, title, description, link))
 		conn.commit()
 
@@ -290,13 +324,23 @@ def add_related_youtube_videos_to_question(
 	for video_id, video_details in video_results.items():
 		video_url = f'https://www.youtube.com/watch?v={video_id}'
 
-		query = "INSERT INTO Related_video \
-					(question_id, title, description, video_url, thumbnail_url, channel_title, player_embed_html) \
-				VALUES (%s, %s, %s, %s, %s, %s, %s)"
+		query = """
+			INSERT INTO Related_video
+					(question_id, title, description, video_url, thumbnail_url, channel_title, player_embed_html)
+			VALUES 
+				(%s, %s, %s, %s, %s, %s, %s)
+		"""
 		
 		cur.execute(query, 
-			(question_id, video_details['title'], video_details['description'], video_url, 
-			video_details['thumbnail_url'], video_details['channel_title'], video_details['player_embed_html'])
+			(
+				question_id, 
+				video_details['title'], 
+				video_details['description'], 
+				video_url, 
+				video_details['thumbnail_url'], 
+				video_details['channel_title'], 
+				video_details['player_embed_html']
+			)
 		)		
 
 		conn.commit()
@@ -314,7 +358,12 @@ def add_response(
 	conn = get_db_connection()
 	cur = conn.cursor()
 
-	query = "INSERT INTO Response (type, user_id, question_id, response_text) VALUES (%s, %s, %s, %s)"
+	query = """
+		INSERT INTO Response 
+			(type, user_id, question_id, response_text) 
+		VALUES 
+			(%s, %s, %s, %s)
+	"""
 
 	cur.execute(query, ('response', user_id, question_id, response_text))
 	conn.commit()
@@ -346,7 +395,16 @@ def add_response(
 	if response is None:
 		response = []
 
-	response_keys = ("response_id", "response_text", "vote_counter", "response_counter", "created_time", "user_id", "user_name", "picture_url")
+	response_keys = (
+		"response_id", 
+		"response_text", 
+		"vote_counter", 
+		"response_counter", 
+		"created_time", 
+		"user_id", 
+		"user_name", 
+		"picture_url"
+	)
 	response = dict(zip(response_keys, response))
 
 	query = "SELECT question_title, user_id, response_counter FROM Question WHERE question_id = %s"
@@ -363,12 +421,14 @@ def add_response(
 		question_author_user_id = result[1]
 		question_response_counter = result[2]
 
+	"""
 	query = "INSERT INTO Notification (author_user_id, interacting_user_id, message, question_id) VALUES (%s, %s, %s, %s)"
 	msg = f"{response['user_name']} - responded to your question: {question_title}"
 
 	cur.execute(query, (question_author_user_id, user_id, msg, question_id))
 	conn.commit()
-
+	"""
+	
 	cur.close()
 	conn.close()
 
@@ -399,7 +459,12 @@ def add_similar_questions_to_this_question(
 	if similar_questions is None:
 		similar_questions = []
 
-	query = "INSERT INTO Related_question (question_id, similar_question_id, similarity_score) VALUES (%s, %s, %s)"
+	query = """
+		INSERT INTO Related_question
+			(question_id, similar_question_id, similarity_score) 
+		VALUES 
+			(%s, %s, %s)
+	"""
 	
 	#add this to the similarity table
 	for similar_question in similar_questions[1:]:
@@ -856,7 +921,19 @@ def get_profile_info(
 	if profile_info is None:
 		return -1
 
-	profile_info_keys = ["user_id", "user_name", "about", "badge", "email", "google_id", "facebook_id", "github_id", "picture_url", "account_creation_datetime", "following"]
+	profile_info_keys = (
+		"user_id", 
+		"user_name", 
+		"about", 
+		"badge", 
+		"email", 
+		"google_id", 
+		"facebook_id", 
+		"github_id", 
+		"picture_url", 
+		"account_creation_datetime", 
+		"following"
+	)
 	profile_info = dict(zip(profile_info_keys, profile_info))
 	
 	return profile_info, followers, following
@@ -920,9 +997,16 @@ def get_question(
 	query = """
 		WITH QuestionUser AS (
 		    SELECT
-		        Question.question_id as question_id, Question.question_title, Question.question_text,
-				Question.vote_counter, Question.response_counter, Question.created_time, Question.tags,
-				App_user.user_id as question_user_id, App_user.name, App_user.picture_url
+		        Question.question_id as question_id, 
+		        Question.question_title, 
+		        Question.question_text,
+				Question.vote_counter, 
+				Question.response_counter, 
+				Question.created_time, 
+				Question.tags,
+				App_user.user_id as question_user_id, 
+				App_user.name, 
+				App_user.picture_url
 		    FROM
 		        Question
 		        INNER JOIN App_user
@@ -968,7 +1052,20 @@ def get_question(
 	cur.close()
 	conn.close()
 
-	question_keys =	("question_id", "question_title", "question_text", "vote_counter", "response_counter", "created_time", "tags", "user_id", "user_name", "picture_url", "following", "my_vote")
+	question_keys =	(
+		"question_id", 
+		"question_title", 
+		"question_text", 
+		"vote_counter", 
+		"response_counter", 
+		"created_time", 
+		"tags", 
+		"user_id", 
+		"user_name", 
+		"picture_url", 
+		"following", 
+		"my_vote"
+	)
 	question = dict(zip(question_keys, question))
 
 	question["question_text"] = markdown.markdown(question["question_text"])
@@ -1030,7 +1127,15 @@ def get_quiz_questions(
 	if quiz_questions is None:
 		quiz_questions = []
 
-	quiz_question_keys = ["quiz_question_id", "question_text", "option_1", "option_2", "option_3", "option_4", "correct_answer"]
+	quiz_question_keys = (
+		"quiz_question_id", 
+		"question_text", 
+		"option_1", 
+		"option_2", 
+		"option_3", 
+		"option_4", 
+		"correct_answer"
+	)
 	quiz_questions = [dict(zip(quiz_question_keys, quiz_question)) for quiz_question in quiz_questions]
 
 	return quiz_details, quiz_questions
@@ -1045,7 +1150,13 @@ def get_quiz_results(
 
 	query = """
 		SELECT 
-			Quiz.quiz_id, Quiz.title, Quiz_Score_Card.user_id, Quiz_Score_Card.total_quiz_questions, Quiz_Score_Card.attempted, Quiz_Score_Card.correct, Quiz_Score_Card.wrong
+			Quiz.quiz_id, 
+			Quiz.title, 
+			Quiz_Score_Card.user_id, 
+			Quiz_Score_Card.total_quiz_questions, 
+			Quiz_Score_Card.attempted, 
+			Quiz_Score_Card.correct, 
+			Quiz_Score_Card.wrong
 		FROM Quiz
 		LEFT JOIN Quiz_Score_Card
 		ON Quiz.quiz_id = Quiz_Score_Card.quiz_id
@@ -1058,14 +1169,27 @@ def get_quiz_results(
 	if quiz_details is None:
 		print("some error occured when fetching quiz results")
 	else:
-		quiz_keys = ("quiz_id", "title", "user_id", "total_quiz_questions", "attempted", "correct", "wrong")
+		quiz_keys = (
+			"quiz_id", 
+			"title", 
+			"user_id", 
+			"total_quiz_questions", 
+			"attempted", 
+			"correct", 
+			"wrong"
+		)
 		quiz_details = dict(zip(quiz_keys, quiz_details))
 
 		query = """
 			SELECT
-				Quiz_Question.quiz_question_id, Quiz_Question.question_text, 
-				Quiz_Question.option_1, Quiz_Question.option_2, Quiz_Question.option_3, Quiz_Question.option_4, 
-				Quiz_Question.correct_answer, Quiz_Question_User_Response.user_response
+				Quiz_Question.quiz_question_id, 
+				Quiz_Question.question_text, 
+				Quiz_Question.option_1, 
+				Quiz_Question.option_2, 
+				Quiz_Question.option_3, 
+				Quiz_Question.option_4, 
+				Quiz_Question.correct_answer, 
+				Quiz_Question_User_Response.user_response
 			FROM Quiz_Question
 			LEFT JOIN Quiz_Question_User_Response
 			ON Quiz_Question.quiz_question_id = Quiz_Question_User_Response.quiz_question_id
@@ -1082,7 +1206,16 @@ def get_quiz_results(
 	cur.close()
 	conn.close()
 
-	quiz_result_keys = ["quiz_question_id", "question_text", "option_1", "option_2", "option_3", "option_4", "correct_answer", "user_response"]
+	quiz_result_keys = (
+		"quiz_question_id", 
+		"question_text", 
+		"option_1", 
+		"option_2", 
+		"option_3", 
+		"option_4", 
+		"correct_answer", 
+		"user_response"
+	)
 	quiz_questions_results = [dict(zip(quiz_result_keys, quiz_questions_result)) for quiz_questions_result in quiz_questions_results]
 
 	return quiz_details, quiz_questions_results
@@ -1189,9 +1322,18 @@ def handle_question_vote(
 	cur = conn.cursor()
 
 	#extract post_id
-	query = "SELECT post_id FROM Question WHERE question_id = %s"
+	query = "SELECT question_title, user_id, post_id FROM Question WHERE question_id = %s"
 	cur.execute(query, (question_id,))
-	post_id = cur.fetchone()[0]
+	result = cur.fetchone()
+
+	if result is None:
+		post_id = -1
+		question_title = ""
+		question_author_user_id = -1
+	else:
+		question_title = result[0]
+		question_author_user_id = result[1]
+		post_id = result[2]
 
 	#check if user has a vote on this post or not and if yes what vote
 	query = "SELECT val FROM Post_Vote WHERE question_id = %s AND user_id = %s"
@@ -1249,6 +1391,19 @@ def handle_question_vote(
 	query = "SELECT vote_counter FROM Post WHERE post_id = %s"
 	cur.execute(query, (post_id,))
 	vote_count = cur.fetchone()[0]
+
+	"""
+	if my_vote != 0:
+		query = "SELECT name FROM App_user WHERE user_id = %s"
+		cur.execute(query, (user_id,))
+		interacting_user_name = cur.fetchone()[0]
+		
+		query = "INSERT INTO Notification (author_user_id, interacting_user_id, message, question_id) VALUES (%s, %s, %s, %s)"
+		msg = f"{interacting_user_name} - voted on your question: {question_title}"
+
+		cur.execute(query, (question_author_user_id, user_id, msg, question_id))
+		conn.commit()
+	"""
 
 	cur.close()
 	conn.close()
@@ -1362,9 +1517,15 @@ def load_more_questions(
 
 	query = """
 		SELECT 
-			Question.question_id, Question.question_title, Question.vote_counter, Question.response_counter, 
-			Question.created_time, Question.tags, 
-			App_user.user_id, App_user.name, App_user.picture_url,
+			Question.question_id, 
+			Question.question_title,
+			Question.vote_counter, 
+			Question.response_counter, 
+			Question.created_time, 
+			Question.tags, 
+			App_user.user_id, 
+			App_user.name, 
+			App_user.picture_url,
 			CASE WHEN Follow.followed_user_id IS NULL THEN false ELSE true END AS following	
 		FROM Question 
 		INNER JOIN App_user
@@ -1384,7 +1545,18 @@ def load_more_questions(
 	if questions is None:
 		questions = []
 
-	question_keys = ("question_id", "question_title", "vote_counter", "response_counter", "created_time", "tags", "user_id", "user_name", "picture_url", "following")
+	question_keys = (
+		"question_id", 
+		"question_title", 
+		"vote_counter", 
+		"response_counter",
+		"created_time", 
+		"tags", 
+		"user_id", 
+		"user_name", 
+		"picture_url", 
+		"following"
+	)
 	questions = [dict(zip(question_keys, question)) for question in questions]
 
 	return questions
@@ -2366,12 +2538,14 @@ def add_article_response(
 		article_author_user_id = result[1] 
 		article_response_counter = result[2]
 
+	"""
 	query = "INSERT INTO Notification (author_user_id, interacting_user_id, message, article_id) VALUES (%s, %s, %s, %s)"
 
 	msg = f"{article_response['user_name']} responded to your article: {article_title}"
 
 	cur.execute(query, (article_author_user_id, user_id, msg, article_id))
 	conn.commit()
+	"""
 
 	cur.close()
 	conn.close()
@@ -2556,9 +2730,31 @@ def handle_article_vote(
 	cur.execute(query, (counter_update, article_id))
 	conn.commit()
 
-	query = "SELECT vote_counter FROM Article WHERE article_id = %s"
+	query = "SELECT title, user_id, vote_counter FROM Article WHERE article_id = %s"
 	cur.execute(query, (article_id,))
-	vote_count = cur.fetchone()[0]
+	result = cur.fetchone()
+
+	if result is None:
+		article_title = ""
+		author_user_id = -1
+		vote_count = 0
+	else:
+		article_title = result[0]
+		author_user_id = result[1]
+		vote_count = result[2]
+
+	"""
+	if my_vote != 0:
+		query = "SELECT name FROM App_user WHERE user_id = %s"
+		cur.execute(query, (user_id,))
+		interacting_user_name = cur.fetchone()[0]
+		
+		query = "INSERT INTO Notification (author_user_id, interacting_user_id, message, article_id) VALUES (%s, %s, %s, %s)"
+		msg = f"{interacting_user_name} - voted on your article: {article_title}"
+
+		cur.execute(query, (question_author_user_id, user_id, msg, article_id))
+		conn.commit()
+	"""
 
 	cur.close()
 	conn.close()
