@@ -6,6 +6,13 @@
 
 Steps to follow for set up : [https://tailwindcss.com/docs/installation](https://tailwindcss.com/docs/installation)
 
+For the first time: 
+
+1. `npm install -D tailwindcss`
+2. `npx tailwindcss init`
+
+To rebuild the CSS file:
+
 1. `npx tailwindcss -i ./project/static/CSS/input.css -o ./project/static/CSS/output.css`
 
 # Update GitHub Repository
