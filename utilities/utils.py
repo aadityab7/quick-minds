@@ -1,18 +1,21 @@
-#Note : we represent user not logged in as user_id = -1
+print("starting imports!")
 
 import os
 import psycopg2
 import markdown
 import requests
 import re
+import ast
+
+print("basic imports done!")
+
 import vertexai
 from vertexai.language_models import TextGenerationModel
-import ast
 
 from google.api_core.client_options import ClientOptions
 from google.cloud import documentai  # type: ignore
 
-from openai import OpenAI
+print("AI imports done!")
 
 def generate_openai_chatgpt_response(
 	question_query: str
