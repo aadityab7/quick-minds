@@ -10,6 +10,13 @@
 				<h1 id = "quiz_title" class="text-xl font-bold">Quiz Results {{quiz_id}}</h1>
 			</div>
 
+			<div id = "quiz_scores" class="flex items-start gap-4 mt-2">
+      			<p id = "total_quiz_questions" class="text-gray-500 font-bold"></p>
+      			<p id = "attempted" class="text-gray-500 font-bold"></p>
+      			<p id = "correct" class="text-green-500 font-bold"></p>
+      			<p id = "wrong" class="text-red-500 font-bold"></p>
+      		</div>
+
 		    <div id="quiz_questions_page" class="mt-8">
 
 		        <template id="quiz-question-template">
@@ -20,22 +27,50 @@
 		              		<fieldset>
 					          <div class="mt-8 space-y-6">
 					            <div class="flex items-center gap-x-3">
-					              <input id="option_1" name="" type="radio" value = 1 class="h-4 w-4 border-gray-300 text-indigo-600 focus:ring-indigo-600">
-					              <label id = "option_1_label" for="option_1" class="block text-sm leading-6 text-gray-900"></label>
+					            	<svg id = "option_1_correct" class="hidden w-6 h-6 text-green-400" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+				    					<path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5Zm3.707 8.207-4 4a1 1 0 0 1-1.414 0l-2-2a1 1 0 0 1 1.414-1.414L9 10.586l3.293-3.293a1 1 0 0 1 1.414 1.414Z"/>
+				  					</svg>
+
+				  					<svg id = "option_1_incorrect" class="hidden text-red-400 w-6 h-6" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+										<path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5Zm3.707 11.793a1 1 0 1 1-1.414 1.414L10 11.414l-2.293 2.293a1 1 0 0 1-1.414-1.414L8.586 10 6.293 7.707a1 1 0 0 1 1.414-1.414L10 8.586l2.293-2.293a1 1 0 0 1 1.414 1.414L11.414 10l2.293 2.293Z"/>
+									</svg>
+
+						            <label id = "option_1_label" for="option_1" class="block text-sm leading-6 text-gray-900"></label>
 					            </div>
 					            <div class="flex items-center gap-x-3">
-					              <input id="option_2" name="" type="radio" value = 2 class="h-4 w-4 border-gray-300 text-indigo-600 focus:ring-indigo-600">
-					              <label id = "option_2_label" for="option_2" class="block text-sm leading-6 text-gray-900"></label>
+					            	<svg id = "option_2_correct" class="hidden w-6 h-6 text-green-400" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+				    					<path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5Zm3.707 8.207-4 4a1 1 0 0 1-1.414 0l-2-2a1 1 0 0 1 1.414-1.414L9 10.586l3.293-3.293a1 1 0 0 1 1.414 1.414Z"/>
+				  					</svg>
+
+				  					<svg id = "option_2_incorrect" class="hidden text-red-400 w-6 h-6" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+										<path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5Zm3.707 11.793a1 1 0 1 1-1.414 1.414L10 11.414l-2.293 2.293a1 1 0 0 1-1.414-1.414L8.586 10 6.293 7.707a1 1 0 0 1 1.414-1.414L10 8.586l2.293-2.293a1 1 0 0 1 1.414 1.414L11.414 10l2.293 2.293Z"/>
+									</svg>
+
+					                <label id = "option_2_label" for="option_2" class="block text-sm leading-6 text-gray-900"></label>
 					            </div>
 					            <div class="flex items-center gap-x-3">
-					              <input id="option_3" name="" type="radio" value = 3 class="h-4 w-4 border-gray-300 text-indigo-600 focus:ring-indigo-600">
-					              <label id = "option_3_label" for="option_3" class="block text-sm leading-6 text-gray-900">
+					            	<svg id = "option_3_correct" class="hidden w-6 h-6 text-green-400" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+				    					<path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5Zm3.707 8.207-4 4a1 1 0 0 1-1.414 0l-2-2a1 1 0 0 1 1.414-1.414L9 10.586l3.293-3.293a1 1 0 0 1 1.414 1.414Z"/>
+				  					</svg>
+				  					
+				  					<svg id = "option_3_incorrect" class="hidden text-red-400 w-6 h-6" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+										<path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5Zm3.707 11.793a1 1 0 1 1-1.414 1.414L10 11.414l-2.293 2.293a1 1 0 0 1-1.414-1.414L8.586 10 6.293 7.707a1 1 0 0 1 1.414-1.414L10 8.586l2.293-2.293a1 1 0 0 1 1.414 1.414L11.414 10l2.293 2.293Z"/>
+									</svg>
+
+						            <label id = "option_3_label" for="option_3" class="block text-sm leading-6 text-gray-900">
 					              	<p></p>
 					              </label>
 					            </div>
 					            <div class="flex items-center gap-x-3">
-					              <input id="option_4" name="" type="radio" value = 4 class="h-4 w-4 border-gray-300 text-indigo-600 focus:ring-indigo-600">
-					              <label id = "option_4_label" for="option_4" class="block text-sm leading-6 text-gray-900"></label>
+					            	<svg id = "option_4_correct" class="hidden w-6 h-6 text-green-400" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+				    					<path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5Zm3.707 8.207-4 4a1 1 0 0 1-1.414 0l-2-2a1 1 0 0 1 1.414-1.414L9 10.586l3.293-3.293a1 1 0 0 1 1.414 1.414Z"/>
+				  					</svg>
+
+				  					<svg id = "option_4_incorrect" class="hidden text-red-400 w-6 h-6" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+										<path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5Zm3.707 11.793a1 1 0 1 1-1.414 1.414L10 11.414l-2.293 2.293a1 1 0 0 1-1.414-1.414L8.586 10 6.293 7.707a1 1 0 0 1 1.414-1.414L10 8.586l2.293-2.293a1 1 0 0 1 1.414 1.414L11.414 10l2.293 2.293Z"/>
+									</svg>
+
+					              	<label id = "option_4_label" for="option_4" class="block text-sm leading-6 text-gray-900"></label>
 					            </div>
 					          </div>
 					        </fieldset>
@@ -77,7 +112,11 @@
 
 	            	if (data.response_status === "OK") {
 		            	document.getElementById('quiz_title').innerText = "Quiz Results for: " + data.quiz_details.title;
-	                    
+	                    document.getElementById("total_quiz_questions").textContent = "total questions: " + data.quiz_details.total_quiz_questions;
+                        document.getElementById("attempted").textContent = "attempted: " + data.quiz_details.attempted;
+                        document.getElementById("correct").textContent = "correct: " + data.quiz_details.correct;
+                        document.getElementById("wrong").textContent = "incorrect: " + data.quiz_details.wrong;
+
 	                    data.quiz_results.forEach(function (quiz_question) {
 	                    	
 	                    	console.log(quiz_question);
@@ -93,11 +132,61 @@
 	                        clone.querySelector("#option_2_label").textContent = quiz_question.option_2;
 	                        clone.querySelector("#option_3_label").textContent = quiz_question.option_3;
 	                        clone.querySelector("#option_4_label").textContent = quiz_question.option_4;
-	                        clone.querySelector("#option_1").setAttribute("name", quiz_question.quiz_question_id);
-	                        clone.querySelector("#option_2").setAttribute("name", quiz_question.quiz_question_id);
-	                        clone.querySelector("#option_3").setAttribute("name", quiz_question.quiz_question_id);
-	                        clone.querySelector("#option_4").setAttribute("name", quiz_question.quiz_question_id);
+
+
 	                        
+	                        if(quiz_question.correct_answer === 1){
+	                        	clone.querySelector("#option_1_label").classList.add('text-green-400');
+	                        }
+	                        else if(quiz_question.correct_answer === 2){
+	                        	clone.querySelector("#option_2_label").classList.add('text-green-400');
+	                        }
+	                        else if(quiz_question.correct_answer === 3){
+	                        	clone.querySelector("#option_3_label").classList.add('text-green-400');
+	                        }
+							else if(quiz_question.correct_answer === 4){
+	                        	clone.querySelector("#option_4_label").classList.add('text-green-400');
+	                        }
+
+	                        if(quiz_question.user_response === quiz_question.correct_answer){
+	                        	//correct
+	                        	switch (quiz_question.user_response) {
+	                        		case 1:
+	                        			clone.querySelector("#option_1_correct").classList.remove('hidden');
+	                        			break;
+	                        		case 2:
+	                        			clone.querySelector("#option_2_correct").classList.remove('hidden');
+	                        			break;
+	                        		case 3:
+	                        			clone.querySelector("#option_3_correct").classList.remove('hidden');
+	                        			break;
+	                        		case 4:
+	                        			clone.querySelector("#option_4_correct").classList.remove('hidden');
+	                        			break;
+	                        	}
+	                        }
+	                        else{
+	                        	//incorrect
+	                        	switch (quiz_question.user_response) {
+	                        		case 1:
+	                        			clone.querySelector("#option_1_incorrect").classList.remove('hidden');
+	                        			clone.querySelector("#option_1_label").classList.add('text-red-400');
+	                        			break;
+	                        		case 2:
+	                        			clone.querySelector("#option_2_incorrect").classList.remove('hidden');
+	                        			clone.querySelector("#option_2_label").classList.add('text-red-400');
+	                        			break;
+	                        		case 3:
+	                        			clone.querySelector("#option_3_incorrect").classList.remove('hidden');
+	                        			clone.querySelector("#option_3_label").classList.add('text-red-400');
+	                        			break;
+	                        		case 4:
+	                        			clone.querySelector("#option_4_incorrect").classList.remove('hidden');
+	                        			clone.querySelector("#option_4_label").classList.add('text-red-400');
+	                        			break;
+	                        	}
+	                        }
+
 	                        // Append the populated template to the appropriate container
 	                        document.getElementById('quiz_questions_page').appendChild(clone);
 	                    });

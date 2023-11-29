@@ -254,7 +254,7 @@
 						<div class="col-span-full sm:col-span-6 md:col-span-4 lg:col-span-3 p-2 border rounded-lg">
 							<a id = "tag_link" href="" class="flex flex-col items-start">
 								<p id = "tag_name" class="tag"></p>
-								<div class="flex flex-wrap gap-6">
+								<div class="flex flex-wrap gap-6 mt-2">
 									<p id = "question_count" class="text-gray-500"></p>
 									<p id = "article_count" class="text-gray-500"></p>
 								</div>
@@ -621,9 +621,11 @@
 	                    clone.querySelector("#user_profile_link").setAttribute("href", '/profile/' + response.user_id + '/');
 	                    
 	                    if(response.my_vote === 1) {
+							clone.querySelector("#response_upvote_button").classList.remove('text-gray-800');
 							clone.querySelector("#response_upvote_button").classList.add('text-indigo-500');
 	                    }
 	                    else if(response.my_vote === -1){
+							clone.querySelector("#response_downvote_button").classList.remove('text-gray-800');
 							clone.querySelector("#response_downvote_button").classList.add('text-indigo-500');
 	                    }
 	                    
@@ -711,18 +713,28 @@
 		        data: { response_id: responseId, post_type: post_type, up_or_down_vote : up_or_down_vote},
 		        success: function (data) {
 
+		        	console.log("Vote click response!")
+		        	console.log(data);
+
 		        	voteCounter.innerText = data.vote_count;
 		        	const my_vote = data.my_vote;
 
 		        	if (my_vote === 0){
 		        		up_vote_button.classList.remove('text-indigo-500');
 		        		down_vote_button.classList.remove('text-indigo-500');
+
+		        		up_vote_button.classList.add('text-gray-800');
+		        		down_vote_button.classList.add('text-gray-800');
 		        	}
 		        	else if (my_vote === 1){
+		        		up_vote_button.classList.remove('text-gray-800');
+		        		
 		        		up_vote_button.classList.add('text-indigo-500');
 		        		down_vote_button.classList.remove('text-indigo-500');
 		        	}
 		        	else{
+		        		down_vote_button.classList.remove('text-gray-800');
+
 						up_vote_button.classList.remove('text-indigo-500');
 		        		down_vote_button.classList.add('text-indigo-500');
 		        	}
