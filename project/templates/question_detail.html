@@ -18,7 +18,11 @@
 	                        src= {{question.picture_url}}
 	                        class="h-5 w-5 rounded-full object-cover"
 	                    />
-			      		<p id = "user_name" class="text-gray-500 font-bold">{{question["user_name"]}}</p>
+	                    
+	                    <a href="{{url_for('profile', target_user_id = question['user_id'])}}">
+			      			<p id = "user_name" class="text-gray-500 font-bold hover:underline">{{question["user_name"]}}</p>
+	                    </a>
+					    
 					    <button id = "follow" data-user-id = {{question.user_id}} class="text-blue-500 {% if (question['user_id'] == user_id) %} hidden {% endif %}">
 				    		{% if (question['following'] == true) %} following {%else%} follow {%endif%}
 						</button>
@@ -153,7 +157,9 @@
 			                            src= ""
 			                            class="h-5 w-5 rounded-full object-cover"
 			                        />
-				              		<p id = "user_name" class="text-gray-500 font-bold"></p>
+			                        <a id = "user_profile_link" href="">
+				              			<p id = "user_name" class="text-gray-500 font-bold hover:underline"></p>
+			                        </a>
 			              			<button id = "follow" data-user-id = "" class="text-blue-500"></button>
 				              	</div>
 
@@ -349,9 +355,10 @@
             clone.querySelector("#response_text").innerHTML = response.response_text;
             clone.querySelector("#created_time").textContent = response.created_time;
             clone.querySelector("#response_vote_counter").textContent = response.vote_counter;
-            clone.querySelector("#follow").setAttribute('data-user-id', response.user_id);
             clone.querySelector("#user_profile_picture").setAttribute("src", response.picture_url);
-
+            
+            clone.querySelector("#follow").setAttribute('data-user-id', response.user_id);
+            clone.querySelector("#user_profile_link").setAttribute("href", '/profile/' + response.user_id + '/');
             
             if(response.my_vote === 1) {
 				clone.querySelector("#response_upvote_button").classList.add('text-indigo-500');
@@ -573,7 +580,7 @@
 	                    clone.querySelector("#response_vote_counter").textContent = response.vote_counter;
 	                    clone.querySelector("#follow").setAttribute('data-user-id', response.user_id);
 	                    clone.querySelector("#user_profile_picture").setAttribute("src", response.picture_url);
-	                    
+	                    clone.querySelector("#user_profile_link").setAttribute("href", '/profile/' + response.user_id + '/');
 
 	                    if(response.my_vote === 1) {
 							clone.querySelector("#response_upvote_button").classList.add('text-indigo-500');

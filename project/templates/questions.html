@@ -28,13 +28,15 @@
 	                            src= ""
 	                            class="h-5 w-5 rounded-full object-cover"
 	                        />
-		              		<p id = "user_name" class="text-gray-500 font-bold"></p>
+	                        <a id = 'user_profile_link' href="">
+		              			<p id = "user_name" class="text-gray-500 font-bold hover:underline"></p>
+	                        </a>
 		              		<button id = "follow" data-user-id = "" class="text-blue-500"></button>
 		              	</div>
 
-			          	<a href="">
+			          	<a id = "question_link" href="">
 			            	<div class="question-list-box">
-			              		<h1 id = "question_title" class="text-xl"> </h1>
+			              		<h1 id = "question_title" class="text-xl hover:underline"> </h1>
 
 			              		<p id = "created_time" class="text-sm text-gray-500 mt-3"></p>
 
@@ -114,7 +116,7 @@
                         // Create the URL with the question_id
                         var question_url = "/question_detail/" + question.question_id + "/";
 
-                        clone.querySelector("a").setAttribute("href", question_url);
+                        clone.querySelector("#question_link").setAttribute("href", question_url);
                         clone.querySelector("#user_name").textContent = question.user_name;
                         clone.querySelector("#response_counter").textContent = question.response_counter + ' response';
                         clone.querySelector("#question_title").textContent = question.question_title;
@@ -123,6 +125,7 @@
                         clone.querySelector("#user_profile_picture").setAttribute("src", question.picture_url);
 
                         clone.querySelector("#follow").setAttribute('data-user-id', question.user_id);
+                        clone.querySelector("#user_profile_link").setAttribute('href', '/profile/' + question.user_id + '/');
 
                         var tag_html_content = "";
 

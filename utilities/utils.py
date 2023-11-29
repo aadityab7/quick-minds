@@ -1873,7 +1873,20 @@ def load_more_articles_with_tag(
 	if articles is None:
 		articles = []
 
-	article_keys = ("article_id", "title", "description", "thumbnail_url", "vote_counter", "response_counter", "created_time", "tags", "user_id", "user_name", "picture_url", "following")
+	article_keys = (
+		"article_id", 
+		"title", 
+		"description", 
+		"thumbnail_url", 
+		"vote_counter", 
+		"response_counter", 
+		"created_time", 
+		"tags", 
+		"user_id", 
+		"user_name", 
+		"picture_url", 
+		"following"
+	)
 	articles = [dict(zip(article_keys, article)) for article in articles]
 
 	return articles

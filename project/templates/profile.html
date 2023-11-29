@@ -67,13 +67,15 @@
 		                            src= ""
 		                            class="h-5 w-5 rounded-full object-cover"
 		                        />
-			              		<p id = "user_name" class="text-gray-500 font-bold"></p>
+		                        <a id="user_profile_link" href="">
+			              			<p id = "user_name" class="text-gray-500 font-bold hover:underline"></p>
+		                        </a>
 			              		<button id = "follow" data-user-id = "" class="text-blue-500"></button>
 			              	</div>
 
-				          	<a href="">
+				          	<a id="question_link" href="">
 				            	<div class="question-list-box">
-				              		<h1 id = "question_title" class="text-xl"> </h1>
+				              		<h1 id = "question_title" class="text-xl hover:underline"> </h1>
 
 				              		<p id = "created_time" class="text-sm text-gray-500 mt-3"></p>
 
@@ -154,7 +156,9 @@
 				                            src= ""
 				                            class="h-5 w-5 rounded-full object-cover"
 				                        />
-					              		<p id = "user_name" class="text-gray-500 font-bold"></p>
+					              		<a id="user_profile_link" href="">
+					              			<p id = "user_name" class="text-gray-500 font-bold hover:underline"></p>
+				                        </a>
 				              			<button id = "follow" data-user-id = "" class="text-blue-500"></button>
 					              	</div>
 
@@ -203,17 +207,19 @@
 		                            src= ""
 		                            class="h-5 w-5 rounded-full object-cover"
 		                        />
-			              		<p id = "user_name" class="text-gray-500 font-semibold"></p>
+			              		<a id="user_profile_link" href="">
+			              			<p id = "user_name" class="text-gray-500 font-bold hover:underline"></p>
+		                        </a>
 			              		<button id = "follow" data-user-id = "" class="text-blue-500"></button>
 				              	<p id = "created_time" class="text-sm text-gray-500"></p>
 			              	</div>
 
-				          	<a href="">
+				          	<a id="article_link" href="">
 				            	<div class="article-list-box">
 
 				            		<div class="grid grid-cols-12">
 					            		<div class="col-span-full sm:col-span-9">
-						              		<h1 id = "article_title" class="text-xl font-bold"> </h1>
+						              		<h1 id = "article_title" class="text-xl font-bold hover:underline"> </h1>
 						              		<p id = "article_description" class="mt-2"></p>
 					            		</div>
 				            			
@@ -358,7 +364,7 @@
                         // Create the URL with the question_id
                         var question_url = "/question_detail/" + question.question_id + "/";
 
-                        clone.querySelector("a").setAttribute("href", question_url);
+                        clone.querySelector("#question_link").setAttribute("href", question_url);
                         clone.querySelector("#user_name").textContent = question.user_name;
                         clone.querySelector("#response_counter").textContent = question.response_counter + ' response';
                         clone.querySelector("#question_title").textContent = question.question_title;
@@ -367,6 +373,7 @@
                         clone.querySelector("#user_profile_picture").setAttribute("src", question.picture_url);
 
                         clone.querySelector("#follow").setAttribute('data-user-id', question.user_id);
+                        clone.querySelector("#user_profile_link").setAttribute('href', '/profile/' + question.user_id + '/');
 
                         var tag_html_content = "";
 
@@ -451,7 +458,7 @@
                         // Create the URL with the article_id
                         var article_url = "/article/" + article.article_id + "/";
 
-                        clone.querySelector("a").setAttribute("href", article_url);
+                        clone.querySelector("#article_link").setAttribute("href", article_url);
                         clone.querySelector("#user_name").textContent = article.user_name;
                         clone.querySelector("#response_counter").textContent = article.response_counter + ' response';
                         clone.querySelector("#article_title").textContent = article.title;
@@ -461,6 +468,7 @@
                         
                         clone.querySelector("#article_thumbnail_image").setAttribute('src', article.thumbnail_url);
                         clone.querySelector("#follow").setAttribute('data-user-id', article.user_id);
+                        clone.querySelector("#user_profile_link").setAttribute('href', '/profile/' + article.user_id + '/');
 
                         clone.querySelector("#user_profile_picture").setAttribute('src', article.picture_url);
 
@@ -610,6 +618,7 @@
 	                    clone.querySelector("#response_vote_counter").textContent = response.vote_counter;
 	                    clone.querySelector("#follow").setAttribute('data-user-id', response.user_id);
 	                    clone.querySelector("#user_profile_picture").setAttribute("src", response.picture_url);
+	                    clone.querySelector("#user_profile_link").setAttribute("href", '/profile/' + response.user_id + '/');
 	                    
 	                    if(response.my_vote === 1) {
 							clone.querySelector("#response_upvote_button").classList.add('text-indigo-500');
@@ -661,8 +670,6 @@
 	    }
 
 	    function display_user_info(profile_info, followers, following) {
-	    	console.log(profile_info);
-
             document.getElementById("profile_picture").setAttribute("src", profile_info.picture_url);
             document.getElementById("user_name").textContent = profile_info.user_name;
             document.getElementById("about").textContent = profile_info.about;

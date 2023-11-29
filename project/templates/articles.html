@@ -28,17 +28,19 @@
 	                            src= ""
 	                            class="h-5 w-5 rounded-full object-cover"
 	                        />
-		              		<p id = "user_name" class="text-gray-500 font-semibold"></p>
+	                        <a id = "user_profile_link" href="">
+			              		<p id = "user_name" class="text-gray-500 font-semibold hover:underline"></p>
+	                        </a>
 		              		<button id = "follow" data-user-id = "" class="text-blue-500"></button>
 			              	<p id = "created_time" class="text-sm text-gray-500"></p>
 		              	</div>
 
-			          	<a href="">
+			          	<a id = "article_link" href="">
 			            	<div class="article-list-box">
 
 			            		<div class="grid grid-cols-12">
 				            		<div class="col-span-full sm:col-span-9">
-					              		<h1 id = "article_title" class="text-xl font-bold"> </h1>
+					              		<h1 id = "article_title" class="text-xl font-bold hover:underline"> </h1>
 					              		<p id = "article_description" class="mt-2"></p>
 				            		</div>
 			            			
@@ -121,7 +123,7 @@
                         // Create the URL with the article_id
                         var article_url = "/article/" + article.article_id + "/";
 
-                        clone.querySelector("a").setAttribute("href", article_url);
+                        clone.querySelector("#article_link").setAttribute("href", article_url);
                         clone.querySelector("#user_name").textContent = article.user_name;
                         clone.querySelector("#response_counter").textContent = article.response_counter + ' response';
                         clone.querySelector("#article_title").textContent = article.title;
@@ -131,6 +133,7 @@
                         
                         clone.querySelector("#article_thumbnail_image").setAttribute('src', article.thumbnail_url);
                         clone.querySelector("#follow").setAttribute('data-user-id', article.user_id);
+                        clone.querySelector("#user_profile_link").setAttribute('href', '/profile/' + article.user_id + '/');
 
                         clone.querySelector("#user_profile_picture").setAttribute('src', article.picture_url);
 
