@@ -27,7 +27,7 @@
 
 			<hr class="my-4">
 
-			<div id = "section-buttons" class="hidden flex flex-wrap gap-4 justify-between items-center">
+			<div id = "section-buttons" class="flex flex-wrap gap-4 justify-between items-center">
 		        <button id="questionButton">Questions</button>
 
 		        <span
@@ -53,7 +53,7 @@
 		    </div>
 		</div>
 
-		<div class="hidden">
+		<div>
 			<div id = "question_section">
 				<div id="questions_page">
 			        <template id="question-template">
@@ -264,6 +264,8 @@
 
 		var isLoading = false;
 		var user_id = {{user_id}};
+		
+		var numToLoad = 10;
 
 		var question_loadComplete = false;
 		var question_isLoading = false;
@@ -314,6 +316,8 @@
 	        if (question_isLoading) {
 	            return;
 	        }
+
+	        document.getElementById('load-more-questions-button').classList.add('hidden');
 
 	        // Set the isLoading flag to true
 	        question_isLoading = true;
@@ -383,7 +387,13 @@
                     // Update the offset for "For You"
                     question_offset += numToLoad;
                     question_isLoading = false;
-	               
+	               	
+	               	if(question_loadComplete == false){
+                    	document.getElementById('load-more-questions-button').classList.remove('hidden');
+                    }
+                    else{
+                    	document.getElementById('no-more-questions').classList.remove('hidden');
+                    }
 	            }
 	        });
 	    }
@@ -558,6 +568,10 @@
 				article_section.style.display = 'none';
 				tag_section.style.display = 'block';
 	    	
+	    	}
+
+	    	if (event.target.id === 'load-more-questions-button') {
+	    		loadMoreQuestions();
 	    	}
 	    });
 	</script>
