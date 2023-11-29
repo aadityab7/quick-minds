@@ -384,50 +384,31 @@ CREATE TABLE Article_Response_Comment (
         ON DELETE CASCADE
 );
 
-CREATE TABLE Question_User_Tag (
-    tag_name text,
-    user_id integer,
+CREATE TABLE User_Tag (
+    tag_name text NOT NULL,
+    user_id integer NOT NULL,
+    article_id integer,
     question_id integer,
 
-    CONSTRAINT fk_question_user_tag_app_user
-        FOREIGN KEY(user_id) 
-        REFERENCES App_user(user_id)
-        ON DELETE CASCADE,
-
-    CONSTRAINT fk_question_user_tag_question
-        FOREIGN KEY(question_id)
-        REFERENCES Question(question_id)
-        ON DELETE CASCADE,
-
-    CONSTRAINT fk_question_user_tag_tag
+    CONSTRAINT fk_user_tag_tag
         FOREIGN KEY(tag_name)
         REFERENCES Tag(tag_name)
         ON DELETE CASCADE,
 
-    PRIMARY KEY(tag_name, user_id, question_id)
-);
-
-CREATE TABLE Article_User_Tag (
-    tag_name text,
-    user_id integer,
-    article_id integer,
-
-    CONSTRAINT fk_article_user_tag_app_user
+    CONSTRAINT fk_user_tag_app_user
         FOREIGN KEY(user_id) 
         REFERENCES App_user(user_id)
         ON DELETE CASCADE,
 
-    CONSTRAINT fk_article_user_tag_article
+    CONSTRAINT fk_user_tag_article
         FOREIGN KEY(article_id)
         REFERENCES Article(article_id)
         ON DELETE CASCADE,
 
-    CONSTRAINT fk_article_user_tag_tag
-        FOREIGN KEY(tag_name)
-        REFERENCES Tag(tag_name)
-        ON DELETE CASCADE,
-
-    PRIMARY KEY(tag_name, user_id, article_id)
+    CONSTRAINT fk_user_tag_question
+        FOREIGN KEY(question_id)
+        REFERENCES Question(question_id)
+        ON DELETE CASCADE
 );
 
 CREATE TABLE Notification (

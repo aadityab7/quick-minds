@@ -40,62 +40,101 @@ def index():
 		session["user_id"] = -1
 		session['user_name'] = ""
 		session['user_picture_url'] = ""
-		return render_template('landing_page.html')
+
+		return render_template('landing_page.html',
+			user_id = session['user_id'], 
+			user_name = session['user_name'], 
+			user_picture_url = session['user_picture_url']
+		)
 
 ########################################################################################################################################
 #PROFILE FUNCTIONALITY
 
-@app.route('/profile', methods = ('GET', 'POST'))
-def profile():
+@app.route('/profile/<int:target_user_id>/')
+def profile(target_user_id):
+
 	if session.get('user_id') and session.get('user_id') != -1:
-		if request.method == 'GET':
-			return render_template('profile.html',
-				user_id = session['user_id'], 
-				user_name = session['user_name'], 
-				user_picture_url = session['user_picture_url'])
-		else:
-			profile_info, followers, following = utils.get_profile_info(user_id = session['user_id']) 
-
-			if profile_info == -1:
-				flash("some error occured while fetching user's data")
-				return redirect(request.referrer)
-
-			return jsonify({'profile_info': profile_info, 'followers': followers, 'following': following})
+		pass
 	else:
-		return redirect(url_for('login'))
+		session["user_id"] = -1
+		session['user_name'] = ""
+		session['user_picture_url'] = ""
 
+	return render_template('profile.html',
+		target_user_id = target_user_id,
+		user_id = session['user_id'], 
+		user_name = session['user_name'], 
+		user_picture_url = session['user_picture_url']
+	)
+
+@app.route('/get_profile_info', methods = ['POST'])
+def get_profile_info():
+	target_user_id = int(request.form.get('target_user_id'))
+
+	profile_info, followers, following = utils.get_profile_info(user_id = session['user_id'], target_user_id = target_user_id) 
+
+	if profile_info == -1:
+		flash("some error occured while fetching user's data")
+		return redirect(request.referrer)
+
+	return jsonify({'profile_info': profile_info, 'followers': followers, 'following': following})
 
 @app.route('/get_user_questions_activity', methods = ['POST'])
 def get_user_questions_activity():
-	pass
+	target_user_id = int(request.form.get('target_user_id'))
+	limit = int(request.form.get('num_to_load'))
+	offset = int(request.form.get('offset'))
+
+	questions = utils.get_user_questions_activity(user_id = session['user_id'], target_user_id = target_user_id, limit = limit, offset = offset)
+
+	return jsonify({'questions': questions})
 
 @app.route('/get_user_tag_activity', methods = ['POST'])
 def get_user_tag_activity():
-	pass
+	target_user_id = int(request.form.get('target_user_id'))
+	limit = int(request.form.get('num_to_load'))
+	offset = int(request.form.get('offset'))
+
+	tags = utils.get_user_tag_activity(user_id = session['user_id'], target_user_id = target_user_id, limit = limit, offset = offset)
+
+	return jsonify({'tags': tags})
 
 @app.route('/get_user_response_activity', methods = ['POST'])
 def get_user_response_activity():
-	pass
+	target_user_id = int(request.form.get('target_user_id'))
+	limit = int(request.form.get('num_to_load'))
+	offset = int(request.form.get('offset'))
 
-@app.route('/get_user_comment_activity', methods = ['POST'])
-def get_user_comment_activity():
-	pass
+	responses = utils.get_user_response_activity(user_id = session['user_id'], target_user_id = target_user_id, limit = limit, offset = offset)
+
+	return jsonify({'responses': responses})
 
 @app.route('/get_user_article_activity', methods = ['POST'])
 def get_user_article_activity():
-	pass
+	target_user_id = int(request.form.get('target_user_id'))
+	limit = int(request.form.get('num_to_load'))
+	offset = int(request.form.get('offset'))
 
-@app.route('/get_user_saves', methods = ['POST'])
-def get_user_saves():
-	pass
+	articles = utils.get_user_article_activity(user_id = session['user_id'], target_user_id = target_user_id, limit = limit, offset = offset)
 
-@app.route('/get_user_followers', methods = ['POST'])
-def get_user_followers():
-	pass
+	return jsonify({'articles': articles})
 
-@app.route('/get_user_following', methods = ['POST'])
-def get_user_following():
-	pass
+
+@app.route('/followers/<int:target_user_id>')
+def followers(target_user_id):
+	if session.get('user_id') and session.get('user_id') != -1:
+		pass
+	else:
+		session["user_id"] = -1
+		session['user_name'] = ""
+		session['user_picture_url'] = ""
+
+	return render_template('followers.html',
+		target_user_id = target_user_id,
+		user_id = session['user_id'], 
+		user_name = session['user_name'], 
+		user_picture_url = session['user_picture_url']
+	)
 
 ########################################################################################################################################
 #TAGS FUNCTIONALITY
@@ -781,7 +820,18 @@ def search():
 #MAIN AUTHENTICATION SECTION (login, logout, sign_up)
 @app.route('/login')
 def login():
-	return render_template('login.html')
+	if session.get('user_id') and session.get('user_id') != -1:
+		return redirect('index')
+	else:
+		session['user_id'] = -1
+		session['user_name'] = ""
+		session['user_picture_url'] = ""
+
+	return render_template('login.html',
+		user_id = session['user_id'], 
+		user_name = session['user_name'], 
+		user_picture_url = session['user_picture_url']
+	)
 
 @app.route("/logout", methods=('GET', 'POST'))
 def logout():
@@ -790,7 +840,18 @@ def logout():
 
 @app.route('/sign_up')
 def sign_up():
-	return render_template('sign_up.html')
+	if session.get('user_id') and session.get('user_id') != -1:
+		return redirect('index')
+	else:
+		session['user_id'] = -1
+		session['user_name'] = ""
+		session['user_picture_url'] = ""
+
+	return render_template('sign_up.html',
+		user_id = session['user_id'], 
+		user_name = session['user_name'], 
+		user_picture_url = session['user_picture_url']
+	)
 
 #PERFORM ACTUAL AUTHENTICATION FLOW using OAuth2 SUB-SECTION (facebook, github, google)
 #authentication with EMAIL

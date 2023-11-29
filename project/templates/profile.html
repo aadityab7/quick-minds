@@ -5,20 +5,22 @@
 {% block content %}
 	<div class="mx-auto max-w-screen-xl px-4 py-8 sm:px-6 lg:px-8">
 		<div id="lower" class="grow py-3 px-3 rounded-t-lg">
-
 			<div class="sm:flex gap-4 items-center justify-between">
-				<div class="flex gap-4 items-center">
+				<div class="flex gap-8 items-center">
 					<img id = "profile_picture" src="" class="rounded-full h-20">
 					<div>
 						<h1 id = "user_name"></h1>
 						<p id = "about" class="text-gray-500"></p>
 						<p id = "joined_on" class="text-gray-500"></p>
 						<div class="flex gap-4">
-							<p id = "followers"></p>
-							<p id = "following"></p>
+							<p id = "followers" class="font-semibold"></p>
+							<p id = "following" class="font-semibold"></p>
 						</div>
-						<button id = "follow" data-user-id = "">
-							Follow
+						<button 
+							id = "user_follow" 
+							data-user-id = "" 
+							class="{%if user_id and user_id == target_user_id %} hidden {%endif%} mt-4 rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+						>
 						</button>
 					</div>
 				</div>
@@ -92,7 +94,7 @@
 			    </div>
 
 			    <div id = "more-similar-questions-div">
-			    	<p id = "no-more-questions" class="hidden">No more questions matching search result.</p>
+			    	<p id = "no-more-questions" class="hidden">No more questions by the user.</p>
 					<button id = "load-more-questions-button" class="hidden mt-4 rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">Load more Questions</button>
 				</div>
 			</div>
@@ -101,6 +103,10 @@
 				<div id = "response-list">
 				
 					<template id="response-template">
+						<a id = "question_link_for_response" href="">
+							<h1 id = "question_title_for_response" class="mt-4 hover:underline text-gray-500"></h1>
+						</a>
+
 						<div id = "complete_repsonse_block" class="grid grid-cols-12 items-start gap-2 sm:gap-0" data-response-id = "">
 							
 							<div id = 'response-votes' class="py-4 col-span-1 align-center justify-center">
@@ -160,16 +166,27 @@
 			              		<a id = "delete_response" href="" class="hidden">
 			              			<button class="mt-4 border rounded-lg px-4 py-2 text-sm text-red-700 hover:bg-red-50">Delete Response</button>
 			              		</a>
+				              	
+				              	<div id = "response-comment-div" class="hidden flex items-center justify-between mt-2">
+				              		<div class="flex items-start gap-4 mt-2">
+				              			<p id = "response_counter" class="text-gray-500 text-sm font-bold"></p>
+				              		</div>
+				              		<div class="flex items-end gap-4 mt-2">
+				              			<button id = 'view_comment' class="text-gray-500 text-sm font-semibold">View comments</button>
+				              			<button id = 'add_comment' class="text-gray-500 text-sm font-semibold">Add comment</button>
+				              		</div>
+				              	</div>
 							</div>
 						</div>
 
 			          	<hr>
 						
 			        </template>
+
 				</div>
 
 				<div id = "more-response-div">
-					<button id = "load-more-button" class="hidden mt-4 rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">Load more responses</button>
+					<button id = "load-more-response-button" class="hidden mt-4 rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">Load more responses</button>
 
 		        	<p id = "no-more-responses" class="hidden mt-4 text-sm font-semibold">No more responses available</p>
 				</div>
@@ -220,7 +237,7 @@
 			    </div>
 
 			     <div id = "more-articles-div">
-			    	<p id = "no-more-articles" class="hidden">No more articles matching search result.</p>
+			    	<p id = "no-more-articles" class="hidden">No more articles by the user.</p>
 					<button id = "load-more-articles-button" class="hidden mt-4 rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">Load more Articles</button>
 				</div>
 			</div>
@@ -231,7 +248,6 @@
 						<div class="col-span-full sm:col-span-6 md:col-span-4 lg:col-span-3 p-2 border rounded-lg">
 							<a id = "tag_link" href="" class="flex flex-col items-start">
 								<p id = "tag_name" class="tag"></p>
-								<p id = "tag_description"></p>
 								<div class="flex flex-wrap gap-6">
 									<p id = "question_count" class="text-gray-500"></p>
 									<p id = "article_count" class="text-gray-500"></p>
@@ -245,10 +261,7 @@
 					<button id = "load-more-tags-button" class="hidden mt-4 rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">Load more Tags</button>
 				</div>
 			</div>
-
 		</div>
-
-
 	</div>
 
 	<script type="text/javascript">
@@ -262,10 +275,11 @@
 		var article_section = document.getElementById('article_section');
 		var tag_section = document.getElementById('tag_section');
 
-		var isLoading = false;
 		var user_id = {{user_id}};
-		
-		var numToLoad = 10;
+		var target_user_id = {{target_user_id}};
+
+		var isLoading = false;
+		var numToLoad = 5;
 
 		var question_loadComplete = false;
 		var question_isLoading = false;
@@ -295,7 +309,8 @@
 	        // Send an AJAX request to fetch user information
 	        $.ajax({
 	            type: 'POST',
-	            url: '/profile',
+	            url: '/get_profile_info',
+	            data: {target_user_id: target_user_id},
 	            success: function (data) {
                     display_user_info(data.profile_info, data.followers, data.following);
                     isLoading = false;
@@ -328,8 +343,8 @@
 	        // Send an AJAX request to fetch more questions
 	        $.ajax({
 	            type: 'POST',
-	            url: '/load_more_questions',
-	            data: { num_to_load: numToLoad, offset: currentOffset},
+	            url: '/get_user_questions_activity',
+	            data: { target_user_id: target_user_id, num_to_load: numToLoad, offset: currentOffset},
 	            success: function (data) {
                     if (data.questions.length < numToLoad) {
                         question_loadComplete = true;
@@ -398,31 +413,34 @@
 	        });
 	    }
 
-	    // Function to load more articles
+	    // Function to load more questions
 	    function loadMoreArticles() {
-	        if (loadComplete) {
+	        if (article_loadComplete) {
 	            return;
 	        } 
 
 	        // Check if an AJAX request is already in progress
-	        if (isLoading) {
+	        if (article_isLoading) {
 	            return;
 	        }
 
-	        // Set the isLoading flag to true
-	        isLoading = true;
+	        document.getElementById('load-more-articles-button').classList.add('hidden');
+
+	        // Set the article_isLoading flag to true
+	        article_isLoading = true;
 	        
 	        // Determine the current section and its respective offset
-	        var currentOffset = offset;
+	        var currentOffset = article_offset;
 
-	        // Send an AJAX request to fetch more articles
+	        // Send an AJAX request to fetch more questions
 	        $.ajax({
 	            type: 'POST',
-	            url: '/load_more_articles',
-	            data: { num_to_load: numToLoad, offset: currentOffset },
+	            url: '/get_user_article_activity',
+	            data: { target_user_id: target_user_id, num_to_load: numToLoad, offset: currentOffset },
 	            success: function (data) {
+	            	console.log(data);
                     if (data.articles.length < numToLoad) {
-                        loadComplete = true;
+                        article_loadComplete = true;
                     }
 
                     data.articles.forEach(function (article) {
@@ -467,10 +485,8 @@
                         }
                         
                         if (article.vote_counter > 0) {
-                        	console.log(article.vote_counter);
                             clone.querySelector("#vote_counter").classList.add('text-green-600');
                         } else if (article.vote_counter < 0) {
-                        	console.log(article.vote_counter);
                             clone.querySelector("#vote_counter").classList.add('text-red-600');
                         }
 
@@ -478,15 +494,175 @@
                         document.getElementById('articles_page').appendChild(clone);
                     });
 
+                    article_offset += numToLoad;
+                    article_isLoading = false;
+
+                    if(article_loadComplete == false){
+		            	document.getElementById('load-more-articles-button').classList.remove('hidden');
+		            }
+		            else{
+		            	document.getElementById('no-more-articles').classList.remove('hidden');
+		            }
+	            }
+	        });
+	    }
+
+	    // Function to load more tags
+	    function loadMoreTags() {
+	        if (tag_loadComplete) {
+	            return;
+	        } 
+
+	        // Check if an AJAX request is already in progress
+	        if (tag_isLoading) {
+	            return;
+	        }
+
+	        document.getElementById('load-more-tags-button').classList.add('hidden');
+
+	        // Set the tag_isLoading flag to true
+	        tag_isLoading = true;
+	        
+	        // Determine the current section and its respective offset
+	        var currentOffset = tag_offset;
+
+	        // Send an AJAX request to fetch more tags
+	        $.ajax({
+	            type: 'POST',
+	            url: '/get_user_tag_activity',
+	            data: { target_user_id: target_user_id, num_to_load: numToLoad, offset: currentOffset},
+	            success: function (data) {
+                    if (data.tags.length < numToLoad) {
+                        tag_loadComplete = true;
+                    }
+
+                    data.tags.forEach(function (tag) {
+                        // Clone the template and populate it with data
+                        var template = document.getElementById("tag-template");
+                        var clone = document.importNode(template.content, true);
+
+                        var tag_url = "/tag/" + tag.tag_name + "/";
+
+                        clone.querySelector("#tag_link").setAttribute("href", tag_url)
+                        clone.querySelector("#tag_name").textContent = tag.tag_name;
+                        clone.querySelector("#question_count").textContent = tag.question_count + " Questions";
+                        clone.querySelector("#article_count").textContent = tag.article_count + " Articles";
+
+                        
+                        // Append the populated template to the appropriate container
+                        document.getElementById('tags_page').appendChild(clone);
+                    });
+
                     // Update the offset for "For You"
-                    offset += numToLoad;
-                    isLoading = false;
-	               
+                    tag_offset += numToLoad;
+                    tag_isLoading = false;
+	               	
+	               	if(tag_loadComplete === false){
+		            	document.getElementById('load-more-tags-button').classList.remove('hidden');
+		            }
+	            }
+	        });
+	    }
+
+	    // Function to load more responses
+	    function loadMoreResponses() {
+	    	// Function to load more questions
+
+	        if (response_loadComplete) {
+	            return;
+	        }
+
+	        if (response_isLoading) {
+	            return;
+	        }
+
+	        document.getElementById('load-more-response-button').classList.add('hidden');
+
+	        response_isLoading = true;
+
+	        var currentOffset = response_offset;
+
+	        $.ajax({
+	            type: 'POST',
+	            url: '/get_user_response_activity',
+	            data: { target_user_id: target_user_id, num_to_load: numToLoad, offset: currentOffset },
+	            success: function (data) {
+	                if (data.responses.length < numToLoad) {
+	                    response_loadComplete = true;
+	                }
+
+	                data.responses.forEach(function (response) {
+	                    var template = document.getElementById("response-template");
+	                    var clone = document.importNode(template.content, true);
+	                    
+	                    var question_url = '/question_detail/' + response.question_id + '/';	
+	                    clone.querySelector("#question_link_for_response").setAttribute("href", question_url);
+	                    clone.querySelector("#question_title_for_response").textContent = response.question_title;
+
+	                    clone.querySelector("#complete_repsonse_block").setAttribute("data-response-id", response.response_id);
+	                    clone.querySelector("#response_upvote_button").setAttribute("data-response-id", response.response_id);
+	                    clone.querySelector("#response_downvote_button").setAttribute("data-response-id", response.response_id);
+
+	                    clone.querySelector("#user_name").textContent = response.user_name;
+	                    clone.querySelector("#response_counter").textContent = response.response_counter + ' comments';
+	                    clone.querySelector("#response_text").innerHTML	= response.response_text;
+	                    clone.querySelector("#created_time").textContent = response.created_time;
+	                    clone.querySelector("#response_vote_counter").textContent = response.vote_counter;
+	                    clone.querySelector("#follow").setAttribute('data-user-id', response.user_id);
+	                    clone.querySelector("#user_profile_picture").setAttribute("src", response.picture_url);
+	                    
+	                    if(response.my_vote === 1) {
+							clone.querySelector("#response_upvote_button").classList.add('text-indigo-500');
+	                    }
+	                    else if(response.my_vote === -1){
+							clone.querySelector("#response_downvote_button").classList.add('text-indigo-500');
+	                    }
+	                    
+	                    if(response.user_id === 0){
+			            	//AI response
+			            	clone.querySelector("#user_name").classList.add("text-indigo-500");
+			            	clone.querySelector("#follow").classList.add('hidden');
+			            	clone.querySelector("#user_profile_picture").classList.add('hidden');
+			            }
+			            else if(response.user_id !== user_id){
+			            	if (response.following){
+			                	clone.querySelector("#follow").textContent = 'following';
+			                }
+			                else{
+			                	clone.querySelector("#follow").textContent = 'follow';
+			                }
+			            }
+			           	else{
+			            	clone.querySelector("#follow").classList.add('hidden');
+			            	clone.querySelector("#delete_response").classList.remove('hidden');
+			            	clone.querySelector("#delete_response").setAttribute("href", '/delete_response/' + response.response_id + '/');
+			            }
+
+	                    if (response.vote_counter > 0) {
+	                        clone.querySelector("#response_vote_counter").classList.add('text-green-600');
+	                    } else if (response.vote_counter < 0) {
+	                        clone.querySelector("#response_vote_counter").classList.add('text-red-600');
+	                    }
+
+	                    document.getElementById('response-list').appendChild(clone);
+	                });
+
+	                response_offset += numToLoad;
+	                response_isLoading = false;
+
+			        if (response_loadComplete === false){
+			    	    document.getElementById('load-more-response-button').classList.remove('hidden');
+			        }
+			        else{
+			        	document.getElementById('no-more-responses').classList.remove('hidden');
+			        }
 	            }
 	        });
 	    }
 
 	    function display_user_info(profile_info, followers, following) {
+	    	console.log(profile_info);
+
             document.getElementById("profile_picture").setAttribute("src", profile_info.picture_url);
             document.getElementById("user_name").textContent = profile_info.user_name;
             document.getElementById("about").textContent = profile_info.about;
@@ -496,18 +672,86 @@
             document.getElementById("following").textContent = following + " Following";
 
             if(profile_info.user_id !== user_id){
-            	document.getElementById("follow").setAttribute('data-user-id', profile_info.user_id);
+            	document.getElementById("user_follow").setAttribute('data-user-id', profile_info.user_id);
 
-            	if (user_id.following){
-                	document.getElementById("follow").textContent = 'following';
+            	if (profile_info.following){
+                	document.getElementById("user_follow").textContent = 'Unfollow';
                 }
                 else{
-                	document.getElementById("follow").textContent = 'follow';
+                	document.getElementById("user_follow").textContent = 'Follow';
                 }
             }
-            else{
-            	document.getElementById("follow").classList.add('hidden');
-            }
+	    }
+
+	    function handleResponseVoteClick(event, post_type, up_or_down_vote) {
+			if (user_id === -1){
+				window.location = "{{url_for('login')}}";
+				return;
+			}
+
+		    // Extract the response_id from the clicked button's data-response-id attribute
+		    var responseId = event.target.getAttribute("data-response-id");
+
+		    var responseContainer = document.querySelector(`[data-response-id="${responseId}"]`);
+		    var voteCounter = responseContainer.querySelector("#response_vote_counter");
+		    var up_vote_button = responseContainer.querySelector("#response_upvote_button");
+		    var down_vote_button = responseContainer.querySelector("#response_downvote_button");
+
+		    // Make a POST request to up-vote the response with the responseId
+		    $.ajax({
+		        type: 'POST',
+		        url: '/vote_unvote',
+		        data: { response_id: responseId, post_type: post_type, up_or_down_vote : up_or_down_vote},
+		        success: function (data) {
+
+		        	voteCounter.innerText = data.vote_count;
+		        	const my_vote = data.my_vote;
+
+		        	if (my_vote === 0){
+		        		up_vote_button.classList.remove('text-indigo-500');
+		        		down_vote_button.classList.remove('text-indigo-500');
+		        	}
+		        	else if (my_vote === 1){
+		        		up_vote_button.classList.add('text-indigo-500');
+		        		down_vote_button.classList.remove('text-indigo-500');
+		        	}
+		        	else{
+						up_vote_button.classList.remove('text-indigo-500');
+		        		down_vote_button.classList.add('text-indigo-500');
+		        	}
+
+		        	if (data.vote_count > 0) {
+		        		voteCounter.classList.remove('text-red-600');
+		        		voteCounter.classList.add('text-green-600');
+		        	}
+		        	else if (data.vote_count < 0){
+		        		voteCounter.classList.add('text-red-600');
+		        		voteCounter.classList.remove('text-green-600');
+		        	}
+		        	else {
+		        		voteCounter.classList.remove('text-red-600');
+		        		voteCounter.classList.remove('text-green-600');
+		        	}
+		        }
+		    });   
+		}
+
+		function handleFollow(event) {
+        	if (user_id === -1){
+				window.location = "{{url_for('login')}}";
+				return;
+			}
+			
+	    	const followed_user_id = event.target.getAttribute('data-user-id');
+
+    		$.ajax({
+		        type: 'POST',
+		        url: '/follow_unfollow',
+		        data: { followed_user_id: followed_user_id },
+		        success: function (data) {
+		        	event.target.textContent = data.status;
+		        }
+		    });
 	    }
 
 	    loadUserInfo();
@@ -516,6 +760,9 @@
 		question_section.style.display = 'block';
 		
 		loadMoreQuestions();
+		loadMoreArticles();
+		loadMoreResponses();
+		loadMoreTags();
 
 		response_section.style.display = 'none';
 		article_section.style.display = 'none';
@@ -573,6 +820,31 @@
 	    	if (event.target.id === 'load-more-questions-button') {
 	    		loadMoreQuestions();
 	    	}
+
+	    	if (event.target.id === 'load-more-articles-button') {
+	    		loadMoreArticles();
+	    	}
+
+	    	if (event.target.id === 'load-more-tags-button') {
+	    		loadMoreTags();
+	    	}
+
+	    	if (event.target.id === 'load-more-response-button') {
+	    		loadMoreResponses();
+	    	}
+
+	    	if (event.target.id === 'response_upvote_button') {
+		        handleResponseVoteClick(event, 'response', 'up');
+		    }
+
+		    if (event.target.id === 'response_downvote_button') {
+		        handleResponseVoteClick(event, 'response', 'down');
+		    }
+
+		    if (event.target.id === 'follow' || event.target.id === 'user_follow') {
+	    		handleFollow(event);
+	    	}
+
 	    });
 	</script>
 	

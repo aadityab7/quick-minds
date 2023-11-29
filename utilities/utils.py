@@ -1,5 +1,3 @@
-print("starting imports!")
-
 import os
 import psycopg2
 import markdown
@@ -7,15 +5,11 @@ import requests
 import re
 import ast
 
-print("basic imports done!")
-
 import vertexai
 from vertexai.language_models import TextGenerationModel
 
 from google.api_core.client_options import ClientOptions
 from google.cloud import documentai  # type: ignore
-
-print("AI imports done!")
 
 def generate_openai_chatgpt_response(
 	question_query: str
@@ -67,6 +61,233 @@ def get_db_connection(
 		password=os.environ.get('DB_PASSWORD'))
 
 	return conn
+
+def get_user_questions_activity(
+	user_id: int,
+	target_user_id: int,
+	limit: int,
+	offset: int
+):
+	conn = get_db_connection()
+	cur = conn.cursor()
+	
+	query = """
+		SELECT 
+			Question.question_id, 
+			Question.question_title,
+			Question.vote_counter, 
+			Question.response_counter, 
+			Question.created_time, 
+			Question.tags, 
+			App_user.user_id, 
+			App_user.name, 
+			App_user.picture_url,
+			CASE WHEN Follow.followed_user_id IS NULL THEN false ELSE true END AS following	
+		FROM Question 
+		INNER JOIN App_user
+			ON Question.user_id = App_user.user_id
+		LEFT JOIN Follow 
+			on App_user.user_id = Follow.followed_user_id and Follow.follower_user_id = %s 
+		WHERE Question.user_id = %s
+		ORDER BY Question.created_time DESC
+		LIMIT %s OFFSET %s;
+	"""
+
+	cur.execute(query, (user_id, target_user_id, limit, offset))
+	questions = cur.fetchall()
+
+	cur.close()
+	conn.close()
+
+	if questions is None:
+		questions = []
+
+	question_keys = (
+		"question_id", 
+		"question_title", 
+		"vote_counter", 
+		"response_counter",
+		"created_time", 
+		"tags", 
+		"user_id", 
+		"user_name", 
+		"picture_url", 
+		"following"
+	)
+	questions = [dict(zip(question_keys, question)) for question in questions]
+
+	return questions
+
+def get_user_article_activity(
+	user_id: int,
+	target_user_id: int,
+	limit: int,
+	offset: int
+):
+	print(user_id, target_user_id, limit, offset)
+
+	conn = get_db_connection()
+	cur = conn.cursor()
+
+	query = """
+		SELECT 
+			Article.article_id, 
+			Article.title, 
+			Article.description, 
+			Article.thumbnail_url, 
+			Article.vote_counter, 
+			Article.response_counter, 
+			Article.created_time, 
+			Article.tags, 
+			App_user.user_id, 
+			App_user.name, 
+			App_user.picture_url,
+			CASE WHEN Follow.followed_user_id IS NULL THEN false ELSE true END AS following	
+		FROM Article 
+		INNER JOIN App_user
+			ON Article.user_id = App_user.user_id
+		LEFT JOIN Follow 
+			on App_user.user_id = Follow.followed_user_id and Follow.follower_user_id = %s
+		WHERE Article.user_id = %s
+		ORDER BY Article.created_time DESC
+		LIMIT %s OFFSET %s;
+	"""
+
+	cur.execute(query, (user_id, target_user_id, limit, offset))
+	articles = cur.fetchall()
+
+	cur.close()
+	conn.close()
+
+	if articles is None:
+		articles = []
+
+	article_keys = (
+		"article_id", 
+		"title", 
+		"description", 
+		"thumbnail_url", 
+		"vote_counter", 
+		"response_counter", 
+		"created_time", 
+		"tags", 
+		"user_id", 
+		"user_name", 
+		"picture_url", 
+		"following"
+	)
+	articles = [dict(zip(article_keys, article)) for article in articles]
+
+	return articles
+
+def get_user_tag_activity(
+	user_id: int,
+	target_user_id: int,
+	limit: int,
+	offset: int
+):
+	conn = get_db_connection()
+	cur = conn.cursor()
+
+	query = """
+		SELECT 
+			tag_name, 
+			count(article_id) AS article_count, 
+			count(question_id) AS question_count 
+		FROM user_tag 
+		WHERE user_id = %s 
+		GROUP BY tag_name
+		LIMIT %s OFFSET %s
+	"""
+
+	cur.execute(query, (target_user_id, limit, offset))
+	tags = cur.fetchall()
+
+	cur.close()
+	conn.close()
+
+	if tags is None:
+		tags = []
+
+	tag_keys = ("tag_name", "article_count", "question_count")
+	tags = [dict(zip(tag_keys, tag)) for tag in tags]
+
+	return tags
+
+def get_user_response_activity(
+	user_id: int,
+	target_user_id: int,
+	limit: int,
+	offset: int
+):
+	conn = get_db_connection()
+	cur = conn.cursor()
+
+	query = """
+		WITH ResponseUser AS (
+		    SELECT
+		    	Question.question_id,
+		    	Question.question_title,
+		        Response.response_id as Response_id, 
+		        Response.response_text,
+				Response.vote_counter, 
+				Response.response_counter, 
+				Response.created_time,
+				App_user.user_id as Response_user_id, 
+				App_user.name, 
+				App_user.picture_url
+		    FROM
+		        Response
+		        INNER JOIN App_user
+		        	ON Response.user_id = App_user.user_id
+		        INNER JOIN Question
+		        	ON Question.question_id = Response.question_id
+		    WHERE
+		        Response.user_id = %s
+		    ORDER BY Response.vote_counter DESC
+		)
+		SELECT
+		    ru.*, 
+		    CASE WHEN f.followed_user_id IS NULL THEN false ELSE true END AS following,
+		    CASE WHEN pv.val IS NULL THEN 0 WHEN pv.val = 1 THEN 1 ELSE -1 END AS my_vote
+		FROM
+		    ResponseUser ru
+		    LEFT JOIN Follow f
+		    	ON ru.Response_user_id = f.followed_user_id AND f.follower_user_id = %s
+		    LEFT JOIN Post_Vote as pv
+		    	ON ru.Response_id = pv.response_id AND pv.user_id = %s
+		LIMIT %s OFFSET %s
+	"""
+
+	cur.execute(query, (target_user_id, user_id, user_id, limit, offset))
+	responses = cur.fetchall()
+
+	cur.close()
+	conn.close()
+
+	if responses is None:
+		responses = []
+
+	response_keys = (
+		"question_id",
+		"question_title",
+		"response_id", 
+		"response_text", 
+		"vote_counter", 
+		"response_counter", 
+		"created_time", 
+		"user_id", 
+		"user_name", 
+		"picture_url", 
+		"following", 
+		"my_vote"
+	)
+	responses = [dict(zip(response_keys, response)) for response in responses]
+
+	for response in responses:
+		response['response_text'] = markdown.markdown(response['response_text'])
+
+	return responses
 
 def add_images_to_post(
 	images: list,
@@ -500,7 +721,7 @@ def add_tags_to_question_user_tag_table(
 		cur.execute("UPDATE Tag SET question_count = question_count + 1 WHERE tag_name = %s", (tag,))
 		conn.commit()
 
-		query = "INSERT INTO Question_User_Tag (tag_name, user_id, question_id) VALUES (%s, %s, %s)"
+		query = "INSERT INTO User_Tag (tag_name, user_id, question_id) VALUES (%s, %s, %s)"
 		cur.execute(query, (tag, user_id, question_id))
 		conn.commit()
 
@@ -527,7 +748,7 @@ def add_tags_to_article_user_tag_table(
 		cur.execute("UPDATE Tag SET article_count = article_count + 1 WHERE tag_name = %s", (tag,))
 		conn.commit()
 
-		query = "INSERT INTO Article_User_Tag (tag_name, user_id, article_id) VALUES (%s, %s, %s)"
+		query = "INSERT INTO User_Tag (tag_name, user_id, article_id) VALUES (%s, %s, %s)"
 		cur.execute(query, (tag, user_id, article_id))
 		conn.commit()
 
@@ -861,7 +1082,8 @@ def generate_and_add_ai_response_question(
 	add_response(user_id =  0, question_id = question_id, response_text = vertex_response)
 
 def get_profile_info(
-	user_id: int
+	user_id: int,
+	target_user_id: int
 ):
 	conn = get_db_connection()
 	cur = conn.cursor()
@@ -885,7 +1107,7 @@ def get_profile_info(
 		WHERE user_id = %s
 	"""
 
-	cur.execute(query, (user_id, user_id))
+	cur.execute(query, (user_id, target_user_id))
 	profile_info = cur.fetchone()
 
 	query = """
@@ -895,7 +1117,7 @@ def get_profile_info(
 		WHERE followed_user_id = %s
 	"""
 
-	cur.execute(query, (user_id,))
+	cur.execute(query, (target_user_id,))
 	followers = cur.fetchone()
 
 	query = """
@@ -905,7 +1127,7 @@ def get_profile_info(
 		WHERE follower_user_id = %s
 	"""
 
-	cur.execute(query, (user_id,))
+	cur.execute(query, (target_user_id,))
 	following = cur.fetchone()
 
 	cur.close()
@@ -1758,7 +1980,18 @@ def load_more_responses(
 	if responses is None:
 		responses = []
 
-	response_keys = ("response_id", "response_text", "vote_counter", "response_counter", "created_time", "user_id", "user_name", "picture_url", "following", "my_vote")
+	response_keys = (
+		"response_id", 
+		"response_text", 
+		"vote_counter", 
+		"response_counter", 
+		"created_time", 
+		"user_id", 
+		"user_name", 
+		"picture_url", 
+		"following", 
+		"my_vote"
+	)
 	responses = [dict(zip(response_keys, response)) for response in responses]
 
 	for response in responses:
