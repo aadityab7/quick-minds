@@ -48,9 +48,7 @@ To rebuild the CSS file:
 
 # The environment variables needed:
 
-- PORT
 - DB_AVAILABLE
-- DEVELOPMENT_SERVER
 - DB_PORT
 - DB_USERNAME
 - DB_PASSWORD
@@ -62,9 +60,13 @@ To rebuild the CSS file:
 - FACEBOOK_CLIENT_SECRET
 - GITHUB_CLIENT_ID
 - GITHUB_CLIENT_SECRET
-- SEARCH_ENGINE_ID
 - STORAGE_BUCKET_NAME
+- SEARCH_ENGINE_ID
 - API_KEY
+- PROJECT_ID
+- LOCATION
+- PROCESSOR_ID
+- OPENAI_API_KEY
 
 # To use Google Search API for web search:
 

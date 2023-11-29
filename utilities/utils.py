@@ -11,6 +11,8 @@ from vertexai.language_models import TextGenerationModel
 from google.api_core.client_options import ClientOptions
 from google.cloud import documentai  # type: ignore
 
+#from openai import OpenAI
+
 def generate_openai_chatgpt_response(
 	question_query: str
 ):
