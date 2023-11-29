@@ -1338,7 +1338,12 @@ def get_quiz_questions(
 
 	query = """
 		SELECT 
-			quiz_question_id, question_text, option_1, option_2, option_3, option_4, correct_answer
+			quiz_question_id, 
+			question_text, 
+			option_1, 
+			option_2, 
+			option_3, 
+			option_4
 		FROM Quiz_Question
 		WHERE quiz_id = %s
 		ORDER BY quiz_question_id 
@@ -1361,7 +1366,6 @@ def get_quiz_questions(
 		"option_2", 
 		"option_3", 
 		"option_4", 
-		"correct_answer"
 	)
 	quiz_questions = [dict(zip(quiz_question_keys, quiz_question)) for quiz_question in quiz_questions]
 
@@ -1371,6 +1375,7 @@ def get_quiz_results(
 	user_id: int, 
 	quiz_id: int
 ):
+	response_status = "OK"
 
 	conn = get_db_connection()
 	cur = conn.cursor()
@@ -1394,44 +1399,55 @@ def get_quiz_results(
 	quiz_details = cur.fetchone()
 
 	if quiz_details is None:
-		print("some error occured when fetching quiz results")
-	else:
-		quiz_keys = (
-			"quiz_id", 
-			"title", 
-			"user_id", 
-			"total_quiz_questions", 
-			"attempted", 
-			"correct", 
-			"wrong"
-		)
-		quiz_details = dict(zip(quiz_keys, quiz_details))
+		response_status = "quiz not attempted!"
+		quiz_details = []
+		return response_status, quiz_details, []
 
-		query = """
+	query = """
+		WITH User_Res as (
 			SELECT
-				Quiz_Question.quiz_question_id, 
-				Quiz_Question.question_text, 
-				Quiz_Question.option_1, 
-				Quiz_Question.option_2, 
-				Quiz_Question.option_3, 
-				Quiz_Question.option_4, 
-				Quiz_Question.correct_answer, 
-				Quiz_Question_User_Response.user_response
-			FROM Quiz_Question
-			LEFT JOIN Quiz_Question_User_Response
-			ON Quiz_Question.quiz_question_id = Quiz_Question_User_Response.quiz_question_id
-			WHERE Quiz_Question.quiz_id = %s AND Quiz_Question_User_Response.user_id = %s
-			ORDER BY Quiz_Question.quiz_question_id
-		"""
+			       user_response,
+			       quiz_question_id
+			FROM Quiz_Question_User_Response
+			WHERE user_id = %s
+		)
+		SELECT
+			Quiz_Question.quiz_question_id, 
+			Quiz_Question.question_text, 
+			Quiz_Question.option_1, 
+			Quiz_Question.option_2, 
+			Quiz_Question.option_3, 
+			Quiz_Question.option_4, 
+			Quiz_Question.correct_answer, 
+			user_res.user_response 
+		FROM User_Res
+		RIGHT JOIN Quiz_Question
+		ON User_Res.quiz_question_id = Quiz_Question.quiz_question_id
+		WHERE Quiz_Question.quiz_id = %s
+		ORDER BY Quiz_Question.quiz_question_id
+	"""
 
-		cur.execute(query, (quiz_id, user_id))
-		quiz_questions_results = cur.fetchall()
+	cur.execute(query, (user_id, quiz_id))
+	quiz_questions_results = cur.fetchall()
 
-		if quiz_questions_results is None:
-			quiz_questions_results = []
+	if quiz_questions_results is None:
+		response_status = "some error occured when fetching questions!!"
+		quiz_questions_results = []
 
 	cur.close()
 	conn.close()
+
+	quiz_keys = (
+		"quiz_id", 
+		"title", 
+		"user_id", 
+		"total_quiz_questions", 
+		"attempted", 
+		"correct", 
+		"wrong"
+	)
+	
+	quiz_details = dict(zip(quiz_keys, quiz_details))
 
 	quiz_result_keys = (
 		"quiz_question_id", 
@@ -1445,7 +1461,7 @@ def get_quiz_results(
 	)
 	quiz_questions_results = [dict(zip(quiz_result_keys, quiz_questions_result)) for quiz_questions_result in quiz_questions_results]
 
-	return quiz_details, quiz_questions_results
+	return response_status, quiz_details, quiz_questions_results
 
 def record_user_quiz_response(
 	user_id: int,

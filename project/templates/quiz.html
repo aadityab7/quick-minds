@@ -17,7 +17,7 @@
 
 			<div id="quizzes_page" class="mt-8">
 		        <template id="quiz-template">
-		        	<div class="sm:flex items-center justify-between">
+		        	<div class="sm:flex sm:flex-wrap items-center justify-between">
 		        		<div class="p-4">
 			        		<div class="flex items-start gap-4 items-center pb-2">
 			              		<p id = "user_name" class="text-gray-500 font-bold"></p>
@@ -25,34 +25,35 @@
 			              	</div>
 
 				          	<div>
-				            	<div class="quiz-list-box">
-				              		<h1 id = "quiz_title" class="text-xl"> </h1>
+				          		<a id = "open_quiz_page_link" href="">
+					            	<div class="quiz-list-box">
+					              		<h1 id = "quiz_title" class="text-xl"> </h1>
 
-				              		<p id = "created_time" class="text-sm text-gray-500 mt-3"></p>
+					              		<p id = "created_time" class="text-sm text-gray-500 mt-3"></p>
 
-				              		<div class="flex items-start gap-4 mt-2">
-				              			<p id = "total_quiz_questions" class="text-gray-500 text-sm font-bold"></p>
-				              			<p id = "attempted" class="text-gray-500 text-sm font-bold"></p>
-				              			<p id = "correct" class="text-green-500 text-sm font-bold"></p>
-				              			<p id = "wrong" class="text-red-500 text-sm font-bold"></p>
-				              		</div>
-				              		
-				              		</div>
-				            	</div>
+					              		<div id = "quiz_scores" class="hidden flex items-start gap-4 mt-2">
+					              			<p id = "total_quiz_questions" class="text-gray-500 text-sm font-bold"></p>
+					              			<p id = "attempted" class="text-gray-500 text-sm font-bold"></p>
+					              			<p id = "correct" class="text-green-500 text-sm font-bold"></p>
+					              			<p id = "wrong" class="text-red-500 text-sm font-bold"></p>
+					              		</div>
+					              		
+					              		</div>
+					            	</div>
+				          		</a>
 				          	</div>
 
 				          	<div class="p-4">
 				        		<a id = "attempt_quiz_button" href=""> 
 									<button type="submit" class="rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">Start Quiz</button>
 								</a>
+
+								<a id = "view_quiz_result" href="" class="hidden ml-2"> 
+									<button type="button" class="rounded-md px-3 py-2 text-sm font-semibold text-indigo-600 shadow-sm hover:bg-indigo-500 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">View Results</button>
+								</a>
 				        	</div>
 			        	</div>
-
-			        	
-			        	
 		        	</div>
-		        	
-		        	
 		          	<hr>
 		        </template>
 		    </div>
@@ -115,18 +116,31 @@
                         var clone = document.importNode(template.content, true);
 
                         // Create the URL with the quiz_id
-                        var attempt_quiz_url = "/attempt_quiz/" + quiz.quiz_id + "/";
+                        var attempt_quiz_url = "/attempt_quiz/" + quiz.quiz_id + "/true/";
+                        var quiz_page_url = '/attempt_quiz/' + quiz.quiz_id + '/false/';
 
                         clone.querySelector("#user_name").textContent = quiz.user_name;
                         clone.querySelector("#follow").setAttribute('data-user-id', quiz.user_id);
                         clone.querySelector("#attempt_quiz_button").setAttribute("href", attempt_quiz_url);
                         clone.querySelector("#quiz_title").textContent = quiz.title;
                         clone.querySelector("#created_time").textContent = quiz.created_time;
-                        clone.querySelector("#total_quiz_questions").textContent = "total questions: " + quiz.total_quiz_questions;
-                        clone.querySelector("#attempted").textContent = "attempted: " + quiz.attempted;
-                        clone.querySelector("#correct").textContent = "correct: " + quiz.correct;
-                        clone.querySelector("#wrong").textContent = "incorrect: " + quiz.wrong;
+                        	
+                        if(quiz.attempted > 0){
+                        	var quiz_result_url = "/quiz_result/" + quiz.quiz_id + "/";
+                        	
+                        	clone.querySelector("#view_quiz_result").classList.remove("hidden");
+                        	clone.querySelector("#view_quiz_result").setAttribute('href', quiz_result_url);
 
+                        	clone.querySelector("#quiz_scores").classList.remove("hidden");
+	                        clone.querySelector("#total_quiz_questions").textContent = "total questions: " + quiz.total_quiz_questions;
+	                        clone.querySelector("#attempted").textContent = "attempted: " + quiz.attempted;
+	                        clone.querySelector("#correct").textContent = "correct: " + quiz.correct;
+	                        clone.querySelector("#wrong").textContent = "incorrect: " + quiz.wrong;
+                        }
+
+
+                        clone.querySelector("#open_quiz_page_link").setAttribute('href', quiz_page_url);
+                        
                         // Append the populated template to the appropriate container
                         document.getElementById('quizzes_page').appendChild(clone);
                     });

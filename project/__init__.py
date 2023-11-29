@@ -644,14 +644,23 @@ def record_user_quiz_response():
 
 	utils.score_user_quiz(user_id = session['user_id'], quiz_id = quiz_id)
 
-	return redirect(url_for('quiz'))
-	#user_id = int(request.form.get('user_id'))
-	#quiz_question_id = int(request.form.get('quiz_question_id'))
-	#user_response = int(request.form.get('user_response'))
+	return redirect(url_for('quiz_result', quiz_id = quiz_id))
 
-	#response = utils.record_user_quiz_response(user_id = user_id, quiz_question_id = quiz_question_id, user_response = user_response)
-
-	return jsonify({'response' : response})
+@app.route('/quiz_result/<int:quiz_id>/')
+def quiz_result(quiz_id):
+	"""
+		if user has has attempted this quiz then show the results else 
+		show a page with the option to start the quiz
+	"""
+	if session.get('user_id') and session.get('user_id') != -1:
+		return render_template('quiz_result.html',
+			quiz_id = quiz_id,
+			user_id = session['user_id'], 
+			user_name = session['user_name'], 
+			user_picture_url = session['user_picture_url']
+		)
+	else:
+		return redirect(url_for('login'))
 
 @app.route('/score_user_quiz', methods = ['POST'])
 def score_user_quiz():
@@ -662,11 +671,14 @@ def score_user_quiz():
 
 	return jsonify({"score" : score})
 
-@app.route('/attempt_quiz/<int:quiz_id>/')
-def attempt_quiz(quiz_id):
+@app.route('/attempt_quiz/<int:quiz_id>/<string:start_quiz>/')
+def attempt_quiz(quiz_id, start_quiz):
 	if session.get('user_id') and session.get('user_id') != -1:
+		
+		start_quiz = str(start_quiz)
+
 		return render_template('attempt_quiz.html', quiz_id = quiz_id,
-			start_quiz = "true",
+			start_quiz = start_quiz,
 			user_id = session['user_id'], 
 			user_name = session['user_name'], 
 			user_picture_url = session['user_picture_url']
@@ -714,9 +726,9 @@ def get_quiz_results():
 	user_id = int(request.form.get('user_id'))
 	quiz_id = int(request.form.get('quiz_id'))
 
-	quiz_details, quiz_questions_results = utils.get_quiz_results(user_id = user_id, quiz_id = quiz_id)
+	response_status, quiz_details, quiz_questions_results = utils.get_quiz_results(user_id = user_id, quiz_id = quiz_id)
 	
-	return jsonify({'quiz_details' : quiz_details, 'quiz_results' : quiz_questions_results})
+	return jsonify({'response_status': response_status, 'quiz_details' : quiz_details, 'quiz_results' : quiz_questions_results})
 
 @app.route('/load_more_quizzes', methods = ['POST'])
 def load_more_quizzes():

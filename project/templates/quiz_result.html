@@ -1,0 +1,113 @@
+{% extends 'base.html' %}
+
+{% block title %}QUIZ RESULT{% endblock %}
+
+{% block content %}
+
+	<div class="mx-auto max-w-screen-xl px-4 py-8 sm:px-6 lg:px-8">
+		<div id="lower" class="grow py-3 px-3 rounded-t-lg">
+			<div class="flex items-center justify-between">	
+				<h1 id = "quiz_title" class="text-xl font-bold">Quiz Results {{quiz_id}}</h1>
+			</div>
+
+		    <div id="quiz_questions_page" class="mt-8">
+
+		        <template id="quiz-question-template">
+		        	<div class="p-4">
+		            	<div class="quiz-question-list-box">
+		              		<h1 id = "question_text" class="text-xl"> </h1>
+
+		              		<fieldset>
+					          <div class="mt-8 space-y-6">
+					            <div class="flex items-center gap-x-3">
+					              <input id="option_1" name="" type="radio" value = 1 class="h-4 w-4 border-gray-300 text-indigo-600 focus:ring-indigo-600">
+					              <label id = "option_1_label" for="option_1" class="block text-sm leading-6 text-gray-900"></label>
+					            </div>
+					            <div class="flex items-center gap-x-3">
+					              <input id="option_2" name="" type="radio" value = 2 class="h-4 w-4 border-gray-300 text-indigo-600 focus:ring-indigo-600">
+					              <label id = "option_2_label" for="option_2" class="block text-sm leading-6 text-gray-900"></label>
+					            </div>
+					            <div class="flex items-center gap-x-3">
+					              <input id="option_3" name="" type="radio" value = 3 class="h-4 w-4 border-gray-300 text-indigo-600 focus:ring-indigo-600">
+					              <label id = "option_3_label" for="option_3" class="block text-sm leading-6 text-gray-900">
+					              	<p></p>
+					              </label>
+					            </div>
+					            <div class="flex items-center gap-x-3">
+					              <input id="option_4" name="" type="radio" value = 4 class="h-4 w-4 border-gray-300 text-indigo-600 focus:ring-indigo-600">
+					              <label id = "option_4_label" for="option_4" class="block text-sm leading-6 text-gray-900"></label>
+					            </div>
+					          </div>
+					        </fieldset>
+
+		            	</div>
+	            	</div>
+		          	<hr>
+		        </template>
+
+		    </div>
+	    </div>
+	</div>
+
+	<script type="text/javascript">
+		const user_id = {{user_id}};
+		const quiz_id = {{quiz_id}};
+
+		//fetch results using get_quiz_results
+		//takes user_id and quiz_id
+
+		var isLoading = false;
+
+
+		function get_quiz_results() {
+	       	// Check if an AJAX request is already in progress
+	        if (isLoading) {
+	            return;
+	        }
+
+	        // Set the isLoading flag to true
+	        isLoading = true;
+	        
+	        $.ajax({
+	            type: 'POST',
+	            url: '/get_quiz_results',
+	            data: { user_id: user_id, quiz_id: quiz_id },
+	            success: function (data) {
+	            	console.log(data);
+
+	            	if (data.response_status === "OK") {
+		            	document.getElementById('quiz_title').innerText = "Quiz Results for: " + data.quiz_details.title;
+	                    
+	                    data.quiz_results.forEach(function (quiz_question) {
+	                    	
+	                    	console.log(quiz_question);
+
+	                        // Clone the template and populate it with data
+	                        var template = document.getElementById("quiz-question-template");
+	                        var clone = document.importNode(template.content, true);
+
+	                        // Create the URL with the quiz_id
+							                        
+	                        clone.querySelector("#question_text").textContent = quiz_question.question_text;
+	                        clone.querySelector("#option_1_label").textContent = quiz_question.option_1;
+	                        clone.querySelector("#option_2_label").textContent = quiz_question.option_2;
+	                        clone.querySelector("#option_3_label").textContent = quiz_question.option_3;
+	                        clone.querySelector("#option_4_label").textContent = quiz_question.option_4;
+	                        clone.querySelector("#option_1").setAttribute("name", quiz_question.quiz_question_id);
+	                        clone.querySelector("#option_2").setAttribute("name", quiz_question.quiz_question_id);
+	                        clone.querySelector("#option_3").setAttribute("name", quiz_question.quiz_question_id);
+	                        clone.querySelector("#option_4").setAttribute("name", quiz_question.quiz_question_id);
+	                        
+	                        // Append the populated template to the appropriate container
+	                        document.getElementById('quiz_questions_page').appendChild(clone);
+	                    });
+	            	}
+
+                    isLoading = false;
+	            }
+	        });
+	    }
+
+	    get_quiz_results();
+	</script>
+{% endblock %}
