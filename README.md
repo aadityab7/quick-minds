@@ -45,7 +45,7 @@ To view the live project visit [quick minds website](https://quick-minds-4czszj4
 
 # Evolution of Features across Versions
 
-## Version 0
+## Version 1
 
 1. Authentication (ability to securly login and signup using Email, Google, Facebook and GitHub).
 
@@ -56,11 +56,11 @@ To view the live project visit [quick minds website](https://quick-minds-4czszj4
 4. Use Rich text (markdown format) to ask questions and respond using formatted text.
 	- (using embedding images and emojis, heading levels, code highlighting, lists, bold, italic, underline, etc.)
 
-## Version 1
-
 5. Voting system to help rate and rank the questions and responses (Up-vote and Down-vote).
 
 6. Add Tags to questions to help users better find topics of intrests and provide answers quickly.
+
+## Version 2
 
 7. Search the web and display the web links related to the question.
 
@@ -70,6 +70,18 @@ To view the live project visit [quick minds website](https://quick-minds-4czszj4
 
 10. Find Similar Questions that have been asked on the platform.
 
-11. Feature to create custom AI generated Quiz.
+11. Added search functionality to the Web App.
 
-12. Added search functionality to the Web App.
+# Version 3
+
+12. Feature to create custom AI generated Quiz according to user interest and difficulty levels.
+
+13. Add ability to share the quiz, score quiz and show results.
+
+14. Implement feature for long form content sharing (Articles)
+
+15. Add ability to respond to articles and vote on both articles and responses.
+
+16. Add user profile page (to display user's activity).
+
+17. Add functionality to follow other users.
