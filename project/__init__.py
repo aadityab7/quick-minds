@@ -707,7 +707,7 @@ def create_custom_quiz():
 
 			quiz_id = utils.generate_quiz_questions(user_id = session['user_id'], topic_level_pairs = topic_level_pairs)
 
-			return redirect(url_for('attempt_quiz', quiz_id = quiz_id))
+			return redirect(url_for('attempt_quiz', quiz_id = quiz_id, start_quiz = "true"))
 	else:
 		return redirect(url_for('login'))
 

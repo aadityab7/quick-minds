@@ -338,12 +338,12 @@ def add_question(
 
 	query = """
 		INSERT INTO Question 
-			(user_id, question_title, question_text, tags, question_query) 
+			(user_id, question_title, question_text, tags, question_query, document_vectors) 
 		VALUES 
-			(%s, %s, %s, %s, %s)
+			(%s, %s, %s, %s, %s, to_tsvector(%s))
 	"""
 
-	cur.execute(query, (user_id, question_title, question_text, question_tags, question_query))
+	cur.execute(query, (user_id, question_title, question_text, question_tags, question_query, question_query))
 	conn.commit()
 
 	query = "SELECT \
@@ -1173,7 +1173,7 @@ def get_profile_info(
 def generate_quiz_questions(
 	user_id: int,
 	topic_level_pairs: dict,
-	number_of_questions: int = 3,
+	number_of_questions: int = 5,
 	temperature: float = 0.2,
 	max_output_tokens: int = 1000,
 	top_p: float = 0.8,
@@ -1191,6 +1191,8 @@ def generate_quiz_questions(
 		'topic5' : 'topic5_level'
 	}
 	"""
+
+	model = TextGenerationModel.from_pretrained("text-bison@001")
 
 	parameters = {
 					"temperature": temperature, 
