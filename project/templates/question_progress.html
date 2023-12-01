@@ -130,7 +130,7 @@
 
 			$.ajax({
 	            type: 'POST',
-	            url: '/question_step_text_extraction',
+	            url: "{{url_for('question_step_text_extraction', _external=True, _scheme='https')}}",
 	            data: {question_id: question_id},
 	            success: function (data) {
 	            	if(data.response_status === "OK") {
@@ -150,7 +150,7 @@
 			
 			$.ajax({
 	            type: 'POST',
-	            url: '/question_step_ai_response',
+	            url: "{{url_for('question_step_ai_response', _external=True, _scheme='https')}}",
 	            data: {question_id: question_id},
 	            success: function (data) {
 	            	if(data.response_status === "OK") {
@@ -166,7 +166,7 @@
 
 	        $.ajax({
 	            type: 'POST',
-	            url: '/question_step_similar_question',
+	            url: "{{url_for('question_step_similar_question', _external=True, _scheme='https')}}",
 	            data: {question_id: question_id},
 	            success: function (data) {
 	            	if(data.response_status === "OK") {
@@ -182,7 +182,7 @@
 
 	        $.ajax({
 	            type: 'POST',
-	            url: '/question_step_web_search',
+	            url: "{{url_for('question_step_web_search', _external=True, _scheme='https')}}",
 	            data: {question_id: question_id},
 	            success: function (data) {
 	            	if(data.response_status === "OK") {
@@ -198,7 +198,7 @@
 	        
 	        $.ajax({
 	            type: 'POST',
-	            url: '/question_step_youtube_search',
+	            url: "{{url_for('question_step_youtube_search', _external=True, _scheme='https')}}",
 	            data: {question_id: question_id},
 	            success: function (data) {
 	            	if(data.response_status === "OK") {

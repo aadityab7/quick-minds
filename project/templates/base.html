@@ -20,7 +20,7 @@
         <header id = "header" class="bg-gray-50">
           <div class="h-20 p-5 mx-auto px-4 sm:px-6 lg:px-8"> 
               <div id = "headerContent" class="flex items-center justify-between sm:gap-8">
-                <button>
+                <button id = "sidebar-menu-button" class="p-4">
                   <svg id = "sidebar-menu-button" class="w-5 h-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 17 14">
                     <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M1 1h15M1 7h15M1 13h15"/>
                   </svg>
@@ -125,7 +125,8 @@
                       class="group flex shrink-0 items-center rounded-lg transition"
                     >
                       <span class="sr-only">Menu</span>
-                      <div class="block shrink-0">
+
+                      <div class="sm:block shrink-0 hidden">
                           <img
                             alt="profile_picture"
                             src= "{%if user_picture_url != '' %} {{user_picture_url}} {%else%} 'no_photo_because_not_logged_in' {%endif%}"
@@ -186,7 +187,7 @@
                     </div>
                   </div>
 
-                  <div id="auth_buttons" class="flex gap-4 {% if user_id and user_id != -1 %} hidden {% else %} block {% endif %}">
+                  <div id="auth_buttons" class="flex gap-4 hidden {% if user_id and user_id != -1 %} sm:hidden {% else %} sm:block {% endif %}">
                     
                     <a id = "login_button" href="{{url_for('login')}}"> 
                       <button type="submit" class="rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">Log In</button>
@@ -206,7 +207,7 @@
     </div>
 
     <div id = "everything" class="flex"> 
-      <div id = "sidebar-component-div" class="w-full sm:w-auto min-h-screen bg-white border-r">
+      <div id = "sidebar-component-div" class="hidden w-full sm:w-auto min-h-screen bg-white border-r">
           <div class="sticky flex-col top-20 left-0 sm:flex sm:w-16 lg:w-64">
             <div class="overflow-y-auto overflow-x-hidden flex-grow">
               <ul class="flex flex-col py-4 space-y-1">
@@ -276,26 +277,26 @@
                 </li>
                 
 
-                <li class="px-5 hidden lg:block">
+                <li class="px-5 md:hidden lg:block">
                   <div class="flex flex-row items-center h-8">
                     <div class="text-sm font-light tracking-wide text-gray-500">Actions</div>
                   </div>
                 </li>
 
-                <li class="hidden lg:block">
+                <li class="md:hidden lg:block">
                   <a href="{{url_for('ask_question')}}" class="relative flex flex-row items-center h-11 focus:outline-none hover:bg-gray-50 text-indigo-500 hover:text-indigo-400 border-l-4 border-transparent hover:border-indigo-500 pr-6">
                     <button class="ml-4 text-sm font-semibold tracking-wide truncate">Ask Question</button>
                   </a>
                 </li>
 
-                <li class="hidden lg:block">
+                <li class="md:hidden lg:block">
                   <a href="{{url_for('write_article')}}" class="relative flex flex-row items-center h-11 focus:outline-none hover:bg-gray-50 text-indigo-500 hover:text-indigo-400 border-l-4 border-transparent hover:border-indigo-500 pr-6">
                     <button class="ml-4 text-sm font-semibold tracking-wide truncate">Write Article</button>
                   </a>
                 </li>
 
 
-                <li class="hidden lg:block">
+                <li class="md:hidden lg:block">
                   <a href="{{url_for('create_custom_quiz')}}" class="relative flex flex-row items-center h-11 focus:outline-none hover:bg-gray-50 text-indigo-500 hover:text-indigo-400 border-l-4 border-transparent hover:border-indigo-500 pr-6">
                     <button class="ml-4 text-sm font-semibold tracking-wide truncate">Generate Custom Quiz</button>
                   </a>
