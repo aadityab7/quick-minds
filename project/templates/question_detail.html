@@ -654,7 +654,8 @@
 	                if (data.web_search_results.length < numToLoad) {
 	                    webSearchLoadComplete = true;
 	                }
-	                else{
+	                
+	                if (data.web_search_results.length > 0) {
 	                	document.getElementById('main-related-web-search-div').classList.remove('hidden');
 	                }
 
@@ -705,7 +706,8 @@
 	                if (data.video_results.length < numToLoad) {
 	                    videoLoadComplete = true;
 	                }
-	                else{
+	                
+	                if (data.video_results.length > 0) {
 	    				document.getElementById('main-related-video-div').classList.remove('hidden');
 	                }
 
@@ -756,10 +758,12 @@
 	            url: '/load_more_related_questions',
 	            data: { question_id: question_id, num_to_load: numToLoad, offset: currentOffset },
 	            success: function (data) {
+
 	                if (data.similar_questions.length < numToLoad) {
 	                    similarQuestionLoadComplete = true;
 	                }
-	                else{
+
+	                if (data.similar_questions.length > 0) {
 						document.getElementById('main-similar-question-div').classList.remove('hidden');
 	                }
 

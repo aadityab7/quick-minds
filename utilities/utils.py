@@ -699,6 +699,7 @@ def add_similar_questions_to_this_question(
 	#add this to the similarity table
 	for similar_question in similar_questions[1:]:
 		if(similar_question[1] > 0.3):
+			print("INSERTing into Similar question", similar_question[0], similar_question[1])
 			cur.execute(query, (question_id, similar_question[0], similar_question[1]))
 			conn.commit()
 		else:
@@ -2305,8 +2306,6 @@ def question_step_text_extraction(
 	cur.close()
 	conn.close()
 
-	print(images)
-
 	if images is None:
 		return "OK"
 
@@ -2413,6 +2412,8 @@ def question_step_similar_question(
 		question_query = question_query + extracted_text
 
 	add_similar_questions_to_this_question(question_id = question_id, question_query = question_query)
+
+	print("Similar question search done!")
 
 	return "OK"
 
