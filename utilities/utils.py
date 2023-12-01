@@ -387,7 +387,8 @@ def extact_text_from_image(
 ):
 	#perform text extraction 
 	#and store the resulting text as alt text of images
-
+	print("perform extact_text_from_image")
+	
 	project_id = os.environ.get('PROJECT_ID')
 	location = os.environ.get('LOCATION')
 	processor_id = os.environ.get('PROCESSOR_ID')
@@ -2302,7 +2303,7 @@ def question_step_text_extraction(
 	conn.close()
 
 	if images is None:
-		images = []
+		return "OK"
 
 	extracted_text = []
 
