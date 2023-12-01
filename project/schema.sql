@@ -60,6 +60,7 @@ CREATE TABLE IF NOT EXISTS Question  (
     question_text text NOT NULL,
     tags text[5],
     question_query text,
+    extracted_text text,
     document_vectors tsvector
 ) INHERITS (Post);
 

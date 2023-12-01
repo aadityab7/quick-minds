@@ -387,7 +387,6 @@ def extact_text_from_image(
 ):
 	#perform text extraction 
 	#and store the resulting text as alt text of images
-	print("perform extact_text_from_image")
 	
 	project_id = os.environ.get('PROJECT_ID')
 	location = os.environ.get('LOCATION')
@@ -425,10 +424,14 @@ def extact_text_from_image(
 		mime_type=mime_type,  
 	)
 
+	#PremiumFeatures = documentai.OcrConfig.PremiumFeatures(enable_math_ocr = True)
+	#ocr_config = documentai.OcrConfig(premium_features = PremiumFeatures)
+	#process_options = documentai.ProcessOptions(ocr_config = ocr_config)
+
 	# Configure the process request
 	# `processor.name` is the full resource name of the processor, e.g.:
 	# `projects/{project_id}/locations/{location}/processors/{processor_id}`
-	request = documentai.ProcessRequest(name=name, raw_document=raw_document)
+	request = documentai.ProcessRequest(name=name, raw_document=raw_document) #, process_options = process_options)
 
 	result = client.process_document(request=request)
 
@@ -2302,6 +2305,8 @@ def question_step_text_extraction(
 	cur.close()
 	conn.close()
 
+	print(images)
+
 	if images is None:
 		return "OK"
 
@@ -2408,8 +2413,6 @@ def question_step_similar_question(
 		question_query = question_query + extracted_text
 
 	add_similar_questions_to_this_question(question_id = question_id, question_query = question_query)
-
-	print("similar question search done!")
 
 	return "OK"
 

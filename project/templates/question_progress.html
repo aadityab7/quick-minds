@@ -147,7 +147,6 @@
 		}
 
 		function perform_additional_steps() {
-			
 			$.ajax({
 	            type: 'POST',
 	            url: "{{url_for('question_step_ai_response', _external=True, _scheme='https')}}",
@@ -211,6 +210,7 @@
 	                console.error('Error in question_step_youtube_search:', error);
 	            }
 	        });
+
 		}
 
 		function redirect_to_question_details_page() {
