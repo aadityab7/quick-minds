@@ -187,7 +187,7 @@
                     </div>
                   </div>
 
-                  <div id="auth_buttons" class="flex gap-4 hidden {% if user_id and user_id != -1 %} sm:hidden {% else %} sm:block {% endif %}">
+                  <div id="auth_buttons" class="flex gap-4 hidden {% if user_id and user_id != -1 %} sm:hidden {% else %} md:block {% endif %}">
                     
                     <a id = "login_button" href="{{url_for('login')}}"> 
                       <button type="submit" class="rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">Log In</button>
