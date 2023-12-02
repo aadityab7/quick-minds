@@ -1,15 +1,10 @@
-DROP TABLE IF EXISTS ai_chat CASCADE;                     
 DROP TABLE IF EXISTS app_user CASCADE;                    
 DROP TABLE IF EXISTS article CASCADE;                     
 DROP TABLE IF EXISTS article_response CASCADE;            
-DROP TABLE IF EXISTS article_response_comment CASCADE;    
 DROP TABLE IF EXISTS article_response_vote CASCADE;       
 DROP TABLE IF EXISTS article_vote CASCADE;                
-DROP TABLE IF EXISTS chat_message CASCADE;                
-DROP TABLE IF EXISTS comment CASCADE;                     
 DROP TABLE IF EXISTS follow CASCADE;                      
-DROP TABLE IF EXISTS image CASCADE;                       
-DROP TABLE IF EXISTS notification CASCADE;                
+DROP TABLE IF EXISTS image CASCADE;                                      
 DROP TABLE IF EXISTS post CASCADE;                        
 DROP TABLE IF EXISTS post_vote CASCADE;                   
 DROP TABLE IF EXISTS question CASCADE;                    
@@ -23,7 +18,13 @@ DROP TABLE IF EXISTS related_video CASCADE;
 DROP TABLE IF EXISTS related_web_search_result CASCADE;   
 DROP TABLE IF EXISTS response CASCADE;                    
 DROP TABLE IF EXISTS tag CASCADE;                         
-DROP TABLE IF EXISTS user_tag CASCADE;                    
+DROP TABLE IF EXISTS user_tag CASCADE;     
+
+-- DROP TABLE IF EXISTS ai_chat CASCADE; 
+-- DROP TABLE IF EXISTS article_response_comment CASCADE;   
+-- DROP TABLE IF EXISTS chat_message CASCADE;                
+-- DROP TABLE IF EXISTS comment CASCADE;  
+-- DROP TABLE IF EXISTS notification CASCADE;                
 
 CREATE TABLE IF NOT EXISTS App_user  ( 
     user_id serial PRIMARY KEY,
@@ -360,101 +361,101 @@ VALUES
 
 CREATE EXTENSION pg_trgm;
 
-#Tables not to be used in the current version
+--Tables not to be used in the current version
 
-CREATE TABLE IF NOT EXISTS AI_chat  (
-    chat_id serial PRIMARY KEY,
-    response_id integer,
-    title text,
-    created_time timestamp DEFAULT CURRENT_TIMESTAMP,
+-- CREATE TABLE IF NOT EXISTS AI_chat  (
+--     chat_id serial PRIMARY KEY,
+--     response_id integer,
+--     title text,
+--     created_time timestamp DEFAULT CURRENT_TIMESTAMP,
 
-    CONSTRAINT fk_ai_chat_response
-        FOREIGN KEY(response_id) 
-        REFERENCES Response(response_id)
-        ON DELETE CASCADE
-);
+--     CONSTRAINT fk_ai_chat_response
+--         FOREIGN KEY(response_id) 
+--         REFERENCES Response(response_id)
+--         ON DELETE CASCADE
+-- );
 
-CREATE TABLE IF NOT EXISTS Chat_message  (
-    message_id serial PRIMARY KEY,
-    chat_id integer,
-    sender_user_id integer,
-    message_text text,
-    created_time timestamp DEFAULT CURRENT_TIMESTAMP,
+-- CREATE TABLE IF NOT EXISTS Chat_message  (
+--     message_id serial PRIMARY KEY,
+--     chat_id integer,
+--     sender_user_id integer,
+--     message_text text,
+--     created_time timestamp DEFAULT CURRENT_TIMESTAMP,
 
-    CONSTRAINT fk_chat_message_ai_chat
-        FOREIGN KEY(chat_id)
-        REFERENCES AI_chat(chat_id)
-        ON DELETE CASCADE,
+--     CONSTRAINT fk_chat_message_ai_chat
+--         FOREIGN KEY(chat_id)
+--         REFERENCES AI_chat(chat_id)
+--         ON DELETE CASCADE,
 
-    CONSTRAINT fk_chat_message_app_user
-        FOREIGN KEY(sender_user_id)
-        REFERENCES App_user(user_id)
-        ON DELETE CASCADE
-);
+--     CONSTRAINT fk_chat_message_app_user
+--         FOREIGN KEY(sender_user_id)
+--         REFERENCES App_user(user_id)
+--         ON DELETE CASCADE
+-- );
 
-CREATE TABLE IF NOT EXISTS Comment  (
-    comment_id serial PRIMARY KEY,
-    response_id integer, 
-    user_id integer, 
-    comment_text text NOT NULL, 
-    created_time timestamp DEFAULT CURRENT_TIMESTAMP,
+-- CREATE TABLE IF NOT EXISTS Comment  (
+--     comment_id serial PRIMARY KEY,
+--     response_id integer, 
+--     user_id integer, 
+--     comment_text text NOT NULL, 
+--     created_time timestamp DEFAULT CURRENT_TIMESTAMP,
     
-    CONSTRAINT fk_comment_response
-        FOREIGN KEY(response_id) 
-        REFERENCES Response(response_id)
-        ON DELETE CASCADE,
+--     CONSTRAINT fk_comment_response
+--         FOREIGN KEY(response_id) 
+--         REFERENCES Response(response_id)
+--         ON DELETE CASCADE,
 
-    CONSTRAINT fk_comment_app_user
-        FOREIGN KEY(user_id) 
-        REFERENCES App_user(user_id)
-        ON DELETE CASCADE
-);
+--     CONSTRAINT fk_comment_app_user
+--         FOREIGN KEY(user_id) 
+--         REFERENCES App_user(user_id)
+--         ON DELETE CASCADE
+-- );
 
-CREATE TABLE Article_Response_Comment (
-    article_response_comment_id serial PRIMARY KEY,
-    article_response_id integer, 
-    user_id integer, 
-    comment_text text NOT NULL, 
-    created_time timestamp DEFAULT CURRENT_TIMESTAMP,
+-- CREATE TABLE Article_Response_Comment (
+--     article_response_comment_id serial PRIMARY KEY,
+--     article_response_id integer, 
+--     user_id integer, 
+--     comment_text text NOT NULL, 
+--     created_time timestamp DEFAULT CURRENT_TIMESTAMP,
     
-    CONSTRAINT fk_article_response_comment_article_response
-        FOREIGN KEY(article_response_id) 
-        REFERENCES Article_Response(article_response_id)
-        ON DELETE CASCADE,
+--     CONSTRAINT fk_article_response_comment_article_response
+--         FOREIGN KEY(article_response_id) 
+--         REFERENCES Article_Response(article_response_id)
+--         ON DELETE CASCADE,
 
-    CONSTRAINT fk_article_response_comment_app_user
-        FOREIGN KEY(user_id) 
-        REFERENCES App_user(user_id)
-        ON DELETE CASCADE
-);
+--     CONSTRAINT fk_article_response_comment_app_user
+--         FOREIGN KEY(user_id) 
+--         REFERENCES App_user(user_id)
+--         ON DELETE CASCADE
+-- );
 
-CREATE TABLE Notification (
-    notification_id serial PRIMARY KEY,
-    author_user_id integer NOT NULL,
-    interacting_user_id integer NOT NULL,
-    question_id integer,
-    article_id integer,
-    message text NOT NULL,
+-- CREATE TABLE Notification (
+--     notification_id serial PRIMARY KEY,
+--     author_user_id integer NOT NULL,
+--     interacting_user_id integer NOT NULL,
+--     question_id integer,
+--     article_id integer,
+--     message text NOT NULL,
 
-    created_time timestamp DEFAULT CURRENT_TIMESTAMP,
+--     created_time timestamp DEFAULT CURRENT_TIMESTAMP,
 
-    CONSTRAINT fk_notification_app_user_one
-        FOREIGN KEY(author_user_id) 
-        REFERENCES App_user(user_id)
-        ON DELETE CASCADE,
+--     CONSTRAINT fk_notification_app_user_one
+--         FOREIGN KEY(author_user_id) 
+--         REFERENCES App_user(user_id)
+--         ON DELETE CASCADE,
 
-    CONSTRAINT fk_notification_app_user_two
-        FOREIGN KEY(interacting_user_id) 
-        REFERENCES App_user(user_id)
-        ON DELETE CASCADE,
+--     CONSTRAINT fk_notification_app_user_two
+--         FOREIGN KEY(interacting_user_id) 
+--         REFERENCES App_user(user_id)
+--         ON DELETE CASCADE,
 
-    CONSTRAINT fk_notification_question
-        FOREIGN KEY(question_id) 
-        REFERENCES Question(question_id)
-        ON DELETE CASCADE,
+--     CONSTRAINT fk_notification_question
+--         FOREIGN KEY(question_id) 
+--         REFERENCES Question(question_id)
+--         ON DELETE CASCADE,
 
-    CONSTRAINT fk_notification_article
-        FOREIGN KEY(article_id) 
-        REFERENCES Article(article_id)
-        ON DELETE CASCADE
-);
+--     CONSTRAINT fk_notification_article
+--         FOREIGN KEY(article_id) 
+--         REFERENCES Article(article_id)
+--         ON DELETE CASCADE
+-- );

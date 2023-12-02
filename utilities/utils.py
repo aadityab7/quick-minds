@@ -70,6 +70,20 @@ def get_user_questions_activity(
 	limit: int,
 	offset: int
 ):
+	"""
+		Get the questions asked by a user
+		parameters:
+			- user_id: int - the user making the request
+			- target_user_id: int - questions for this user are needed
+			- limit: int - how many questions to fetch
+			- offset: int - how many question to skip from beginning
+		returns:
+			- list of questions: with these keys in each question:
+				"question_id", "question_title", "vote_counter", 
+				"response_counter","created_time", "tags",
+				"user_id", "user_name", "picture_url", "following"
+	"""
+	
 	conn = get_db_connection()
 	cur = conn.cursor()
 	

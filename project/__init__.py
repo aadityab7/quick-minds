@@ -34,9 +34,18 @@ def too_large(e):
 @app.route('/', methods = ('GET', 'POST'))
 @app.route('/home', methods = ('GET', 'POST'))
 def index():
+	"""
+		when the routes '/' (default) or '/home' are visited
+		call the index function
+	"""
 	if session.get('user_id') and session.get('user_id') != -1: 
+		#if user is logged in
+		#redirect to the questions page
 		return redirect(url_for("questions"))
 	else:
+		#if user is not logged in
+		#set dummy session variables
+		#and redirect to the landing page
 		session["user_id"] = -1
 		session['user_name'] = ""
 		session['user_picture_url'] = ""
@@ -81,11 +90,25 @@ def get_profile_info():
 
 @app.route('/get_user_questions_activity', methods = ['POST'])
 def get_user_questions_activity():
+	"""
+		API endpoint which can only be accessed using POST method
+		1. Extract form data embedded in the POST request 
+			- target_user_id: int
+			- limit: int
+			- offset: int
+		2. use utility function to perform required operations
+		3. return the resultant data back in the JSON format
+	"""
 	target_user_id = int(request.form.get('target_user_id'))
 	limit = int(request.form.get('num_to_load'))
 	offset = int(request.form.get('offset'))
 
-	questions = utils.get_user_questions_activity(user_id = session['user_id'], target_user_id = target_user_id, limit = limit, offset = offset)
+	questions = utils.get_user_questions_activity(
+		user_id = session['user_id'], 
+		target_user_id = target_user_id, 
+		limit = limit, 
+		offset = offset
+	)
 
 	return jsonify({'questions': questions})
 
@@ -115,7 +138,12 @@ def get_user_article_activity():
 	limit = int(request.form.get('num_to_load'))
 	offset = int(request.form.get('offset'))
 
-	articles = utils.get_user_article_activity(user_id = session['user_id'], target_user_id = target_user_id, limit = limit, offset = offset)
+	articles = utils.get_user_article_activity(
+		user_id = session['user_id'], 
+		target_user_id = target_user_id, 
+		limit = limit, 
+		offset = offset
+	)
 
 	return jsonify({'articles': articles})
 
@@ -547,13 +575,14 @@ def vote_unvote():
 
 @app.route('/load_more_questions', methods = ['POST'])
 def load_more_questions():
-	# Get the number of transactions to load and offset from the request
+	# Get the number of questions to load and offset from the request
 	num_to_load = int(request.form.get('num_to_load', 10))
 	offset = int(request.form.get('offset', 0))
 
 	questions = utils.load_more_questions(
 					user_id = session['user_id'], 
-					num_to_load = num_to_load, offset = offset
+					num_to_load = num_to_load, 
+					offset = offset
 				)
 
 	return jsonify({'questions': questions})
