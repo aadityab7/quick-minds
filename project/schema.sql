@@ -76,54 +76,6 @@ CREATE TABLE IF NOT EXISTS Response  (
         ON DELETE CASCADE
 ) INHERITS (Post);
 
-CREATE TABLE IF NOT EXISTS AI_chat  (
-    chat_id serial PRIMARY KEY,
-    response_id integer,
-    title text,
-    created_time timestamp DEFAULT CURRENT_TIMESTAMP,
-
-    CONSTRAINT fk_ai_chat_response
-        FOREIGN KEY(response_id) 
-        REFERENCES Response(response_id)
-        ON DELETE CASCADE
-);
-
-CREATE TABLE IF NOT EXISTS Chat_message  (
-    message_id serial PRIMARY KEY,
-    chat_id integer,
-    sender_user_id integer,
-    message_text text,
-    created_time timestamp DEFAULT CURRENT_TIMESTAMP,
-
-    CONSTRAINT fk_chat_message_ai_chat
-        FOREIGN KEY(chat_id)
-        REFERENCES AI_chat(chat_id)
-        ON DELETE CASCADE,
-
-    CONSTRAINT fk_chat_message_app_user
-        FOREIGN KEY(sender_user_id)
-        REFERENCES App_user(user_id)
-        ON DELETE CASCADE
-);
-
-CREATE TABLE IF NOT EXISTS Comment  (
-    comment_id serial PRIMARY KEY,
-    response_id integer, 
-    user_id integer, 
-    comment_text text NOT NULL, 
-    created_time timestamp DEFAULT CURRENT_TIMESTAMP,
-    
-    CONSTRAINT fk_comment_response
-        FOREIGN KEY(response_id) 
-        REFERENCES Response(response_id)
-        ON DELETE CASCADE,
-
-    CONSTRAINT fk_comment_app_user
-        FOREIGN KEY(user_id) 
-        REFERENCES App_user(user_id)
-        ON DELETE CASCADE
-);
-
 CREATE TABLE IF NOT EXISTS Image  (
     image_id serial PRIMARY KEY,
     url text NOT NULL,
@@ -366,24 +318,6 @@ CREATE TABLE Article_Response_Vote (
     PRIMARY KEY (article_response_id, user_id)
 );
 
-CREATE TABLE Article_Response_Comment (
-    article_response_comment_id serial PRIMARY KEY,
-    article_response_id integer, 
-    user_id integer, 
-    comment_text text NOT NULL, 
-    created_time timestamp DEFAULT CURRENT_TIMESTAMP,
-    
-    CONSTRAINT fk_article_response_comment_article_response
-        FOREIGN KEY(article_response_id) 
-        REFERENCES Article_Response(article_response_id)
-        ON DELETE CASCADE,
-
-    CONSTRAINT fk_article_response_comment_app_user
-        FOREIGN KEY(user_id) 
-        REFERENCES App_user(user_id)
-        ON DELETE CASCADE
-);
-
 CREATE TABLE User_Tag (
     tag_name text NOT NULL,
     user_id integer NOT NULL,
@@ -408,6 +342,89 @@ CREATE TABLE User_Tag (
     CONSTRAINT fk_user_tag_question
         FOREIGN KEY(question_id)
         REFERENCES Question(question_id)
+        ON DELETE CASCADE
+);
+
+CREATE INDEX idx_question_doc_vec ON Question USING gin(document_vectors);
+CREATE INDEX idx_article_doc_vec ON Article USING gin(document_vectors);
+
+INSERT INTO App_user 
+    (user_id, username, name, about) 
+VALUES 
+    (0, 'google_vertex_ai', 'Google Vertex AI', 'Generative AI chat bot by Google which provides quick first response to user questions.');
+
+INSERT INTO App_user 
+    (user_id, username, name, about) 
+VALUES 
+    (1, 'openai_chat_gpt', 'OpenAI Chat GOT', 'Generative AI chat bot by OpenAI which provides quick first response to user questions.');
+
+CREATE EXTENSION pg_trgm;
+
+#Tables not to be used in the current version
+
+CREATE TABLE IF NOT EXISTS AI_chat  (
+    chat_id serial PRIMARY KEY,
+    response_id integer,
+    title text,
+    created_time timestamp DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT fk_ai_chat_response
+        FOREIGN KEY(response_id) 
+        REFERENCES Response(response_id)
+        ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS Chat_message  (
+    message_id serial PRIMARY KEY,
+    chat_id integer,
+    sender_user_id integer,
+    message_text text,
+    created_time timestamp DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT fk_chat_message_ai_chat
+        FOREIGN KEY(chat_id)
+        REFERENCES AI_chat(chat_id)
+        ON DELETE CASCADE,
+
+    CONSTRAINT fk_chat_message_app_user
+        FOREIGN KEY(sender_user_id)
+        REFERENCES App_user(user_id)
+        ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS Comment  (
+    comment_id serial PRIMARY KEY,
+    response_id integer, 
+    user_id integer, 
+    comment_text text NOT NULL, 
+    created_time timestamp DEFAULT CURRENT_TIMESTAMP,
+    
+    CONSTRAINT fk_comment_response
+        FOREIGN KEY(response_id) 
+        REFERENCES Response(response_id)
+        ON DELETE CASCADE,
+
+    CONSTRAINT fk_comment_app_user
+        FOREIGN KEY(user_id) 
+        REFERENCES App_user(user_id)
+        ON DELETE CASCADE
+);
+
+CREATE TABLE Article_Response_Comment (
+    article_response_comment_id serial PRIMARY KEY,
+    article_response_id integer, 
+    user_id integer, 
+    comment_text text NOT NULL, 
+    created_time timestamp DEFAULT CURRENT_TIMESTAMP,
+    
+    CONSTRAINT fk_article_response_comment_article_response
+        FOREIGN KEY(article_response_id) 
+        REFERENCES Article_Response(article_response_id)
+        ON DELETE CASCADE,
+
+    CONSTRAINT fk_article_response_comment_app_user
+        FOREIGN KEY(user_id) 
+        REFERENCES App_user(user_id)
         ON DELETE CASCADE
 );
 
@@ -441,18 +458,3 @@ CREATE TABLE Notification (
         REFERENCES Article(article_id)
         ON DELETE CASCADE
 );
-
-CREATE INDEX idx_question_doc_vec ON Question USING gin(document_vectors);
-CREATE INDEX idx_article_doc_vec ON Article USING gin(document_vectors);
-
-INSERT INTO App_user 
-    (user_id, username, name, about) 
-VALUES 
-    (0, 'google_vertex_ai', 'Google Vertex AI', 'Generative AI chat bot by Google which provides quick first response to user questions.');
-
-INSERT INTO App_user 
-    (user_id, username, name, about) 
-VALUES 
-    (1, 'openai_chat_gpt', 'OpenAI Chat GOT', 'Generative AI chat bot by OpenAI which provides quick first response to user questions.');
-
-CREATE EXTENSION pg_trgm;
