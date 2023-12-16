@@ -862,7 +862,7 @@ def search():
 @app.route('/login')
 def login():
 	if session.get('user_id') and session.get('user_id') != -1:
-		return redirect('index')
+		return redirect(url_for('index'))
 	else:
 		session['user_id'] = -1
 		session['user_name'] = ""

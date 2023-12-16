@@ -5,14 +5,31 @@ import requests
 import re
 import ast
 
-import vertexai
-from vertexai.language_models import TextGenerationModel
+import random
 
+#text extraction libs
 from google.api_core.client_options import ClientOptions
 from google.cloud import documentai  # type: ignore
 
-#from openai import OpenAI
+#Palm 2 text generation
+import vertexai
+from vertexai.language_models import TextGenerationModel
 
+#Gemini Pro
+#from vertexai.generative_models import GenerativeModel, Part
+from vertexai.preview.generative_models import GenerativeModel, Part
+
+def get_chat_response(message):
+	try:
+		vertexai.init(project=os.environ.get('PROJECT_ID'), location="us-central1")
+		model = GenerativeModel("gemini-pro")
+		chat = model.start_chat()
+		response = chat.send_message(message)
+		return response.text
+	except Exception as e:
+		return "can't respond to that question"
+	
+#from openai import OpenAI
 def generate_openai_chatgpt_response(
 	question_query: str
 ):
@@ -339,6 +356,10 @@ def add_question(
 	question_tags = question_tags.lower()
 	question_tags = [tag.strip() for tag in question_tags.split(',')]
 	question_tags_set = set(question_tags)
+	
+	if '' in question_tags_set: 
+		question_tags_set.remove('')
+
 	question_tags = re.sub(r"[']", "", str(question_tags_set))
 
 	question_query = question_title + " " + question_text + " " + question_tags
@@ -478,7 +499,7 @@ def add_quiz_to_db(
 
 	query = """
 		INSERT INTO Quiz_Question 
-			(quiz_id, question_text, option_1, option_2, option_3, option_4, correct_answer) 
+			(quiz_id, question_text, options, correct_answer) 
 		VALUES 
 			(%s, %s, %s, %s, %s, %s, %s)
 	"""
@@ -488,18 +509,40 @@ def add_quiz_to_db(
 		if 'options' in question.keys():
 			options = question.get('options')
 		else:
-			options = question.get('list_of_4_options')
+			options = question.get('list_of_options')
+
+		number_of_options = len(options)
+		correct_answer = question.get('correct_answer')
+		correct_option = -1
+
+		for i, current_option in enumerate(options):
+			if correct_answer == current_option:
+				correct_option = i
+		
+		#randomly shuffle the correct answer with another answer
+		if correct_option != -1:
+			choosen_position = random.randrange(number_of_options)
+			#swap positions 
+			print("correct_option: ", correct_option)
+			print("choosen_position: ", choosen_position)
+			options[choosen_position], options[correct_option] = options[correct_option], options[choosen_position]
+			correct_option = choosen_position
+
+		#then just store all the options as an text array
+		print("data to be stored: ")
+		print(quiz_id)
+		print(question['question_text'])
+		print(options)
+		print(correct_option)
+		print()
 
 		cur.execute(
 			query, 
 			(
 				quiz_id, 
 				question['question_text'], 
-				options[0], 
-				options[1], 
-				options[2], 
-				options[3], 
-				question['correct_option_number']
+				options, 
+				correct_option
 			)
 		)
 		conn.commit()
@@ -1073,6 +1116,10 @@ def generate_google_vertexai_response(
 	top_p: float = 0.8,
 	top_k: int = 40
 ):	
+	prompt = f"generate a infomative response for the following question and it needs to be such that no followups are needed because that's not a feature we have : {question_query}"
+	
+	#Palm2
+	'''
 	model = TextGenerationModel.from_pretrained("text-bison@001")
 
 	parameters = {
@@ -1082,11 +1129,16 @@ def generate_google_vertexai_response(
 					"top_k": top_k
 				}
 
-	prompt = f"generate a infomative response for the following question and try to answer it such that no followups are needed : {question_query}"
 
-	response = model.predict(prompt, **parameters,)
-
+	response = model.predict(prompt, **parameters,) 
+	
 	result = markdown.markdown(response.text)
+	
+	'''
+
+	#Gemini
+	response = get_chat_response(message = prompt)
+	result = markdown.markdown(response)
 
 	return result
 
@@ -1206,6 +1258,12 @@ def generate_quiz_questions(
 	}
 	"""
 
+	quiz_questions_format = "{questions : [question_text: text of the question, list_of_options: a list of possible options, correct_answer: one correct answer out of the options]}"
+
+	prompt = f"(there are the following difficulty levels: basic level = easy practice questions, intermediate level = school exam questions and advanced level = job interview questions). Generate {number_of_questions} quiz questions for the following topics with associated difficulty levels = {topic_level_pairs}. Respond using JSON = {quiz_questions_format}. Return only the JSON and nothing else."
+
+	#Palm2
+	'''
 	model = TextGenerationModel.from_pretrained("text-bison@001")
 
 	parameters = {
@@ -1214,14 +1272,13 @@ def generate_quiz_questions(
 					"top_p": top_p,
 					"top_k": top_k
 	}
-
-	quiz_questions_format = "{questions : [question_text, list_of_4_options, correct_option_number]}"
-
-	prompt = f"Generate {number_of_questions} quiz questions for the following topics with associated difficulty level = {topic_level_pairs}. Respond using JSON = {quiz_questions_format}. Return only the JSON and nothing else."
-
+	
 	response = model.predict(prompt, **parameters,)
-
+	
 	response_text = response.text
+	'''
+
+	response_text = get_chat_response(prompt)
 
 	print("response of quiz generation request")
 	print(response_text)
@@ -1361,10 +1418,7 @@ def get_quiz_questions(
 		SELECT 
 			quiz_question_id, 
 			question_text, 
-			option_1, 
-			option_2, 
-			option_3, 
-			option_4
+			options
 		FROM Quiz_Question
 		WHERE quiz_id = %s
 		ORDER BY quiz_question_id 
@@ -1383,10 +1437,7 @@ def get_quiz_questions(
 	quiz_question_keys = (
 		"quiz_question_id", 
 		"question_text", 
-		"option_1", 
-		"option_2", 
-		"option_3", 
-		"option_4", 
+		"options"
 	)
 	quiz_questions = [dict(zip(quiz_question_keys, quiz_question)) for quiz_question in quiz_questions]
 
@@ -2660,6 +2711,7 @@ def add_article(
 	tags = tags.lower()
 	tags = [tag.strip() for tag in tags.split(',')]
 	article_tags_set = set(tags)
+	article_tags_set.remove('')
 	tags = re.sub(r"[']", "", str(article_tags_set))
 	
 	description = contents[:200] 

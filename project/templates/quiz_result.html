@@ -135,20 +135,20 @@
 
 
 	                        
-	                        if(quiz_question.correct_answer === 1){
+	                        if(quiz_question.correct_answer === 0){
 	                        	clone.querySelector("#option_1_label").classList.add('text-green-400');
 	                        }
-	                        else if(quiz_question.correct_answer === 2){
+	                        else if(quiz_question.correct_answer === 1){
 	                        	clone.querySelector("#option_2_label").classList.add('text-green-400');
 	                        }
-	                        else if(quiz_question.correct_answer === 3){
+	                        else if(quiz_question.correct_answer === 2){
 	                        	clone.querySelector("#option_3_label").classList.add('text-green-400');
 	                        }
-							else if(quiz_question.correct_answer === 4){
+							else if(quiz_question.correct_answer === 3){
 	                        	clone.querySelector("#option_4_label").classList.add('text-green-400');
 	                        }
 
-	                        if(quiz_question.user_response === quiz_question.correct_answer){
+	                        if(quiz_question.user_response === quiz_question.correct_answer + 1){
 	                        	//correct
 	                        	switch (quiz_question.user_response) {
 	                        		case 1:
