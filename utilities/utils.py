@@ -501,7 +501,7 @@ def add_quiz_to_db(
 		INSERT INTO Quiz_Question 
 			(quiz_id, question_text, options, correct_answer) 
 		VALUES 
-			(%s, %s, %s, %s, %s, %s, %s)
+			(%s, %s, %s, %s)
 	"""
 
 	for question in quiz_ai_response['questions']:
@@ -523,18 +523,8 @@ def add_quiz_to_db(
 		if correct_option != -1:
 			choosen_position = random.randrange(number_of_options)
 			#swap positions 
-			print("correct_option: ", correct_option)
-			print("choosen_position: ", choosen_position)
 			options[choosen_position], options[correct_option] = options[correct_option], options[choosen_position]
 			correct_option = choosen_position
-
-		#then just store all the options as an text array
-		print("data to be stored: ")
-		print(quiz_id)
-		print(question['question_text'])
-		print(options)
-		print(correct_option)
-		print()
 
 		cur.execute(
 			query, 
@@ -1486,10 +1476,7 @@ def get_quiz_results(
 		SELECT
 			Quiz_Question.quiz_question_id, 
 			Quiz_Question.question_text, 
-			Quiz_Question.option_1, 
-			Quiz_Question.option_2, 
-			Quiz_Question.option_3, 
-			Quiz_Question.option_4, 
+			Quiz_Question.options, 
 			Quiz_Question.correct_answer, 
 			user_res.user_response 
 		FROM User_Res
@@ -1524,10 +1511,7 @@ def get_quiz_results(
 	quiz_result_keys = (
 		"quiz_question_id", 
 		"question_text", 
-		"option_1", 
-		"option_2", 
-		"option_3", 
-		"option_4", 
+		"options", 
 		"correct_answer", 
 		"user_response"
 	)
