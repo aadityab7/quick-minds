@@ -725,14 +725,14 @@ def create_custom_quiz():
 				user_picture_url = session['user_picture_url']
 			)
 		else:
-			number_of_topics = len(request.form) // 2
+			number_of_topics = int(request.form.get("max_topic_number"))
 			topic_level_pairs = dict()
 
 			for i in range(1, number_of_topics + 1):
-				topic_name = request.form.get(f"topic_name_{i}")
-				difficulty_level = request.form.get(f"difficulty_level_{i}")
-
-				topic_level_pairs[topic_name] = difficulty_level
+				topic_name = request.form.get(f"topicname_{i}")
+				if topic_name is not None:
+					difficulty_level = request.form.get(f"difficultylevel_{i}")
+					topic_level_pairs[topic_name] = difficulty_level
 
 			quiz_id = utils.generate_quiz_questions(user_id = session['user_id'], topic_level_pairs = topic_level_pairs)
 

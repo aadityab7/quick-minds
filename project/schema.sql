@@ -18,7 +18,7 @@ DROP TABLE IF EXISTS related_video CASCADE;
 DROP TABLE IF EXISTS related_web_search_result CASCADE;   
 DROP TABLE IF EXISTS response CASCADE;                    
 DROP TABLE IF EXISTS tag CASCADE;                         
-DROP TABLE IF EXISTS user_tag CASCADE;     
+DROP TABLE IF EXISTS user_tag CASCADE;
 
 -- DROP TABLE IF EXISTS ai_chat CASCADE; 
 -- DROP TABLE IF EXISTS article_response_comment CASCADE;   
@@ -193,10 +193,7 @@ CREATE TABLE Quiz_Question (
     quiz_question_id serial PRIMARY KEY, 
     quiz_id integer,
     question_text text,
-    option_1 text,
-    option_2 text,
-    option_3 text,
-    option_4 text,
+    options text[4],
     correct_answer integer,
 
     CONSTRAINT fk_quiz_question_quiz
