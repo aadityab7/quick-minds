@@ -355,13 +355,17 @@ def add_question(
 
 	question_tags = question_tags.lower()
 	question_tags = [tag.strip() for tag in question_tags.split(',')]
+
 	question_tags_set = set(question_tags)
-	
+
 	if '' in question_tags_set: 
 		question_tags_set.remove('')
 
-	question_tags = re.sub(r"[']", "", str(question_tags_set))
-
+	if len(question_tags_set):
+		question_tags = re.sub(r"[']", "", str(question_tags_set))
+	else:
+		question_tags = "{}"
+	
 	question_query = question_title + " " + question_text + " " + question_tags
 
 	#we have to remove images from this query to perform search 
@@ -2714,8 +2718,11 @@ def add_article(
 	if '' in article_tags_set: 
 		article_tags_set.remove('')
 	
-	tags = re.sub(r"[']", "", str(article_tags_set))
-	
+	if len(article_tags_set):
+		tags = re.sub(r"[']", "", str(article_tags_set))
+	else:
+		tags = "{}"
+		
 	description = contents[:200] 
 
 	if len(contents) > 200:
