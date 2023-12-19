@@ -40,11 +40,14 @@
 			<div id = "question-details-div" class="mt-8 grid grid-cols-12 items-start gap-2 sm:gap-0">
 				<div id = "question_votes" class="col-span-1 align-center justify-center">
 					<div class="flex mb-2 align-center justify-center">
-						<button >
+						<button 
+							id = "question_upvote_button"
+							data-question-id = {{question.question_id}} 
+							class="w-4 h-4 sm:w-6 sm:h-6 text-gray-800 hover:text-indigo-500 {%if (question['my_vote'] == 1)%} text-indigo-500 {%endif%}" 
+						>
 							<svg 
-								id = "question_upvote_button"
-								data-question-id = {{question.question_id}} 
-								class="w-4 h-4 sm:w-6 sm:h-6 text-gray-800 hover:text-indigo-500 {%if (question['my_vote'] == 1)%} text-indigo-500 {%endif%}" aria-hidden="true" 
+								pointer-events="none"
+								aria-hidden="true" 
 								xmlns="http://www.w3.org/2000/svg" 
 								fill="none" 
 								viewBox="0 0 10 6"
@@ -62,11 +65,14 @@
 					</div>
 	  				
 					<div class="flex mt-2 align-center justify-center">
-						<button>
+						<button
+							id = "question_downvote_button"
+							data-question-id = {{question.question_id}} 
+							class="w-4 h-4 sm:w-6 sm:h-6 text-gray-800 hover:text-indigo-500 {%if (question['my_vote'] == -1)%} text-indigo-500 {%endif%}" 
+						>
 							<svg 
-								id = "question_downvote_button"
-								data-question-id = {{question.question_id}} 
-								class="w-4 h-4 sm:w-6 sm:h-6 text-gray-800 hover:text-indigo-500 {%if (question['my_vote'] == -1)%} text-indigo-500 {%endif%}" aria-hidden="true" 
+								pointer-events="none"
+								aria-hidden="true" 
 								xmlns="http://www.w3.org/2000/svg" 
 								fill="none" 
 								viewBox="0 0 10 6"
@@ -114,14 +120,17 @@
 						
 						<div id = 'response-votes' class="py-4 col-span-1 align-center justify-center">
 							<div class="flex mb-2 align-center justify-center">
-								<button>
+								<button
+									id = "response_upvote_button"
+									data-question-id = ""
+									class="w-4 h-4 sm:w-6 sm:h-6 text-gray-800 hover:text-indigo-500"
+								>
 									<svg 
-										id = "response_upvote_button"
-										data-question-id = ""
-										class="w-4 h-4 sm:w-6 sm:h-6 text-gray-800 hover:text-indigo-500" aria-hidden="true" 
+										aria-hidden="true" 
 										xmlns="http://www.w3.org/2000/svg" 
 										fill="none" 
 										viewBox="0 0 10 6"
+										pointer-events="none"
 									>
 										<path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5 5 1 1 5"/>
 									</svg>
@@ -133,14 +142,16 @@
 							</div>
 			  				
 							<div class="flex mt-2 align-center justify-center">
-								<button>
+								<button
+									id = "response_downvote_button"
+									data-question-id = ""
+									class="w-4 h-4 sm:w-6 sm:h-6 text-gray-800 hover:text-indigo-500" aria-hidden="true" 
+								>
 									<svg 
-										id = "response_downvote_button"
-										data-question-id = ""
-										class="w-4 h-4 sm:w-6 sm:h-6 text-gray-800 hover:text-indigo-500" aria-hidden="true" 
 										xmlns="http://www.w3.org/2000/svg" 
 										fill="none" 
 										viewBox="0 0 10 6"
+										pointer-events="none"
 									>
 										<path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 4 4 4-4"/>
 									</svg>

@@ -649,6 +649,8 @@ def add_response(
 	cur.execute(query, (question_id,))
 	conn.commit()
 
+	print("response addded to database sucessfully!!")
+
 	query = """
 		SELECT
 			Response.response_id, 
@@ -669,6 +671,9 @@ def add_response(
 	cur.execute(query, (user_id,))
 	response = cur.fetchone()
 
+	print("response selected for display!!")
+	print(response)
+
 	if response is None:
 		response = []
 
@@ -682,7 +687,15 @@ def add_response(
 		"user_name", 
 		"picture_url"
 	)
+
 	response = dict(zip(response_keys, response))
+
+	print(response.keys())
+	print(response['response_text'])
+
+	response['response_text'] = markdown.markdown(response['response_text'])
+
+	print(response['response_text'])
 
 	query = "SELECT question_title, user_id, response_counter FROM Question WHERE question_id = %s"
 	
@@ -709,7 +722,7 @@ def add_response(
 	cur.close()
 	conn.close()
 
-	response['response_text'] = markdown.markdown(response['response_text'])
+	
 
 	return response, question_response_counter
 
@@ -1130,6 +1143,8 @@ def generate_google_vertexai_response(
 	response = get_chat_response(message = prompt)
 	result = markdown.markdown(response)
 
+	print(f"AI response generated: {result}")
+
 	return result
 
 def generate_and_add_ai_response_question(
@@ -1142,7 +1157,7 @@ def generate_and_add_ai_response_question(
 	
 	vertex_response = generate_google_vertexai_response(question_query)
 
-	add_response(user_id =  0, question_id = question_id, response_text = vertex_response)
+	add_response(user_id = 0, question_id = question_id, response_text = vertex_response)
 
 def get_profile_info(
 	user_id: int,

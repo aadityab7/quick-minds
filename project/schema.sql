@@ -4,7 +4,7 @@ DROP TABLE IF EXISTS article_response CASCADE;
 DROP TABLE IF EXISTS article_response_vote CASCADE;       
 DROP TABLE IF EXISTS article_vote CASCADE;                
 DROP TABLE IF EXISTS follow CASCADE;                      
-DROP TABLE IF EXISTS image CASCADE;                                      
+DROP TABLE IF EXISTS image CASCADE;
 DROP TABLE IF EXISTS post CASCADE;                        
 DROP TABLE IF EXISTS post_vote CASCADE;                   
 DROP TABLE IF EXISTS question CASCADE;                    
@@ -352,9 +352,9 @@ VALUES
     (0, 'google_vertex_ai', 'Google Vertex AI', 'Generative AI chat bot by Google which provides quick first response to user questions.');
 
 INSERT INTO App_user 
-    (user_id, username, name, about) 
+    (username, name, about) 
 VALUES 
-    (1, 'openai_chat_gpt', 'OpenAI Chat GOT', 'Generative AI chat bot by OpenAI which provides quick first response to user questions.');
+    ('openai_chat_gpt', 'OpenAI Chat GOT', 'Generative AI chat bot by OpenAI which provides quick first response to user questions.');
 
 CREATE EXTENSION pg_trgm;
 
