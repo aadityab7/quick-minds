@@ -2710,7 +2710,10 @@ def add_article(
 	tags = tags.lower()
 	tags = [tag.strip() for tag in tags.split(',')]
 	article_tags_set = set(tags)
-	article_tags_set.remove('')
+
+	if '' in article_tags_set: 
+		article_tags_set.remove('')
+	
 	tags = re.sub(r"[']", "", str(article_tags_set))
 	
 	description = contents[:200] 
