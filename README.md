@@ -85,3 +85,9 @@ To view the live project visit [quick minds website](https://quick-minds-4czszj4
 16. Add user profile page (to display user's activity).
 
 17. Add functionality to follow other users.
+
+# Future Scope
+
+- Add support for multiple languages
+
+- Add Gamification to Quiz (Leaderboards)
